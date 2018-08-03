@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Mega.Crawler": {
+      "commandName": "Project",
+      "commandLineArgs": "https://www.microsoft.com/ru-ru/"
+    }
+  }
+}
