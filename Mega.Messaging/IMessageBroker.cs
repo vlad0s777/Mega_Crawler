@@ -5,5 +5,7 @@
         void Send(TMessage message);
 
         bool TryReceive(out TMessage message);
+
+        bool Task_done();
     }
 }

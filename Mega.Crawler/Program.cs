@@ -8,7 +8,7 @@
     using System.Text.RegularExpressions;
 
     using Messaging;
-
+    using Mega.Services;
     class Program
     {
         static void Main(string[] args)
@@ -21,61 +21,27 @@
                 rootUriString = Console.ReadLine();
             }
 
-            var messageBroker = new MessageBroker<Uri>();
-
+            Consumer cons = new Consumer();
+            Producer prod = new Producer();
+            
             Console.WriteLine($"Starting with {rootUriString}");
 
             // Preload
             var rootUri = new Uri(rootUriString, UriKind.Absolute);
-            messageBroker.Send(rootUri);
-            
-            const string hrefPattern = "href\\s*=\\s*(?:[\"'](?<uri>[^\"']*)[\"']|(?<uri>\\S+))";
+            const string hrefPattern = "href\\s*=\\s*(?:[\"'](?<uri>[^\"']*)[\"'])"; //|(?<uri>\\S+)
+            prod.Do_task(rootUri);
+            Worker work = new Worker();
 
-            // The Producer
-            void AnalyzeDocument(Uri documentUri, string documentBody)
+            while (!cons.Reports.Task_done() || !prod.Tasks.Task_done()) 
             {
-                var m = Regex.Match(documentBody, hrefPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
-
-                while (m.Success)
-                {
-                    try
-                    {
-                        var absUri = new Uri(documentUri, new Uri(m.Groups["uri"].Value, UriKind.RelativeOrAbsolute));
-                        messageBroker.Send(absUri);
-                    }
-                    catch (Exception)
-                    {
-                        Console.ResetColor();
-                        Console.WriteLine($"Ignoring {m.Value}");
-                    }
-
-                    m = m.NextMatch();
-                }
+                work.Consuming(cons, prod, rootUri);
+                work.Producing(cons, prod, hrefPattern);
             }
-            // end of the Producer
-
-            var visitedUrls = new HashSet<Uri>();
-            
-            // The Consumer
-            using (var client = new WebClient())
-            {
-                while (messageBroker.TryReceive(out var uri))
-                { 
-                    if (rootUri.IsBaseOf(uri) && visitedUrls.Add(uri))
-                    {
-                        var documentBody = client.DownloadString(uri);
-
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"OK {uri}");
-
-                        AnalyzeDocument(uri, documentBody);
-                    }
-                }
-            }
-            // end of the Consumer
 
             Console.ResetColor();
-            Console.WriteLine($"All {visitedUrls.Count} urls done!");
+            Console.WriteLine($"All {work.visitedUrls.Count} urls done!");
+
+        
         }
     }
 }
