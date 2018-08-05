@@ -40,8 +40,6 @@
 
             Console.ResetColor();
             Console.WriteLine($"All {work.visitedUrls.Count} urls done!");
-
-        
         }
     }
 }
