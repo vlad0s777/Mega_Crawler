@@ -1,9 +1,8 @@
-﻿namespace Mega.Tests.Messaging
+﻿using Mega.Messaging;
+using NUnit.Framework;
+
+namespace Mega.Tests.Messaging
 {
-    using NUnit.Framework;
-
-    using Mega.Messaging;
-
     [TestFixture]
     public class MessageBrokerTests
     {
@@ -19,7 +18,7 @@
         {
             var queue = new MessageBroker<object>();
 
-            var original = new { Url = "http://someurl", Body = 8 };
+            var original = new {Url = "http://someurl", Body = 8};
 
             queue.Send(original);
 
@@ -28,7 +27,7 @@
         }
 
         [Test]
-        public void taskDoneTest() //проверка функции isEmpty класса MessageBroker
+        public void IsEmptyFunctionTest() 
         {
             //arrange
             var queue = new MessageBroker<object>();
@@ -36,9 +35,7 @@
             //act
             queue2.Send(new object());
             //assert
-            Assert.True(queue.isEmpty());
-            Assert.False(queue2.isEmpty());
+            Assert.IsTrue(queue.IsEmpty() && !queue2.IsEmpty());
         }
-
     }
 }

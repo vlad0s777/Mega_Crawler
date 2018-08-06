@@ -1,21 +1,26 @@
-﻿namespace Mega.Messaging
-{
-    using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
+namespace Mega.Messaging
+{
     public class MessageBroker<T> : IMessageBroker<T>
     {
+        private readonly Queue<T> _queue = new Queue<T>();
 
-        private readonly Queue<T> queue = new Queue<T>();
-
-        public bool TryReceive(out T message) => this.queue.TryDequeue(out message);
-
-        public void Send(T message) => this.queue.Enqueue(message);
-
-        public bool isEmpty()
+        public bool TryReceive(out T message)
         {
-            if (queue.Count == 0)
+            return _queue.TryDequeue(out message);
+        }
+
+        public void Send(T message)
+        {
+            _queue.Enqueue(message);
+        }
+
+        public bool IsEmpty()
+        {
+            if (_queue.Count == 0)
                 return true;
-            else return false;
+            return false;
         }
     }
 }

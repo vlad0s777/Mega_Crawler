@@ -6,6 +6,6 @@
 
         bool TryReceive(out TMessage message);
 
-        bool isEmpty();
+        bool IsEmpty();
     }
 }

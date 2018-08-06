@@ -1,17 +1,14 @@
-﻿namespace Mega.Crawler
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using Mega.Messaging;
+using Mega.Services;
+
+namespace Mega.Crawler
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Net;
-
-    using System.Text.RegularExpressions;
-
-    using Messaging;
-    using Mega.Services;
-    class Program
+    internal class Program
     {
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
             var rootUriString = args.FirstOrDefault();
 
@@ -21,25 +18,26 @@
                 rootUriString = Console.ReadLine();
             }
 
-            Consumer cons = new Consumer();
-            Producer prod = new Producer();
-            
+            var reports = new MessageBroker<UriBody>();
+            var messages = new MessageBroker<Uri>();
+
             Console.WriteLine($"Starting with {rootUriString}");
 
             // Preload
             var rootUri = new Uri(rootUriString, UriKind.Absolute);
             const string hrefPattern = "href\\s*=\\s*(?:[\"'](?<uri>[^\"']*)[\"'])"; //|(?<uri>\\S+)
-            prod.AddTask(rootUri);
-            Worker work = new Worker();
 
-            while (!cons.Reports.isEmpty() || !prod.Tasks.isEmpty()) 
+            var visitedUrls = new HashSet<Uri>();
+            var consumer = new Consumer(messages, reports, visitedUrls, rootUri);
+            var producer = new Producer(messages, reports, hrefPattern);
+            while (!reports.IsEmpty() || !messages.IsEmpty())
             {
-                work.Consuming(cons, prod, rootUri);
-                work.Producing(cons, prod, hrefPattern);
+                consumer.Work();
+                producer.Work();
             }
 
             Console.ResetColor();
-            Console.WriteLine($"All {work.visitedUrls.Count} urls done!");
+            Console.WriteLine($"All {visitedUrls.Count} urls done!");
         }
     }
 }
