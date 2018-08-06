@@ -22,8 +22,8 @@ namespace Mega.Services
         public MessageBroker <Uri> Tasks = new MessageBroker <Uri>(); //очередь задач
         public Producer() { }
         public Producer(MessageBroker <Uri> Tasks) => this.Tasks = Tasks; 
-        public void Do_task(Uri task) => this.Tasks.Send(task); //добавить задачу в очередь
-        public bool rep(out UriBody uri, Consumer cons) => cons.Reports.TryReceive(out uri); //убрать отчет в очереди отчетов у исполнителя
+        public void AddTask(Uri task) => this.Tasks.Send(task); //добавить задачу в очередь
+        public bool RepReceive(out UriBody uri, Consumer cons) => cons.Reports.TryReceive(out uri); //убрать отчет в очереди отчетов у исполнителя
     }
 
     public class Consumer
@@ -31,11 +31,11 @@ namespace Mega.Services
         public MessageBroker<UriBody> Reports = new MessageBroker<UriBody>(); //очередь отчетов
         public Consumer() { }
         public Consumer(MessageBroker<UriBody> Reports) => this.Reports = Reports;
-        public void Do_reports(UriBody task)  //добавить отчет в очередь
+        public void AddReport(UriBody task)  //добавить отчет в очередь
         {
             this.Reports.Send(task);
         } 
-        public bool task(out Uri uri, Producer prod) => prod.Tasks.TryReceive(out uri); //убрать задачу в очереди задач у заказчика
+        public bool TaskReceive(out Uri uri, Producer prod) => prod.Tasks.TryReceive(out uri); //убрать задачу в очереди задач у заказчика
     }
 
     public class Worker
@@ -46,14 +46,22 @@ namespace Mega.Services
             Uri uri;
             using (var client = new WebClient())
             {
-                while (cons.task(out uri, prod))
+                while (cons.TaskReceive(out uri, prod))
                 {
                     if (rootUri.IsBaseOf(uri) && visitedUrls.Add(uri))
                     {
-                        var documentBody = client.DownloadString(uri);
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"OK {uri}");
-                        cons.Do_reports(new UriBody(uri, documentBody));
+                        try
+                        {
+                            var documentBody = client.DownloadString(uri);
+                            Console.ForegroundColor = ConsoleColor.Green;
+                            Console.WriteLine($"OK {uri}");
+                            cons.AddReport(new UriBody(uri, documentBody));
+                        }
+                        catch (Exception)
+                        {
+                            Console.ForegroundColor = ConsoleColor.Red;
+                            Console.WriteLine($"NO {uri}");
+                        }
                     }
                 }
             }
@@ -63,31 +71,23 @@ namespace Mega.Services
         {
             UriBody uri;
 
-            while (prod.rep(out uri, cons))
+            while (prod.RepReceive(out uri, cons))
             {
-                try
-                {
                     var m = Regex.Match(uri.body, hrefPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
-                    while (m.Success)
-                    {
-                        try
-                        {
-                            var absUri = new Uri(uri.uri, new Uri(m.Groups["uri"].Value, UriKind.RelativeOrAbsolute));
-                            prod.Do_task(absUri);
-                        }
-                        catch (Exception)
-                        {
-                            Console.ResetColor();
-                            Console.WriteLine($"Ignoring {m.Value}");
-                        }
-
-                        m = m.NextMatch();
-                    }
-                }
-                catch (Exception)
+                while (m.Success)
                 {
-                    Console.ForegroundColor = ConsoleColor.Red;
-                    Console.WriteLine($"NO {uri}");
+                    try
+                    {
+                        var absUri = new Uri(uri.uri, new Uri(m.Groups["uri"].Value, UriKind.RelativeOrAbsolute));
+                        prod.AddTask(absUri);
+                    }
+                    catch (Exception)
+                    {
+                        Console.ResetColor();
+                        Console.WriteLine($"Ignoring {m.Value}");
+                    }
+
+                    m = m.NextMatch();
                 }
             }
         }

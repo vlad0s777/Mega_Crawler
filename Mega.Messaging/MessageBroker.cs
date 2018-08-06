@@ -11,7 +11,7 @@
 
         public void Send(T message) => this.queue.Enqueue(message);
 
-        public bool Task_done()
+        public bool isEmpty()
         {
             if (queue.Count == 0)
                 return true;

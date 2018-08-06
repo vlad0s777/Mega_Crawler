@@ -6,6 +6,6 @@
 
         bool TryReceive(out TMessage message);
 
-        bool Task_done();
+        bool isEmpty();
     }
 }

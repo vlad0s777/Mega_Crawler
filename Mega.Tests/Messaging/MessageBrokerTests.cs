@@ -27,5 +27,18 @@
             Assert.AreSame(original, dequeued);
         }
 
+        [Test]
+        public void taskDoneTest() //проверка функции isEmpty класса MessageBroker
+        {
+            //arrange
+            var queue = new MessageBroker<object>();
+            var queue2 = new MessageBroker<object>();
+            //act
+            queue2.Send(new object());
+            //assert
+            Assert.True(queue.isEmpty());
+            Assert.False(queue2.isEmpty());
+        }
+
     }
 }

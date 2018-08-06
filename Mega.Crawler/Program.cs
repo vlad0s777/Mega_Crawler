@@ -29,10 +29,10 @@
             // Preload
             var rootUri = new Uri(rootUriString, UriKind.Absolute);
             const string hrefPattern = "href\\s*=\\s*(?:[\"'](?<uri>[^\"']*)[\"'])"; //|(?<uri>\\S+)
-            prod.Do_task(rootUri);
+            prod.AddTask(rootUri);
             Worker work = new Worker();
 
-            while (!cons.Reports.Task_done() || !prod.Tasks.Task_done()) 
+            while (!cons.Reports.isEmpty() || !prod.Tasks.isEmpty()) 
             {
                 work.Consuming(cons, prod, rootUri);
                 work.Producing(cons, prod, hrefPattern);
