@@ -49,7 +49,8 @@ namespace Mega.Tests.Services
                 visitedUrls, rootUri, uri => "8");
             collectContent.Work();
             reports.TryReceive(out var receiveMessage);
-            Assert.AreEqual(receiveMessage, new UriBody(rootUri, "8"));
+            Assert.AreEqual(receiveMessage.Uri, rootUri);
+            Assert.AreEqual(receiveMessage.Body, "8");
         }
     }
 }

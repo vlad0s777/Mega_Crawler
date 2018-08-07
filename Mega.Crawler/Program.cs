@@ -28,14 +28,17 @@ namespace Mega.Crawler
             var rootUri = new Uri(rootUriString, UriKind.Absolute);
 
             var visitedUrls = new HashSet<Uri>();
-            var client = new WebClient();
-            var clientDelegate = new WebClientDelegate(client.DownloadString);
-            var consumer = new CollectContent(messages, reports, visitedUrls, rootUri, clientDelegate);
-            var producer = new UrlFinder(messages, reports);
-            while (!reports.IsEmpty() || !messages.IsEmpty())
+
+            using (var client = new WebClient())
             {
-                consumer.Work();
-                producer.Work();
+                var collectContent = new CollectContent(messages, reports, visitedUrls, rootUri,
+                    client.DownloadString);
+                var uriFinder = new UrlFinder(messages, reports);
+                while (!reports.IsEmpty() || !messages.IsEmpty())
+                {
+                    collectContent.Work();
+                    uriFinder.Work();
+                }
             }
 
             Console.ResetColor();

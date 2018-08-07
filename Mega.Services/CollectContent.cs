@@ -10,7 +10,7 @@ namespace Mega.Services
         private readonly MessageBroker<UriBody> _reports;
 
         public CollectContent(MessageBroker<Uri> messages, MessageBroker<UriBody> reports, HashSet<Uri> visitedUrls,
-            Uri rootUri, WebClientDelegate clientDelegate)
+            Uri rootUri, Func<Uri, string> clientDelegate)
         {
             _messages = messages;
             _reports = reports;
@@ -22,7 +22,7 @@ namespace Mega.Services
 
         private HashSet<Uri> VisitedUrls { get; }
         private Uri RootUri { get; }
-        private WebClientDelegate ClientDelegate { get; }
+        private Func<Uri, string> ClientDelegate { get; }
 
         public void Work()
         {

@@ -14,6 +14,19 @@ namespace Mega.Tests.Messaging
         }
 
         [Test]
+        public void IsEmptyFunctionTest()
+        {
+            //arrange
+            var queue = new MessageBroker<object>();
+            var queue2 = new MessageBroker<object>();
+            //act
+            queue2.Send(new object());
+            //assert
+            Assert.IsTrue(queue.IsEmpty());
+            Assert.IsFalse(queue2.IsEmpty());
+        }
+
+        [Test]
         public void ReturnsTheSame()
         {
             var queue = new MessageBroker<object>();
@@ -24,18 +37,6 @@ namespace Mega.Tests.Messaging
 
             Assert.IsTrue(queue.TryReceive(out var dequeued));
             Assert.AreSame(original, dequeued);
-        }
-
-        [Test]
-        public void IsEmptyFunctionTest() 
-        {
-            //arrange
-            var queue = new MessageBroker<object>();
-            var queue2 = new MessageBroker<object>();
-            //act
-            queue2.Send(new object());
-            //assert
-            Assert.IsTrue(queue.IsEmpty() && !queue2.IsEmpty());
         }
     }
 }

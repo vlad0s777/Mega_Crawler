@@ -18,7 +18,8 @@ namespace Mega.Tests.Services
             reports.Send(new UriBody(rootUri, body));
             var uriFinder = new UrlFinder(messages, reports);
             uriFinder.Work();
-            Assert.IsTrue(!messages.IsEmpty() && reports.IsEmpty());
+            Assert.IsFalse(messages.IsEmpty());
+            Assert.IsTrue(reports.IsEmpty());
         }
 
         [Test]
