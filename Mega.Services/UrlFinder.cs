@@ -4,23 +4,22 @@ using Mega.Messaging;
 
 namespace Mega.Services
 {
-    public class Producer
+    public class UrlFinder
     {
-        public Producer(MessageBroker<Uri> messages, MessageBroker<UriBody> reports, string hrefPattern)
+        private const string HrefPattern = "href\\s*=\\s*(?:[\"'](?<uri>[^\"']*)[\"'])";
+
+        private readonly MessageBroker<Uri> _messages;
+        private readonly MessageBroker<UriBody> _reports;
+
+        public UrlFinder(MessageBroker<Uri> messages, MessageBroker<UriBody> reports)
         {
-            Messages = messages;
-            Reports = reports;
-            HrefPattern = hrefPattern;
+            _messages = messages;
+            _reports = reports;
         }
-
-        public string HrefPattern { get; set; }
-
-        public MessageBroker<Uri> Messages { get; set; }
-        public MessageBroker<UriBody> Reports { get; set; }
 
         public void Work()
         {
-            while (Reports.TryReceive(out var uri))
+            while (_reports.TryReceive(out var uri))
             {
                 var m = Regex.Match(uri.Body, HrefPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
                 while (m.Success)
@@ -28,7 +27,7 @@ namespace Mega.Services
                     try
                     {
                         var absUri = new Uri(uri.Uri, new Uri(m.Groups["uri"].Value, UriKind.RelativeOrAbsolute));
-                        Messages.Send(absUri);
+                        _messages.Send(absUri);
                     }
                     catch (Exception)
                     {

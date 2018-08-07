@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using Mega.Messaging;
 using Mega.Services;
 
@@ -25,11 +26,12 @@ namespace Mega.Crawler
 
             // Preload
             var rootUri = new Uri(rootUriString, UriKind.Absolute);
-            const string hrefPattern = "href\\s*=\\s*(?:[\"'](?<uri>[^\"']*)[\"'])"; //|(?<uri>\\S+)
 
             var visitedUrls = new HashSet<Uri>();
-            var consumer = new Consumer(messages, reports, visitedUrls, rootUri);
-            var producer = new Producer(messages, reports, hrefPattern);
+            var client = new WebClient();
+            var clientDelegate = new WebClientDelegate(client.DownloadString);
+            var consumer = new CollectContent(messages, reports, visitedUrls, rootUri, clientDelegate);
+            var producer = new UrlFinder(messages, reports);
             while (!reports.IsEmpty() || !messages.IsEmpty())
             {
                 consumer.Work();
