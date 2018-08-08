@@ -24,10 +24,11 @@ namespace Mega.Services
         private Uri RootUri { get; }
         private Func<Uri, string> ClientDelegate { get; }
 
-        public bool Work()
+        public bool Work(int limit = -1)
         {
             while (_messages.TryReceive(out var uri))
             {
+                if (VisitedUrls.Count == limit) return false;
                 if (Console.KeyAvailable)
                     if (Console.ReadKey(true).Key == ConsoleKey.Enter)
                         return false;

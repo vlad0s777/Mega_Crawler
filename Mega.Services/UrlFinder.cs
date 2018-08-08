@@ -10,6 +10,7 @@ namespace Mega.Services
 
         private readonly MessageBroker<Uri> _messages;
         private readonly MessageBroker<UriBody> _reports;
+        private int _depth;
 
         public UrlFinder(MessageBroker<Uri> messages, MessageBroker<UriBody> reports)
         {
@@ -17,8 +18,15 @@ namespace Mega.Services
             _reports = reports;
         }
 
-        public bool Work()
+        public bool Work(int depth = -1)
         {
+            _depth++;
+            if (_depth == depth)
+            {
+                _depth--;
+                return false;
+            }
+
             while (_reports.TryReceive(out var uri))
             {
                 var m = Regex.Match(uri.Body, HrefPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
