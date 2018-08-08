@@ -36,13 +36,14 @@ namespace Mega.Crawler
                 var uriFinder = new UrlFinder(messages, reports);
                 while (!reports.IsEmpty() || !messages.IsEmpty())
                 {
-                    collectContent.Work();
-                    uriFinder.Work();
+                    if (!collectContent.Work() || !uriFinder.Work())
+                        break;
                 }
             }
 
             Console.ResetColor();
             Console.WriteLine($"All {visitedUrls.Count} urls done!");
+            Console.ReadLine();
         }
     }
 }

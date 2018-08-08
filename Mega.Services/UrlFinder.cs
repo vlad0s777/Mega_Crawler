@@ -17,13 +17,16 @@ namespace Mega.Services
             _reports = reports;
         }
 
-        public void Work()
+        public bool Work()
         {
             while (_reports.TryReceive(out var uri))
             {
                 var m = Regex.Match(uri.Body, HrefPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
                 while (m.Success)
                 {
+                    if (Console.KeyAvailable)
+                        if (Console.ReadKey(true).Key == ConsoleKey.Enter)
+                            return false;
                     try
                     {
                         var absUri = new Uri(uri.Uri, new Uri(m.Groups["uri"].Value, UriKind.RelativeOrAbsolute));
@@ -38,6 +41,8 @@ namespace Mega.Services
                     m = m.NextMatch();
                 }
             }
+
+            return true;
         }
     }
 }
