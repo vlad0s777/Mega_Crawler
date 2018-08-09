@@ -38,6 +38,9 @@ namespace Mega.Crawler
                 {
                     if (!collectContent.Work() || !uriFinder.Work())
                         break;
+                    if (Console.KeyAvailable)
+                        if (Console.ReadKey(true).Key == ConsoleKey.Enter)
+                            break;
                 }
             }
 

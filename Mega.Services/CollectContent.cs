@@ -27,10 +27,6 @@ namespace Mega.Services
         public bool Work()
         {
             while (_messages.TryReceive(out var uri))
-            {
-                if (Console.KeyAvailable)
-                    if (Console.ReadKey(true).Key == ConsoleKey.Enter)
-                        return false;
                 if (RootUri.IsBaseOf(uri) && VisitedUrls.Add(uri))
                     try
                     {
@@ -44,7 +40,6 @@ namespace Mega.Services
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine($"NO {uri}");
                     }
-            }
 
             return true;
         }
