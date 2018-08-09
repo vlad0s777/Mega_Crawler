@@ -6,13 +6,19 @@ using System.Net;
 using Mega.Messaging;
 using Mega.Services;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 
 namespace Mega.Crawler
 {
     internal class Program
     {
+        private static ILogger Logger { get; } =
+            ApplicationLogging.CreateLogger<CollectContent>();
         private static void Main(string[] args)
-        {
+        { 
+            Logger.LogInformation(
+                "This is a test of the emergency broadcast system.");
+
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Path.GetFullPath(@"..\..\..\Properties\"))
                 .AddJsonFile("Mega.Crawler.appsettings.json", false, true)

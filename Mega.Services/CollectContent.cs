@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Mega.Messaging;
+using Microsoft.Extensions.Logging;
 
 namespace Mega.Services
 {
@@ -8,7 +9,8 @@ namespace Mega.Services
     {
         private readonly MessageBroker<UriAttempt> _messages;
         private readonly MessageBroker<UriBody> _reports;
-
+        private static ILogger Logger { get; } =
+            ApplicationLogging.CreateLogger<CollectContent>();
         public CollectContent(MessageBroker<UriAttempt> messages, MessageBroker<UriBody> reports,
             HashSet<Uri> visitedUrls,
             Uri rootUri, Func<Uri, string> clientDelegate)
@@ -37,8 +39,7 @@ namespace Mega.Services
                     try
                     {
                         var documentBody = ClientDelegate.Invoke(uri.Uri);
-                        Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"OK {uri.Uri}");
+                        Logger.LogInformation($"OK {uri.Uri}");
                         _reports.Send(new UriBody(uri.Uri, documentBody));
                     }
                     catch (Exception)
@@ -47,9 +48,7 @@ namespace Mega.Services
                         uri.Attempt++;
                         if (uri.Attempt < attempt)
                             _messages.Send(uri);
-
-                        Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine($"NO {uri.Uri}. Attempt №{uri.Attempt}");
+                        Logger.LogWarning($"NO {uri.Uri}. Attempt №{uri.Attempt}");
                     }
             }
 
