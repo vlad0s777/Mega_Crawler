@@ -13,12 +13,10 @@ namespace Mega.Crawler
     internal class Program
     {
         private static ILogger Logger { get; } =
-            ApplicationLogging.CreateLogger<CollectContent>();
+            ApplicationLogging.CreateLogger<Program>();
         private static void Main(string[] args)
         { 
-            Logger.LogInformation(
-                "This is a test of the emergency broadcast system.");
-
+           
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Path.GetFullPath(@"..\..\..\Properties\"))
                 .AddJsonFile("Mega.Crawler.appsettings.json", false, true)
@@ -39,7 +37,7 @@ namespace Mega.Crawler
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriAttempt>();
 
-            Console.WriteLine($"Starting with {rootUriString}");
+            Logger.LogInformation($"Starting with {rootUriString}");
 
             // Preload
             var rootUri = new Uri(rootUriString, UriKind.Absolute);
