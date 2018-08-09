@@ -17,7 +17,7 @@ namespace Mega.Services
             _reports = reports;
         }
 
-        public void Work()
+        public bool Work()
         {
             while (_reports.TryReceive(out var uri))
             {
@@ -38,6 +38,8 @@ namespace Mega.Services
                     m = m.NextMatch();
                 }
             }
+
+            return true;
         }
     }
 }

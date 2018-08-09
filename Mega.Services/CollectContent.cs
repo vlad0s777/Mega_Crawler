@@ -24,7 +24,7 @@ namespace Mega.Services
         private Uri RootUri { get; }
         private Func<Uri, string> ClientDelegate { get; }
 
-        public void Work()
+        public bool Work()
         {
             while (_messages.TryReceive(out var uri))
                 if (RootUri.IsBaseOf(uri) && VisitedUrls.Add(uri))
@@ -40,6 +40,8 @@ namespace Mega.Services
                         Console.ForegroundColor = ConsoleColor.Red;
                         Console.WriteLine($"NO {uri}");
                     }
+
+            return true;
         }
     }
 }
