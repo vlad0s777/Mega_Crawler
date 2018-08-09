@@ -14,7 +14,7 @@ namespace Mega.Crawler
         private static void Main(string[] args)
         {
             var builder = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
+                .SetBasePath(Path.GetFullPath(@"..\..\..\Properties\"))
                 .AddJsonFile("Mega.Crawler.appsettings.json", false, true)
                 .AddJsonFile(
                     $"Mega.Crawler.appsettings.{Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT")}.json", true);
