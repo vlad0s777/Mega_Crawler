@@ -8,11 +8,11 @@ namespace Mega.Services
     {
         private const string HrefPattern = "href\\s*=\\s*(?:[\"'](?<uri>[^\"']*)[\"'])";
 
-        private readonly MessageBroker<Uri> _messages;
+        private readonly MessageBroker<UriAttempt> _messages;
         private readonly MessageBroker<UriBody> _reports;
         private int _depth;
 
-        public UrlFinder(MessageBroker<Uri> messages, MessageBroker<UriBody> reports)
+        public UrlFinder(MessageBroker<UriAttempt> messages, MessageBroker<UriBody> reports)
         {
             _messages = messages;
             _reports = reports;
@@ -37,7 +37,8 @@ namespace Mega.Services
                             return false;
                     try
                     {
-                        var absUri = new Uri(uri.Uri, new Uri(m.Groups["uri"].Value, UriKind.RelativeOrAbsolute));
+                        var absUri = new UriAttempt(new Uri(uri.Uri,
+                            new Uri(m.Groups["uri"].Value, UriKind.RelativeOrAbsolute)));
                         _messages.Send(absUri);
                     }
                     catch (Exception)

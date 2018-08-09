@@ -12,7 +12,7 @@ namespace Mega.Tests.Services
         public void AddMessage()
         {
             var reports = new MessageBroker<UriBody>();
-            var messages = new MessageBroker<Uri>();
+            var messages = new MessageBroker<UriAttempt>();
             var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
             var body = "href='https://docs.microsoft.com/ru-ru/kenguru'";
             reports.Send(new UriBody(rootUri, body));
@@ -26,7 +26,7 @@ namespace Mega.Tests.Services
         public void DepthTest()
         {
             var reports = new MessageBroker<UriBody>();
-            var messages = new MessageBroker<Uri>();
+            var messages = new MessageBroker<UriAttempt>();
             var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
             var body = "csdcdscdscsdhref='https://docs.microsoft.com/ru-ru/kenguru'dcsdsfdsfsfsfdsf";
             var sendMessage = new UriBody(rootUri, body);
@@ -46,7 +46,7 @@ namespace Mega.Tests.Services
         public void FalseUriTest()
         {
             var reports = new MessageBroker<UriBody>();
-            var messages = new MessageBroker<Uri>();
+            var messages = new MessageBroker<UriAttempt>();
             var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
             var body = "csdcdscdscsdhref='http:/docs.microsoft.com/ru-ru/kenguru'dcsdsfdsfsfsfdsf";
             var sendMessage = new UriBody(rootUri, body);
@@ -60,7 +60,7 @@ namespace Mega.Tests.Services
         public void TrueUriTest()
         {
             var reports = new MessageBroker<UriBody>();
-            var messages = new MessageBroker<Uri>();
+            var messages = new MessageBroker<UriAttempt>();
             var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
             var body = "csdcdscdscsdhref='https://docs.microsoft.com/ru-ru/kenguru'dcsdsfdsfsfsfdsf";
             var checkUrl = "https://docs.microsoft.com/ru-ru/kenguru";
@@ -69,7 +69,7 @@ namespace Mega.Tests.Services
             var uriFinder = new UrlFinder(messages, reports);
             uriFinder.Work();
             messages.TryReceive(out var receiveMessage);
-            Assert.AreEqual(receiveMessage, new Uri(checkUrl));
+            Assert.AreEqual(receiveMessage.Uri, new Uri(checkUrl));
         }
     }
 }
