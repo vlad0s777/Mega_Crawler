@@ -45,8 +45,17 @@ namespace Mega.Crawler
                     client.DownloadString);
                 var uriFinder = new UrlFinder(messages, reports);
                 while (!reports.IsEmpty() || !messages.IsEmpty())
+                {
                     if (!collectContent.Work(limit) || !uriFinder.Work(depth))
+                    {
                         break;
+                    }
+
+                    if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter)
+                    {
+                        break;
+                    }
+                }
             }
 
             Console.ResetColor();

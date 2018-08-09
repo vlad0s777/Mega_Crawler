@@ -29,9 +29,6 @@ namespace Mega.Services
             while (_messages.TryReceive(out var uri))
             {
                 if (VisitedUrls.Count == limit) return false;
-                if (Console.KeyAvailable)
-                    if (Console.ReadKey(true).Key == ConsoleKey.Enter)
-                        return false;
                 if (RootUri.IsBaseOf(uri) && VisitedUrls.Add(uri))
                     try
                     {
