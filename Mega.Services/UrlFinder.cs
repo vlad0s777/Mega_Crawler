@@ -11,17 +11,18 @@ namespace Mega.Services
         private readonly MessageBroker<Uri> _messages;
         private readonly MessageBroker<UriBody> _reports;
         private int _depth;
-
-        public UrlFinder(MessageBroker<Uri> messages, MessageBroker<UriBody> reports)
+        private readonly int _chechDepth;
+        public UrlFinder(MessageBroker<Uri> messages, MessageBroker<UriBody> reports, int checkDepth = -1)
         {
             _messages = messages;
             _reports = reports;
+            _chechDepth = checkDepth;
         }
 
-        public bool Work(int depth = -1)
+        public bool Work()
         {
             _depth++;
-            if (_depth == depth)
+            if (_depth == _chechDepth)
             {
                 _depth--;
                 return false;

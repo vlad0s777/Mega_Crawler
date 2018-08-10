@@ -8,9 +8,10 @@ namespace Mega.Services
     {
         private readonly MessageBroker<Uri> _messages;
         private readonly MessageBroker<UriBody> _reports;
+        private readonly int _limit;
 
         public CollectContent(MessageBroker<Uri> messages, MessageBroker<UriBody> reports, HashSet<Uri> visitedUrls,
-            Uri rootUri, Func<Uri, string> clientDelegate)
+            Uri rootUri, Func<Uri, string> clientDelegate, int limit = -1)
         {
             _messages = messages;
             _reports = reports;
@@ -18,17 +19,18 @@ namespace Mega.Services
             RootUri = rootUri;
             messages.Send(rootUri);
             ClientDelegate = clientDelegate;
+            _limit = limit;
         }
 
         private HashSet<Uri> VisitedUrls { get; }
         private Uri RootUri { get; }
         private Func<Uri, string> ClientDelegate { get; }
 
-        public bool Work(int limit = -1)
+        public bool Work()
         {
             while (_messages.TryReceive(out var uri))
             {
-                if (VisitedUrls.Count == limit) return false;
+                if (VisitedUrls.Count == _limit) return false;
                 if (RootUri.IsBaseOf(uri) && VisitedUrls.Add(uri))
                     try
                     {
