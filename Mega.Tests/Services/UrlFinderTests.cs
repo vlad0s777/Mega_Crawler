@@ -31,12 +31,12 @@ namespace Mega.Tests.Services
             var body = "csdcdscdscsdhref='https://docs.microsoft.com/ru-ru/kenguru'dcsdsfdsfsfsfdsf";
             var sendMessage = new UriBody(rootUri, body);
             reports.Send(sendMessage);
-            var uriFinder = new UrlFinder(messages, reports);
             var limit = 3;
+            var uriFinder = new UrlFinder(messages, reports, limit);
             var total = 10;
             var check = 1;
             for (var i = 0; i < total; i++)
-                if (uriFinder.Work(limit))
+                if (uriFinder.Work())
                     check++;
             Assert.AreEqual(check, limit);
             Assert.AreNotEqual(check, total);

@@ -51,8 +51,8 @@ namespace Mega.Tests.Services
             for (var i = 0; i < total; i++)
                 messages.Send(new UriAttempt(new Uri(childUri + i)));
             var collectContent = new CollectContent(messages, reports,
-                visitedUrls, rootUri, uri => "8");
-            collectContent.Work(limit: limit);
+                visitedUrls, rootUri, uri => "8", limit);
+            collectContent.Work();
             Assert.AreNotEqual(visitedUrls.Count, total);
             Assert.AreEqual(visitedUrls.Count, limit);
         }

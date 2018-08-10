@@ -6,20 +6,23 @@ namespace Mega.Services
 {
     public class CollectContent
     {
+        private readonly int attempt;
         private readonly int limit;
         private readonly MessageBroker<UriAttempt> messages;
         private readonly MessageBroker<UriBody> reports;
 
-        public CollectContent(MessageBroker<Uri> messages, MessageBroker<UriBody> reports, HashSet<Uri> visitedUrls,
-            Uri rootUri, Func<Uri, string> clientDelegate, int limit = -1)
+        public CollectContent(MessageBroker<UriAttempt> messages, MessageBroker<UriBody> reports,
+            HashSet<Uri> visitedUrls,
+            Uri rootUri, Func<Uri, string> clientDelegate, int limit = -1, int attempt = 0)
         {
             this.messages = messages;
             this.reports = reports;
             this.VisitedUrls = visitedUrls;
             this.RootUri = rootUri;
-            messages.Send(rootUri);
+            messages.Send(new UriAttempt(rootUri));
             this.ClientDelegate = clientDelegate;
             this.limit = limit;
+            this.attempt = attempt;
         }
 
         private HashSet<Uri> VisitedUrls { get; }
@@ -35,24 +38,26 @@ namespace Mega.Services
                     return false;
                 }
 
-                if (this.RootUri.IsBaseOf(uri) && this.VisitedUrls.Add(uri))
+                if (this.RootUri.IsBaseOf(uri.Uri) && this.VisitedUrls.Add(uri.Uri))
                 {
                     try
                     {
-                        var documentBody = ClientDelegate.Invoke(uri.Uri);
+                        var documentBody = this.ClientDelegate.Invoke(uri.Uri);
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"OK {uri}");
+                        Console.WriteLine($"OK {uri.Uri}");
                         this.reports.Send(new UriBody(uri.Uri, documentBody));
                     }
                     catch (Exception)
                     {
-                        VisitedUrls.Remove(uri.Uri);
+                        this.VisitedUrls.Remove(uri.Uri);
                         uri.Attempt++;
-                        if (uri.Attempt < attempt)
-                            _messages.Send(uri);
+                        if (uri.Attempt < this.attempt)
+                        {
+                            this.messages.Send(uri);
+                        }
 
                         Console.ForegroundColor = ConsoleColor.Red;
-                        Console.WriteLine($"NO {uri.Uri}. Attempt №{uri.Attempt}");
+                        Console.WriteLine($"NO {uri.Uri}. There are still attempts: {this.attempt - uri.Attempt}");
                     }
                 }
             }
