@@ -3,18 +3,10 @@
   "count": 100,
   "attempt": 3,
   "Logging": {
-    "Debug": {
-      "LogLevel": {
-        "Default": "Information"
-      }
-    },
-    "Console": {
-      "LogLevel": {
-        "Default": "Information"
-      }
-    },
+    "IncludeScopes": true,
     "LogLevel": {
-      "Default": "Debug"
+      "Default": "Warning",
+      "Program": "Information"
     }
   }
 }

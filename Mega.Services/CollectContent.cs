@@ -22,10 +22,6 @@ namespace Mega.Services
             RootUri = rootUri;
             messages.Send(new UriAttempt(rootUri));
             ClientDelegate = clientDelegate;
-            ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Warning);
-            ApplicationLogging.LoggerFactory.AddFile(Path.Combine(Directory.GetCurrentDirectory(), "logger.txt"));
-            //var logger = ApplicationLogging.LoggerFactory.CreateLogger("FileLogger");
-            //ApplicationLogging.LoggerFactory.
         }
 
         private HashSet<Uri> VisitedUrls { get; }
@@ -36,10 +32,8 @@ namespace Mega.Services
         {
             while (_messages.TryReceive(out var uri))
             {
-                if (VisitedUrls.Count == limit) return false;
-                if (Console.KeyAvailable)
-                    if (Console.ReadKey(true).Key == ConsoleKey.Enter)
-                        return false;
+                if (VisitedUrls.Count == limit)
+                { return false;}
                 if (RootUri.IsBaseOf(uri.Uri) && VisitedUrls.Add(uri.Uri))
                     try
                     {
