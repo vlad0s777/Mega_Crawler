@@ -7,39 +7,37 @@ namespace Mega.Services
     public class UrlFinder
     {
         private const string HrefPattern = "href\\s*=\\s*(?:[\"'](?<uri>[^\"']*)[\"'])";
+        private readonly int chech_depth;
 
-        private readonly MessageBroker<UriAttempt> _messages;
-        private readonly MessageBroker<UriBody> _reports;
-        private int _depth;
+        private readonly MessageBroker<Uri> messages;
+        private readonly MessageBroker<UriBody> reports;
+        private int depth;
 
-        public UrlFinder(MessageBroker<UriAttempt> messages, MessageBroker<UriBody> reports)
+        public UrlFinder(MessageBroker<Uri> messages, MessageBroker<UriBody> reports, int checkDepth = -1)
         {
-            _messages = messages;
-            _reports = reports;
+            this.messages = messages;
+            this.reports = reports;
+            this.chech_depth = checkDepth;
         }
 
-        public bool Work(int depth = -1)
+        public bool Work()
         {
-            _depth++;
-            if (_depth == depth)
+            this.depth++;
+            if (this.depth == this.chech_depth)
             {
-                _depth--;
+                this.depth--;
                 return false;
             }
 
-            while (_reports.TryReceive(out var uri))
+            while (this.reports.TryReceive(out var uri))
             {
                 var m = Regex.Match(uri.Body, HrefPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
                 while (m.Success)
                 {
-                    if (Console.KeyAvailable)
-                        if (Console.ReadKey(true).Key == ConsoleKey.Enter)
-                            return false;
                     try
                     {
-                        var absUri = new UriAttempt(new Uri(uri.Uri,
-                            new Uri(m.Groups["uri"].Value, UriKind.RelativeOrAbsolute)));
-                        _messages.Send(absUri);
+                        var absUri = new Uri(uri.Uri, new Uri(m.Groups["uri"].Value, UriKind.RelativeOrAbsolute));
+                        this.messages.Send(absUri);
                     }
                     catch (Exception)
                     {
