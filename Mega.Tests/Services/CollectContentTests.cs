@@ -39,6 +39,25 @@ namespace Mega.Tests.Services
         }
 
         [Test]
+        public void LimitTest()
+        {
+            var reports = new MessageBroker<UriBody>();
+            var messages = new MessageBroker<Uri>();
+            var visitedUrls = new HashSet<Uri>();
+            var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
+            var childUri = "https://docs.microsoft.com/ru-ru/";
+            var limit = 6;
+            var total = 10;
+            for (var i = 0; i < total; i++)
+                messages.Send(new Uri(childUri + i));
+            var collectContent = new CollectContent(messages, reports,
+                visitedUrls, rootUri, uri => "8");
+            collectContent.Work(limit);
+            Assert.AreNotEqual(visitedUrls.Count, total);
+            Assert.AreEqual(visitedUrls.Count, limit);
+        }
+
+        [Test]
         public void TrueContentTest()
         {
             var reports = new MessageBroker<UriBody>();
