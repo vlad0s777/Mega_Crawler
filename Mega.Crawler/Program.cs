@@ -13,7 +13,6 @@ namespace Mega.Crawler
     internal class Program
     {
         private static readonly ILogger Logger = getLogger();
-            //ApplicationLogging.CreateLogger<Program>();
         static ILogger getLogger()
         {
             ILogger logger =  ApplicationLogging.CreateLogger<Program>();
@@ -22,8 +21,8 @@ namespace Mega.Crawler
             return logger;
         }
 
-        //private static int ttt = 0;
-        //private static int vvv = 10/ttt;
+     //   private static int ttt = 0;
+     //   private static int vvv = 10/ttt;
         private static void Main(string[] args)
         {
             ;
@@ -77,6 +76,7 @@ namespace Mega.Crawler
 
                     if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter)
                     {
+                        Logger.LogDebug("Key pressed Enter");
                         break;
                     }
                 }
@@ -84,7 +84,7 @@ namespace Mega.Crawler
 
             Logger.LogInformation($"All {visitedUrls.Count} urls done!");
             Console.ReadLine();
-
+            Logger.LogDebug("Exit Application");
         }
     }
 }

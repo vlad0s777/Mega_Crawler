@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using Mega.Messaging;
 using Microsoft.Extensions.Logging;
 
@@ -8,21 +7,23 @@ namespace Mega.Services
 {
     public class CollectContent
     {
-        private readonly MessageBroker<UriAttempt> _messages;
-        private readonly MessageBroker<UriBody> _reports;
-        private static ILogger Logger { get; } =
-            ApplicationLogging.CreateLogger<CollectContent>();
+        private readonly MessageBroker<UriAttempt> messages;
+        private readonly MessageBroker<UriBody> reports;
+
         public CollectContent(MessageBroker<UriAttempt> messages, MessageBroker<UriBody> reports,
             HashSet<Uri> visitedUrls,
             Uri rootUri, Func<Uri, string> clientDelegate)
         {
-            _messages = messages;
-            _reports = reports;
-            VisitedUrls = visitedUrls;
-            RootUri = rootUri;
+            this.messages = messages;
+            this.reports = reports;
+            this.VisitedUrls = visitedUrls;
+            this.RootUri = rootUri;
             messages.Send(new UriAttempt(rootUri));
-            ClientDelegate = clientDelegate;
+            this.ClientDelegate = clientDelegate;
         }
+
+        private static ILogger Logger { get; } =
+            ApplicationLogging.CreateLogger<CollectContent>();
 
         private HashSet<Uri> VisitedUrls { get; }
         private Uri RootUri { get; }
@@ -30,27 +31,41 @@ namespace Mega.Services
 
         public bool Work(int attempt = 0, int limit = -1)
         {
-            while (_messages.TryReceive(out var uri))
+            Logger.LogDebug("Start Work..");
+            while (this.messages.TryReceive(out var uri))
             {
-                if (VisitedUrls.Count == limit)
-                { return false;}
-                if (RootUri.IsBaseOf(uri.Uri) && VisitedUrls.Add(uri.Uri))
+                if (this.VisitedUrls.Count == limit)
+                {
+                    Logger.LogDebug($"You have reached the limit of visited pages: {limit}");
+                    return false;
+                }
+
+                if (this.RootUri.IsBaseOf(uri.Uri) && this.VisitedUrls.Add(uri.Uri))
+                {
                     try
                     {
-                        var documentBody = ClientDelegate.Invoke(uri.Uri);
-                        Logger.LogInformation($"OK {uri.Uri}");
-                        _reports.Send(new UriBody(uri.Uri, documentBody));
+                        var documentBody = this.ClientDelegate.Invoke(uri.Uri);
+                        Logger.LogDebug($"OK {uri.Uri}");
+                        this.reports.Send(new UriBody(uri.Uri, documentBody));
                     }
-                    catch (Exception)
+                    catch (Exception e)
                     {
-                        VisitedUrls.Remove(uri.Uri);
+                        this.VisitedUrls.Remove(uri.Uri);
                         uri.Attempt++;
                         if (uri.Attempt < attempt)
-                            _messages.Send(uri);
-                        Logger.LogWarning($"NO {uri.Uri}. Attempt №{uri.Attempt}");
+                        {
+                            this.messages.Send(uri);
+                            Logger.LogDebug($"{e.Message} in {uri.Uri}. Еhere are still attempts: {attempt-uri.Attempt}");
+                        }
+                        else
+                        {
+                            Logger.LogWarning($"{e.Message} in {uri.Uri}. Attempts are no more!");
+                        }
+                        
                     }
+                }
             }
-
+            Logger.LogDebug("End Work.");
             return true;
         }
     }
