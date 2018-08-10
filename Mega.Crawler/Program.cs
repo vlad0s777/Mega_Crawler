@@ -16,14 +16,14 @@ namespace Mega.Crawler
             //ApplicationLogging.CreateLogger<Program>();
         static ILogger getLogger()
         {
-            ILogger Logger =  ApplicationLogging.CreateLogger<Program>();
+            ILogger logger =  ApplicationLogging.CreateLogger<Program>();
             AppDomain.CurrentDomain.UnhandledException +=
-                (sender, e) => Logger.LogCritical(e.ExceptionObject.ToString());
-            return Logger;
+                (sender, e) => logger.LogCritical(e.ExceptionObject.ToString());
+            return logger;
         }
 
-        private static int ttt = 0;
-        private static int vvv = 10/ttt;
+        //private static int ttt = 0;
+        //private static int vvv = 10/ttt;
         private static void Main(string[] args)
         {
             ;
@@ -43,7 +43,7 @@ namespace Mega.Crawler
                         return true;
                     return false;
                 })
-                .AddFile(Path.Combine(Directory.GetCurrentDirectory(), "logger.txt"), LogLevel.Debug);
+                .AddEventLog(LogLevel.Debug);
             var depth = Convert.ToInt32(settings["depth"]);
             var limit = Convert.ToInt32(settings["count"]);
             var attempt = Convert.ToInt32(settings["attempt"]);
