@@ -64,7 +64,7 @@ namespace Mega.Crawler
             using (var client = new WebClient())
             {
                 var collectContent = new CollectContent(messages, reports, visitedUrls, rootUri,
-                    client.DownloadString, limit);
+                    client.DownloadString, limit, attempt);
                 var uriFinder = new UrlFinder(messages, reports, depth);
                 while (!reports.IsEmpty() || !messages.IsEmpty())
                 {

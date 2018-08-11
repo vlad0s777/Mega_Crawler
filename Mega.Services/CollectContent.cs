@@ -8,21 +8,23 @@ namespace Mega.Services
     public class CollectContent
     {
         private readonly int limit;
+        private readonly int attempt;
         private readonly MessageBroker<UriAttempt> messages;
         private readonly MessageBroker<UriBody> reports;
 
 
         public CollectContent(MessageBroker<UriAttempt> messages, MessageBroker<UriBody> reports,
             HashSet<Uri> visitedUrls,
-            Uri rootUri, Func<Uri, string> clientDelegate, int limit = -1)
+            Uri rootUri, Func<Uri, string> clientDelegate, int limit = -1, int attempt = 0)
         {
             this.messages = messages;
             this.reports = reports;
             this.VisitedUrls = visitedUrls;
             this.RootUri = rootUri;
-            messages.Send(rootUri);
+            messages.Send(new UriAttempt(rootUri));
             this.ClientDelegate = clientDelegate;
             this.limit = limit;
+            this.attempt = attempt;
         }
 
         private static ILogger Logger { get; } =
@@ -38,11 +40,11 @@ namespace Mega.Services
             {
                 if (this.VisitedUrls.Count == this.limit)
                 {
-                    Logger.LogDebug($"You have reached the limit of visited pages: {limit}");
+                    Logger.LogDebug($"You have reached the limit of visited pages: {this.limit}");
                     return false;
                 }
 
-                if (this.RootUri.IsBaseOf(uri) && this.VisitedUrls.Add(uri))
+                if (this.RootUri.IsBaseOf(uri.Uri) && this.VisitedUrls.Add(uri.Uri))
                 {
                     try
                     {
@@ -54,10 +56,10 @@ namespace Mega.Services
                     {
                         this.VisitedUrls.Remove(uri.Uri);
                         uri.Attempt++;
-                        if (uri.Attempt < attempt)
+                        if (uri.Attempt < this.attempt)
                         {
                             this.messages.Send(uri);
-                            Logger.LogDebug($"{e.Message} in {uri.Uri}. Еhere are still attempts: {attempt-uri.Attempt}");
+                            Logger.LogDebug($"{e.Message} in {uri.Uri}. Еhere are still attempts: {this.attempt-uri.Attempt}");
                         }
                         else
                         {
