@@ -8,10 +8,10 @@ namespace Mega.Services
     {
         private readonly int attempt;
         private readonly int limit;
-        private readonly MessageBroker<UriAttempt> messages;
+        private readonly MessageBroker<UriLimits> messages;
         private readonly MessageBroker<UriBody> reports;
 
-        public CollectContent(MessageBroker<UriAttempt> messages, MessageBroker<UriBody> reports,
+        public CollectContent(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports,
             HashSet<Uri> visitedUrls,
             Uri rootUri, Func<Uri, string> clientDelegate, int limit = -1, int attempt = 0)
         {
@@ -19,7 +19,7 @@ namespace Mega.Services
             this.reports = reports;
             this.VisitedUrls = visitedUrls;
             this.RootUri = rootUri;
-            messages.Send(new UriAttempt(rootUri));
+            messages.Send(new UriLimits(rootUri));
             this.ClientDelegate = clientDelegate;
             this.limit = limit;
             this.attempt = attempt;
@@ -44,16 +44,16 @@ namespace Mega.Services
                     {
                         var documentBody = this.ClientDelegate.Invoke(uri.Uri);
                         Console.ForegroundColor = ConsoleColor.Green;
-                        Console.WriteLine($"OK {uri.Uri}");
-                        this.reports.Send(new UriBody(uri.Uri, documentBody));
+                        Console.WriteLine($"OK {uri.Uri} Depth: {uri.Depth}");
+                        this.reports.Send(new UriBody(uri.Uri, documentBody, uri.Depth));
                     }
                     catch (Exception)
                     {
                         this.VisitedUrls.Remove(uri.Uri);
-                        uri.Attempt++;
-                        if (uri.Attempt < this.attempt)
+                        var att = uri.Attempt + 1;
+                        if (att < this.attempt)
                         {
-                            this.messages.Send(uri);
+                            this.messages.Send(new UriLimits(uri.Uri, att, uri.Depth));
                         }
 
                         Console.ForegroundColor = ConsoleColor.Red;

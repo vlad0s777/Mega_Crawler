@@ -9,11 +9,10 @@ namespace Mega.Services
         private const string HrefPattern = "href\\s*=\\s*(?:[\"'](?<uri>[^\"']*)[\"'])";
         private readonly int chech_depth;
 
-        private readonly MessageBroker<UriAttempt> messages;
+        private readonly MessageBroker<UriLimits> messages;
         private readonly MessageBroker<UriBody> reports;
-        private int depth;
 
-        public UrlFinder(MessageBroker<UriAttempt> messages, MessageBroker<UriBody> reports, int checkDepth = -1)
+        public UrlFinder(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports, int checkDepth = -1)
         {
             this.messages = messages;
             this.reports = reports;
@@ -22,22 +21,21 @@ namespace Mega.Services
 
         public bool Work()
         {
-            this.depth++;
-            if (this.depth == this.chech_depth)
-            {
-                this.depth--;
-                return false;
-            }
-
             while (this.reports.TryReceive(out var uri))
             {
+                if (uri.Depth == this.chech_depth)
+                {
+                    continue;
+                }
+
                 var m = Regex.Match(uri.Body, HrefPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
                 while (m.Success)
                 {
                     try
                     {
+                        var depth = uri.Depth + 1;
                         var absUri = new Uri(uri.Uri, new Uri(m.Groups["uri"].Value, UriKind.RelativeOrAbsolute));
-                        this.messages.Send(new UriAttempt(absUri));
+                        this.messages.Send(new UriLimits(absUri, 0, depth));
                     }
                     catch (Exception)
                     {
