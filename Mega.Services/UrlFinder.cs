@@ -8,15 +8,17 @@ namespace Mega.Services
     public class UrlFinder
     {
         private const string HrefPattern = "href\\s*=\\s*(?:[\"'](?<uri>[^\"']*)[\"'])";
+        private readonly int chech_depth;
 
         private readonly MessageBroker<UriAttempt> messages;
         private readonly MessageBroker<UriBody> reports;
         private int depth;
 
-        public UrlFinder(MessageBroker<UriAttempt> messages, MessageBroker<UriBody> reports)
+        public UrlFinder(MessageBroker<UriAttempt> messages, MessageBroker<UriBody> reports, int checkDepth = -1)
         {
             this.messages = messages;
             this.reports = reports;
+            this.chech_depth = checkDepth;
         }
 
         private static ILogger Logger { get; } =

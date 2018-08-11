@@ -25,9 +25,8 @@ namespace Mega.Crawler
      //   private static int vvv = 10/ttt;
         private static void Main(string[] args)
         {
-            ;
             var builder = new ConfigurationBuilder()
-                .SetBasePath(Path.GetFullPath(@"..\..\..\Properties\"))
+                .SetBasePath(Path.GetFullPath(@"../../../Properties"))
                 .AddJsonFile("Mega.Crawler.appsettings.json", false, true)
                 .AddJsonFile(
                     $"Mega.Crawler.appsettings.{Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT")}.json", true);
@@ -65,18 +64,17 @@ namespace Mega.Crawler
             using (var client = new WebClient())
             {
                 var collectContent = new CollectContent(messages, reports, visitedUrls, rootUri,
-                    client.DownloadString);
-                var uriFinder = new UrlFinder(messages, reports);
+                    client.DownloadString, limit);
+                var uriFinder = new UrlFinder(messages, reports, depth);
                 while (!reports.IsEmpty() || !messages.IsEmpty())
                 {
-                    if (!collectContent.Work(attempt, limit) || !uriFinder.Work(depth))
+                    if (!collectContent.Work() || !uriFinder.Work())
                     {
                         break;
                     }
 
                     if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter)
                     {
-                        Logger.LogDebug("Key pressed Enter");
                         break;
                     }
                 }

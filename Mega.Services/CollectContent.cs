@@ -7,19 +7,22 @@ namespace Mega.Services
 {
     public class CollectContent
     {
+        private readonly int limit;
         private readonly MessageBroker<UriAttempt> messages;
         private readonly MessageBroker<UriBody> reports;
 
+
         public CollectContent(MessageBroker<UriAttempt> messages, MessageBroker<UriBody> reports,
             HashSet<Uri> visitedUrls,
-            Uri rootUri, Func<Uri, string> clientDelegate)
+            Uri rootUri, Func<Uri, string> clientDelegate, int limit = -1)
         {
             this.messages = messages;
             this.reports = reports;
             this.VisitedUrls = visitedUrls;
             this.RootUri = rootUri;
-            messages.Send(new UriAttempt(rootUri));
+            messages.Send(rootUri);
             this.ClientDelegate = clientDelegate;
+            this.limit = limit;
         }
 
         private static ILogger Logger { get; } =
@@ -29,18 +32,17 @@ namespace Mega.Services
         private Uri RootUri { get; }
         private Func<Uri, string> ClientDelegate { get; }
 
-        public bool Work(int attempt = 0, int limit = -1)
+        public bool Work()
         {
-            Logger.LogDebug("Start Work..");
             while (this.messages.TryReceive(out var uri))
             {
-                if (this.VisitedUrls.Count == limit)
+                if (this.VisitedUrls.Count == this.limit)
                 {
                     Logger.LogDebug($"You have reached the limit of visited pages: {limit}");
                     return false;
                 }
 
-                if (this.RootUri.IsBaseOf(uri.Uri) && this.VisitedUrls.Add(uri.Uri))
+                if (this.RootUri.IsBaseOf(uri) && this.VisitedUrls.Add(uri))
                 {
                     try
                     {
