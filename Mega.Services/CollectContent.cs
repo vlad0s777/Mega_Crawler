@@ -21,7 +21,7 @@ namespace Mega.Services
             this.reports = reports;
             this.VisitedUrls = visitedUrls;
             this.RootUri = rootUri;
-            messages.Send(new UriAttempt(rootUri));
+            messages.Send(new UriLimits(rootUri));
             this.ClientDelegate = clientDelegate;
             this.limit = limit;
             this.attempt = attempt;
@@ -55,17 +55,16 @@ namespace Mega.Services
                     catch (Exception e)
                     {
                         this.VisitedUrls.Remove(uri.Uri);
-                        uri.Attempt++;
-                        if (uri.Attempt < this.attempt)
+                        var att = uri.Attempt + 1;
+                        if (att < this.attempt)
                         {
-                            this.messages.Send(uri);
-                            Logger.LogDebug($"{e.Message} in {uri.Uri}. Еhere are still attempts: {this.attempt-uri.Attempt}");
+                            this.messages.Send(new UriLimits(uri.Uri, att, uri.Depth));
+                            Logger.LogDebug($"{e.Message} in {uri.Uri}. Еhere are still attempts: {this.attempt - uri.Attempt}");
                         }
                         else
                         {
                             Logger.LogWarning($"{e.Message} in {uri.Uri}. Attempts are no more!");
                         }
-                        
                     }
                 }
             }

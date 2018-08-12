@@ -53,7 +53,7 @@ namespace Mega.Crawler
             }
 
             var reports = new MessageBroker<UriBody>();
-            var messages = new MessageBroker<UriAttempt>(); 
+            var messages = new MessageBroker<UriLimits>();
 
             Logger.LogInformation($"Starting with {rootUriString}");
            

@@ -13,7 +13,7 @@ namespace Mega.Tests.Services
         public void AddReports()
         {
             var reports = new MessageBroker<UriBody>();
-            var messages = new MessageBroker<UriAttempt>();
+            var messages = new MessageBroker<UriLimits>();
             var visitedUrls = new HashSet<Uri>();
             var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
             var collectContent = new CollectContent(messages, reports,
@@ -26,13 +26,13 @@ namespace Mega.Tests.Services
         public void FalseContentTest()
         {
             var reports = new MessageBroker<UriBody>();
-            var messages = new MessageBroker<UriAttempt>();
+            var messages = new MessageBroker<UriLimits>();
             var visitedUrls = new HashSet<Uri>();
             var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
             var collectContent = new CollectContent(messages, reports,
                 visitedUrls, rootUri, uri => "8");
             var someUrl = new Uri("http://someurl");
-            messages.Send(new UriAttempt(someUrl));
+            messages.Send(new UriLimits(someUrl));
             collectContent.Work();
             reports.TryReceive(out var receiveMessage1);
             Assert.IsFalse(reports.TryReceive(out var receiveMessage2));
@@ -42,14 +42,14 @@ namespace Mega.Tests.Services
         public void LimitTest()
         {
             var reports = new MessageBroker<UriBody>();
-            var messages = new MessageBroker<UriAttempt>();
+            var messages = new MessageBroker<UriLimits>();
             var visitedUrls = new HashSet<Uri>();
             var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
             var childUri = "https://docs.microsoft.com/ru-ru/";
             var limit = 6;
             var total = 10;
             for (var i = 0; i < total; i++)
-                messages.Send(new UriAttempt(new Uri(childUri + i)));
+                messages.Send(new UriLimits(new Uri(childUri + i)));
             var collectContent = new CollectContent(messages, reports,
                 visitedUrls, rootUri, uri => "8", limit);
             collectContent.Work();
@@ -61,7 +61,7 @@ namespace Mega.Tests.Services
         public void TrueContentTest()
         {
             var reports = new MessageBroker<UriBody>();
-            var messages = new MessageBroker<UriAttempt>();
+            var messages = new MessageBroker<UriLimits>();
             var visitedUrls = new HashSet<Uri>();
             var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
             var collectContent = new CollectContent(messages, reports,

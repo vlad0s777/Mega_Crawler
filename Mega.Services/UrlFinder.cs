@@ -8,43 +8,37 @@ namespace Mega.Services
     public class UrlFinder
     {
         private const string HrefPattern = "href\\s*=\\s*(?:[\"'](?<uri>[^\"']*)[\"'])";
-        private readonly int chech_depth;
+        private readonly int maxdepth;
 
-        private readonly MessageBroker<UriAttempt> messages;
+        private readonly MessageBroker<UriLimits> messages;
         private readonly MessageBroker<UriBody> reports;
-        private int depth;
 
-        public UrlFinder(MessageBroker<UriAttempt> messages, MessageBroker<UriBody> reports, int checkDepth = -1)
+        public UrlFinder(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports, int checkDepth = -1)
         {
             this.messages = messages;
             this.reports = reports;
-            this.chech_depth = checkDepth;
+            this.maxdepth = checkDepth;
         }
 
-        private static ILogger Logger { get; } =
-            ApplicationLogging.CreateLogger<CollectContent>();
-
-        public bool Work(int depth = -1)
+        public bool Work()
         {
             Logger.LogDebug("Start Work..");
-            this.depth++;
-            if (this.depth == depth)
-            {
-                this.depth--;
-                Logger.LogDebug($"You have reached the depth of visited pages: {depth}");
-                return false;
-            }
-
             while (this.reports.TryReceive(out var uri))
             {
+                if (uri.Depth == this.maxdepth)
+                {
+                    Logger.LogDebug($"In {uri.Uri} you have reached the depth of visited pages: {depth}");
+                    continue;
+                }
+
                 var m = Regex.Match(uri.Body, HrefPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
                 while (m.Success)
                 {
                     try
                     {
-                        var absUri = new UriAttempt(new Uri(uri.Uri,
-                            new Uri(m.Groups["uri"].Value, UriKind.RelativeOrAbsolute)));
-                        this.messages.Send(absUri);
+                        var depth = uri.Depth + 1;
+                        var absUri = new Uri(uri.Uri, new Uri(m.Groups["uri"].Value, UriKind.RelativeOrAbsolute));
+                        this.messages.Send(new UriLimits(absUri, 0, depth));
                     }
                     catch (Exception)
                     {

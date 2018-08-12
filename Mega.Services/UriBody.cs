@@ -4,13 +4,15 @@ namespace Mega.Services
 {
     public class UriBody
     {
-        public UriBody(Uri uri, string body)
+        public UriBody(Uri uri, string body, int depth = 1)
         {
-            Uri = uri;
-            Body = body;
+            this.Uri = uri;
+            this.Body = body;
+            this.Depth = depth;
         }
 
-        public Uri Uri { get; }
-        public string Body { get; }
+        public readonly Uri Uri;
+        public readonly string Body;
+        public readonly int Depth;
     }
 }
