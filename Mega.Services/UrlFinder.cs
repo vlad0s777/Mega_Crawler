@@ -7,37 +7,35 @@ namespace Mega.Services
     public class UrlFinder
     {
         private const string HrefPattern = "href\\s*=\\s*(?:[\"'](?<uri>[^\"']*)[\"'])";
-        private readonly int chech_depth;
+        private readonly int maxdepth;
 
-        private readonly MessageBroker<Uri> messages;
+        private readonly MessageBroker<UriLimits> messages;
         private readonly MessageBroker<UriBody> reports;
-        private int depth;
 
-        public UrlFinder(MessageBroker<Uri> messages, MessageBroker<UriBody> reports, int checkDepth = -1)
+        public UrlFinder(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports, int checkDepth = -1)
         {
             this.messages = messages;
             this.reports = reports;
-            this.chech_depth = checkDepth;
+            this.maxdepth = checkDepth;
         }
 
         public bool Work()
         {
-            this.depth++;
-            if (this.depth == this.chech_depth)
-            {
-                this.depth--;
-                return false;
-            }
-
             while (this.reports.TryReceive(out var uri))
             {
+                if (uri.Depth == this.maxdepth)
+                {
+                    continue;
+                }
+
                 var m = Regex.Match(uri.Body, HrefPattern, RegexOptions.IgnoreCase | RegexOptions.Compiled);
                 while (m.Success)
                 {
                     try
                     {
+                        var depth = uri.Depth + 1;
                         var absUri = new Uri(uri.Uri, new Uri(m.Groups["uri"].Value, UriKind.RelativeOrAbsolute));
-                        this.messages.Send(absUri);
+                        this.messages.Send(new UriLimits(absUri, 0, depth));
                     }
                     catch (Exception)
                     {

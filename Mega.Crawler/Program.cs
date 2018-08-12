@@ -21,6 +21,7 @@ namespace Mega.Crawler
             var settings = builder.Build();
             var depth = Convert.ToInt32(settings["depth"]);
             var limit = Convert.ToInt32(settings["count"]);
+            var attempt = Convert.ToInt32(settings["attempt"]);
             var rootUriString = args.FirstOrDefault();
 
             while (string.IsNullOrWhiteSpace(rootUriString))
@@ -30,7 +31,7 @@ namespace Mega.Crawler
             }
 
             var reports = new MessageBroker<UriBody>();
-            var messages = new MessageBroker<Uri>();
+            var messages = new MessageBroker<UriLimits>();
 
             Console.WriteLine($"Starting with {rootUriString}");
 
@@ -38,11 +39,10 @@ namespace Mega.Crawler
             var rootUri = new Uri(rootUriString, UriKind.Absolute);
 
             var visitedUrls = new HashSet<Uri>();
-
             using (var client = new WebClient())
             {
                 var collectContent = new CollectContent(messages, reports, visitedUrls, rootUri,
-                    client.DownloadString, limit);
+                    client.DownloadString, limit, attempt);
                 var uriFinder = new UrlFinder(messages, reports, depth);
                 while (!reports.IsEmpty() || !messages.IsEmpty())
                 {
