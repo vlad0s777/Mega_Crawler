@@ -20,6 +20,9 @@ namespace Mega.Services
             this.maxdepth = checkDepth;
         }
 
+        private static ILogger Logger { get; } =
+            ApplicationLogging.CreateLogger<CollectContent>();
+
         public bool Work()
         {
             Logger.LogDebug("Start Work..");
@@ -27,7 +30,7 @@ namespace Mega.Services
             {
                 if (uri.Depth == this.maxdepth)
                 {
-                    Logger.LogDebug($"In {uri.Uri} you have reached the depth of visited pages: {depth}");
+                    Logger.LogDebug($"In {uri.Uri} max depth. Next report..");
                     continue;
                 }
 
@@ -48,6 +51,7 @@ namespace Mega.Services
                     m = m.NextMatch();
                 }
             }
+
             Logger.LogDebug("End Work.");
             return true;
         }

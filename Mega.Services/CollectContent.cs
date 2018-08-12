@@ -7,13 +7,13 @@ namespace Mega.Services
 {
     public class CollectContent
     {
-        private readonly int limit;
         private readonly int attempt;
-        private readonly MessageBroker<UriAttempt> messages;
+        private readonly int limit;
+        private readonly MessageBroker<UriLimits> messages;
         private readonly MessageBroker<UriBody> reports;
 
 
-        public CollectContent(MessageBroker<UriAttempt> messages, MessageBroker<UriBody> reports,
+        public CollectContent(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports,
             HashSet<Uri> visitedUrls,
             Uri rootUri, Func<Uri, string> clientDelegate, int limit = -1, int attempt = 0)
         {
@@ -36,6 +36,7 @@ namespace Mega.Services
 
         public bool Work()
         {
+            Logger.LogDebug("Start Work..");
             while (this.messages.TryReceive(out var uri))
             {
                 if (this.VisitedUrls.Count == this.limit)
@@ -49,7 +50,7 @@ namespace Mega.Services
                     try
                     {
                         var documentBody = this.ClientDelegate.Invoke(uri.Uri);
-                        Logger.LogDebug($"OK {uri.Uri}");
+                        Logger.LogDebug($"OK {uri.Uri} Depth: {uri.Depth}");
                         this.reports.Send(new UriBody(uri.Uri, documentBody));
                     }
                     catch (Exception e)
@@ -59,7 +60,8 @@ namespace Mega.Services
                         if (att < this.attempt)
                         {
                             this.messages.Send(new UriLimits(uri.Uri, att, uri.Depth));
-                            Logger.LogDebug($"{e.Message} in {uri.Uri}. Еhere are still attempts: {this.attempt - uri.Attempt}");
+                            Logger.LogDebug(
+                                $"{e.Message} in {uri.Uri}. Еhere are still attempts: {this.attempt - uri.Attempt}");
                         }
                         else
                         {
@@ -68,6 +70,7 @@ namespace Mega.Services
                     }
                 }
             }
+
             Logger.LogDebug("End Work.");
             return true;
         }

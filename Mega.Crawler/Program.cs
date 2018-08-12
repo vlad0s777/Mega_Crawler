@@ -13,16 +13,17 @@ namespace Mega.Crawler
     internal class Program
     {
         private static readonly ILogger Logger = getLogger();
-        static ILogger getLogger()
+
+        private static ILogger getLogger()
         {
-            ILogger logger =  ApplicationLogging.CreateLogger<Program>();
+            var logger = ApplicationLogging.CreateLogger<Program>();
             AppDomain.CurrentDomain.UnhandledException +=
                 (sender, e) => logger.LogCritical(e.ExceptionObject.ToString());
             return logger;
         }
 
-     //   private static int ttt = 0;
-     //   private static int vvv = 10/ttt;
+        //   private static int ttt = 0;
+        //   private static int vvv = 10/ttt;
         private static void Main(string[] args)
         {
             var builder = new ConfigurationBuilder()
@@ -30,15 +31,21 @@ namespace Mega.Crawler
                 .AddJsonFile("Mega.Crawler.appsettings.json", false, true)
                 .AddJsonFile(
                     $"Mega.Crawler.appsettings.{Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT")}.json", true);
-            
+
             var settings = builder.Build();
             ApplicationLogging.LoggerFactory
                 .AddConsole((category, level) =>
                 {
                     if (category.Contains("CollectContent") && level >= LogLevel.Warning)
+                    {
                         return true;
-                    else if (category.Contains("Program") && level >= LogLevel.Information)
+                    }
+
+                    if (category.Contains("Program") && level >= LogLevel.Information)
+                    {
                         return true;
+                    }
+
                     return false;
                 })
                 .AddEventLog(LogLevel.Debug);
@@ -56,7 +63,7 @@ namespace Mega.Crawler
             var messages = new MessageBroker<UriLimits>();
 
             Logger.LogInformation($"Starting with {rootUriString}");
-           
+
             // Preload
             var rootUri = new Uri(rootUriString, UriKind.Absolute);
 
