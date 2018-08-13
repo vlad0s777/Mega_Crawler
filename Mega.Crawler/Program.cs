@@ -72,7 +72,8 @@ namespace Mega.Crawler
             {
                 var collectContent = new CollectContent(messages, reports, visitedUrls, rootUri,
                     client.DownloadString, limit, attempt);
-                var uriFinder = new UrlFinder(messages, reports, depth);
+                //var uriFinder = new UrlFinder(messages, reports, depth);
+                var uriFinder = new UrlFinderArticles(messages, reports, depth);
                 while (!reports.IsEmpty() || !messages.IsEmpty())
                 {
                     if (!collectContent.Work() || !uriFinder.Work())

@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Threading;
+using System.Threading.Tasks;
 using Mega.Messaging;
 using Microsoft.Extensions.Logging;
 
@@ -49,6 +51,7 @@ namespace Mega.Services
                 {
                     try
                     {
+                        Thread.Sleep(new Random().Next(5000, 15000));
                         var documentBody = this.ClientDelegate.Invoke(uri.Uri);
                         Logger.LogDebug($"OK {uri.Uri} Depth: {uri.Depth}");
                         this.reports.Send(new UriBody(uri.Uri, documentBody));
@@ -61,7 +64,7 @@ namespace Mega.Services
                         {
                             this.messages.Send(new UriLimits(uri.Uri, att, uri.Depth));
                             Logger.LogDebug(
-                                $"{e.Message} in {uri.Uri}. Еhere are still attempts: {this.attempt - uri.Attempt}");
+                                $"{e.Message} in {uri.Uri}. There are still attempts: {this.attempt - uri.Attempt}");
                         }
                         else
                         {
