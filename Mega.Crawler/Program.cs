@@ -36,7 +36,7 @@ namespace Mega.Crawler
             ApplicationLogging.LoggerFactory
                 .AddConsole((category, level) =>
                 {
-                    if (category.Contains("CollectContent") && level >= LogLevel.Warning)
+                    if ((category.Contains("CollectContent") || category.Contains("UrlFinder")) && level >= LogLevel.Warning)
                     {
                         return true;
                     }

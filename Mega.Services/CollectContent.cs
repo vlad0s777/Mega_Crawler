@@ -36,7 +36,6 @@ namespace Mega.Services
 
         public bool Work()
         {
-            Logger.LogDebug("Start Work..");
             while (this.messages.TryReceive(out var uri))
             {
                 if (this.VisitedUrls.Count == this.limit)
@@ -71,7 +70,6 @@ namespace Mega.Services
                 }
             }
 
-            Logger.LogDebug("End Work.");
             return true;
         }
     }

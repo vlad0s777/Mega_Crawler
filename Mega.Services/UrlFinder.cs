@@ -25,7 +25,6 @@ namespace Mega.Services
 
         public bool Work()
         {
-            Logger.LogDebug("Start Work..");
             while (this.reports.TryReceive(out var uri))
             {
                 if (uri.Depth == this.maxdepth)
@@ -52,7 +51,6 @@ namespace Mega.Services
                 }
             }
 
-            Logger.LogDebug("End Work.");
             return true;
         }
     }
