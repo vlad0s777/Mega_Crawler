@@ -49,10 +49,17 @@ namespace Mega.Tests.Services
             var limit = 6;
             var total = 10;
             for (var i = 0; i < total; i++)
+            {
                 messages.Send(new UriLimits(new Uri(childUri + i)));
+            }
+
             var collectContent = new CollectContent(messages, reports,
                 visitedUrls, rootUri, uri => "8", limit);
-            collectContent.Work();
+            while (!messages.IsEmpty())
+            {
+                collectContent.Work();
+            }
+
             Assert.AreNotEqual(visitedUrls.Count, total);
             Assert.AreEqual(visitedUrls.Count, limit);
         }

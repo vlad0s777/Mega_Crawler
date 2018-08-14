@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using Mega.Messaging;
 using Microsoft.Extensions.Logging;
 
@@ -36,10 +35,9 @@ namespace Mega.Services
         private Uri RootUri { get; }
         private Func<Uri, string> ClientDelegate { get; }
 
-        public bool Work()
+        public bool Work(bool timeouut = false)
         {
-            Logger.LogDebug("Start Work..");
-            while (this.messages.TryReceive(out var uri))
+            if (this.messages.TryReceive(out var uri))
             {
                 if (this.VisitedUrls.Count == this.limit)
                 {
@@ -51,7 +49,6 @@ namespace Mega.Services
                 {
                     try
                     {
-                        Thread.Sleep(new Random().Next(5000, 15000));
                         var documentBody = this.ClientDelegate.Invoke(uri.Uri);
                         Logger.LogDebug($"OK {uri.Uri} Depth: {uri.Depth}");
                         this.reports.Send(new UriBody(uri.Uri, documentBody));
@@ -74,7 +71,11 @@ namespace Mega.Services
                 }
             }
 
-            Logger.LogDebug("End Work.");
+            if (timeouut)
+            {
+                Thread.Sleep(new Random().Next(5000, 15000));
+            }
+
             return true;
         }
     }

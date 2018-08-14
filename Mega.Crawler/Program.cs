@@ -36,7 +36,8 @@ namespace Mega.Crawler
             ApplicationLogging.LoggerFactory
                 .AddConsole((category, level) =>
                 {
-                    if (category.Contains("CollectContent") && level >= LogLevel.Warning)
+                    if (category.Contains("CollectContent") || category.Contains("ArticleUrlParcer") ||
+                        category.Contains("ArticleInfoFinder") && level >= LogLevel.Debug)
                     {
                         return true;
                     }
@@ -59,24 +60,30 @@ namespace Mega.Crawler
                 rootUriString = Console.ReadLine();
             }
 
-            var reports = new MessageBroker<UriBody>();
-            var messages = new MessageBroker<UriLimits>();
-
+            var pageReports = new MessageBroker<UriBody>();
+            var pageMessages = new MessageBroker<UriLimits>();
+            var articleMessages = new MessageBroker<UriLimits>();
+            var articleReports = new MessageBroker<UriBody>();
             Logger.LogInformation($"Starting with {rootUriString}");
 
             // Preload
             var rootUri = new Uri(rootUriString, UriKind.Absolute);
 
             var visitedUrls = new HashSet<Uri>();
+            var infoDictionary = new Dictionary<string, ArticleInfo>();
             using (var client = new WebClient())
             {
-                var collectContent = new CollectContent(messages, reports, visitedUrls, rootUri,
+                var collectPageContent = new CollectContent(pageMessages, pageReports, visitedUrls, rootUri,
                     client.DownloadString, limit, attempt);
-                //var uriFinder = new UrlFinder(messages, reports, depth);
-                var uriFinder = new UrlFinderArticles(messages, reports, depth);
-                while (!reports.IsEmpty() || !messages.IsEmpty())
+                var uriFinderArticle = new ArticleUrlParcer(pageMessages, pageReports, articleMessages, depth);
+                var collectArticleContent = new CollectContent(articleMessages, articleReports, visitedUrls, rootUri,
+                    client.DownloadString, limit, attempt);
+                var infoFinderArticle = new ArticleInfoParcer(infoDictionary, articleReports, depth);
+                while (!pageReports.IsEmpty() || !pageMessages.IsEmpty() || !articleMessages.IsEmpty() ||
+                       !articleReports.IsEmpty())
                 {
-                    if (!collectContent.Work() || !uriFinder.Work())
+                    if (!collectPageContent.Work(true) || !uriFinderArticle.Work() ||
+                        !collectArticleContent.Work(true) || !infoFinderArticle.Work())
                     {
                         break;
                     }
@@ -88,7 +95,7 @@ namespace Mega.Crawler
                 }
             }
 
-            Logger.LogInformation($"All {visitedUrls.Count} urls done!");
+            Logger.LogInformation($"All {visitedUrls.Count} urls done! All {infoDictionary.Count} articles done!");
             Console.ReadLine();
             Logger.LogDebug("Exit Application");
         }
