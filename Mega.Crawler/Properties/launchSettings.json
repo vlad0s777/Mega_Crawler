@@ -2,7 +2,7 @@
   "profiles": {
     "Mega.Crawler": {
       "commandName": "Project",
-      "commandLineArgs": "https://www.microsoft.com/ru-ru",
+      "commandLineArgs": "https://msdn.microsoft.com/ru-ru/",
       "environmentVariables": {
         "NETCORE_ENVIRONMENT": "development"
       }

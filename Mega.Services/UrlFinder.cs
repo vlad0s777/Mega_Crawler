@@ -1,15 +1,20 @@
 ﻿using System;
 using System.Text.RegularExpressions;
 using Mega.Messaging;
+using Microsoft.Extensions.Logging;
 
 namespace Mega.Services
 {
     public class UrlFinder
     {
+        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<CollectContent>();
+
         private const string HrefPattern = "href\\s*=\\s*(?:[\"'](?<uri>[^\"']*)[\"'])";
+
         private readonly int maxdepth;
 
         private readonly MessageBroker<UriLimits> messages;
+
         private readonly MessageBroker<UriBody> reports;
 
         public UrlFinder(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports, int checkDepth = -1)
@@ -25,6 +30,7 @@ namespace Mega.Services
             {
                 if (uri.Depth == this.maxdepth)
                 {
+                    Logger.LogDebug($"In {uri.Uri} max depth. Next report..");
                     continue;
                 }
 
@@ -39,8 +45,7 @@ namespace Mega.Services
                     }
                     catch (Exception)
                     {
-                        Console.ResetColor();
-                        Console.WriteLine($"Ignoring {m.Value}");
+                        Logger.LogWarning($"Ignoring {m.Value}");
                     }
 
                     m = m.NextMatch();
