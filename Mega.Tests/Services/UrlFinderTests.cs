@@ -13,9 +13,9 @@ namespace Mega.Tests.Services
         {
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
-            var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
-            var body = "href='https://docs.microsoft.com/ru-ru/kenguru'";
-            reports.Send(new UriBody(rootUri, body));
+            reports.Send(new UriBody(
+                uri: new Uri("https://docs.microsoft.com/ru-ru"), 
+                body: "href='https://docs.microsoft.com/ru-ru/kenguru'"));
             var uriFinder = new UrlFinder(messages, reports);
             uriFinder.Work();
             Assert.IsFalse(messages.IsEmpty());
@@ -27,15 +27,14 @@ namespace Mega.Tests.Services
         {
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
-            var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
-            var body = "csdcdscdscsdhref='https://docs.microsoft.com/ru-ru/kenguru'dcsdsfdsfsfsfdsf";
-            var sendMessage = new UriBody(rootUri, body);
+            var sendMessage = new UriBody(
+                uri: new Uri("https://docs.microsoft.com/ru-ru"),
+                body: "csdcdscdscsdhref='https://docs.microsoft.com/ru-ru/kenguru'dcsdsfdsfsfsfdsf");
             reports.Send(sendMessage);
-            var limit = 3;
-            var uriFinder = new UrlFinder(messages, reports, limit);
+            var uriFinder = new UrlFinder(messages, reports, checkDepth:3);
             uriFinder.Work();
             messages.TryReceive(out var checkDepth);
-            Assert.AreEqual(checkDepth.Depth, 2);
+            Assert.AreEqual(2, checkDepth.Depth);
         }
 
         [Test]
@@ -43,10 +42,9 @@ namespace Mega.Tests.Services
         {
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
-            var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
-            var body = "csdcdscdscsdhref='http:/docs.microsoft.com/ru-ru/kenguru'dcsdsfdsfsfsfdsf";
-            var sendMessage = new UriBody(rootUri, body);
-            reports.Send(sendMessage);
+            reports.Send(new UriBody(
+                uri: new Uri("https://docs.microsoft.com/ru-ru"),
+                body: "csdcdscdscsdhref='http:/docs.microsoft.com/ru-ru/kenguru'dcsdsfdsfsfsfdsf"));
             var uriFinder = new UrlFinder(messages, reports);
             uriFinder.Work();
             Assert.IsFalse(messages.TryReceive(out var receiveMessage));
@@ -57,15 +55,14 @@ namespace Mega.Tests.Services
         {
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
-            var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
-            var body = "csdcdscdscsdhref='https://docs.microsoft.com/ru-ru/kenguru'dcsdsfdsfsfsfdsf";
             var checkUrl = "https://docs.microsoft.com/ru-ru/kenguru";
-            var sendMessage = new UriBody(rootUri, body);
-            reports.Send(sendMessage);
+            reports.Send(new UriBody(
+                uri: new Uri("https://docs.microsoft.com/ru-ru"),
+                body: "csdcdscdscsdhref='https://docs.microsoft.com/ru-ru/kenguru'dcsdsfdsfsfsfdsf"));
             var uriFinder = new UrlFinder(messages, reports);
             uriFinder.Work();
             messages.TryReceive(out var receiveMessage);
-            Assert.AreEqual(receiveMessage.Uri, new Uri(checkUrl));
+            Assert.AreEqual(new Uri(checkUrl), receiveMessage.Uri);
         }
     }
 }

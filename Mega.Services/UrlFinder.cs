@@ -7,10 +7,14 @@ namespace Mega.Services
 {
     public class UrlFinder
     {
+        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<CollectContent>();
+
         private const string HrefPattern = "href\\s*=\\s*(?:[\"'](?<uri>[^\"']*)[\"'])";
+
         private readonly int maxdepth;
 
         private readonly MessageBroker<UriLimits> messages;
+
         private readonly MessageBroker<UriBody> reports;
 
         public UrlFinder(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports, int checkDepth = -1)
@@ -19,9 +23,6 @@ namespace Mega.Services
             this.reports = reports;
             this.maxdepth = checkDepth;
         }
-
-        private static ILogger Logger { get; } =
-            ApplicationLogging.CreateLogger<CollectContent>();
 
         public bool Work()
         {

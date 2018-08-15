@@ -14,12 +14,13 @@ namespace Mega.Tests.Services
         {
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
-            var visitedUrls = new HashSet<Uri>();
-            var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
-            var collectContent = new CollectContent(messages, reports,
-                visitedUrls, rootUri, body => "8");
+            var collectContent = new CollectContent(messages, reports, 
+                visitedUrls: new HashSet<Uri>(), 
+                rootUri: new Uri("https://docs.microsoft.com/ru-ru"), 
+                clientDelegate: body => "8");
             collectContent.Work();
-            Assert.IsTrue(messages.IsEmpty() && !reports.IsEmpty());
+            Assert.IsTrue(messages.IsEmpty());
+            Assert.IsFalse(reports.IsEmpty());
         }
 
         [Test]
@@ -27,12 +28,11 @@ namespace Mega.Tests.Services
         {
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
-            var visitedUrls = new HashSet<Uri>();
-            var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
             var collectContent = new CollectContent(messages, reports,
-                visitedUrls, rootUri, uri => "8");
-            var someUrl = new Uri("http://someurl");
-            messages.Send(new UriLimits(someUrl));
+                visitedUrls: new HashSet<Uri>(),
+                rootUri: new Uri("https://docs.microsoft.com/ru-ru"),
+                clientDelegate: body => "8");
+            messages.Send(new UriLimits("http://someurl"));
             collectContent.Work();
             reports.TryReceive(out var receiveMessage1);
             Assert.IsFalse(reports.TryReceive(out var receiveMessage2));
@@ -44,17 +44,18 @@ namespace Mega.Tests.Services
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
             var visitedUrls = new HashSet<Uri>();
-            var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
             var childUri = "https://docs.microsoft.com/ru-ru/";
-            var limit = 6;
-            var total = 10;
-            for (var i = 0; i < total; i++)
+            for (var i = 0; i < 10; i++)
+            {
                 messages.Send(new UriLimits(new Uri(childUri + i)));
-            var collectContent = new CollectContent(messages, reports,
-                visitedUrls, rootUri, uri => "8", limit);
+            }
+            var collectContent = new CollectContent(messages, reports, visitedUrls, 
+                rootUri:new Uri(childUri),
+                clientDelegate:uri => "8", 
+                limit:6);
             collectContent.Work();
-            Assert.AreNotEqual(visitedUrls.Count, total);
-            Assert.AreEqual(visitedUrls.Count, limit);
+            Assert.AreNotEqual(10, visitedUrls.Count);
+            Assert.AreEqual(6, visitedUrls.Count);
         }
 
         [Test]
@@ -62,14 +63,15 @@ namespace Mega.Tests.Services
         {
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
-            var visitedUrls = new HashSet<Uri>();
             var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
             var collectContent = new CollectContent(messages, reports,
-                visitedUrls, rootUri, uri => "8");
+                visitedUrls: new HashSet<Uri>(),
+                rootUri: rootUri,
+                clientDelegate: body => "8");
             collectContent.Work();
             reports.TryReceive(out var receiveMessage);
-            Assert.AreEqual(receiveMessage.Uri, rootUri);
-            Assert.AreEqual(receiveMessage.Body, "8");
+            Assert.AreEqual(rootUri, receiveMessage.Uri);
+            Assert.AreEqual("8", receiveMessage.Body);
         }
     }
 }

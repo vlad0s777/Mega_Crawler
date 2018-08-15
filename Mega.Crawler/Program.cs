@@ -29,26 +29,10 @@ namespace Mega.Crawler
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Path.GetFullPath(@"../../../Properties"))
                 .AddJsonFile("Mega.Crawler.appsettings.json", false, true)
-                .AddJsonFile(
-                    $"Mega.Crawler.appsettings.{Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT")}.json", true);
+                .AddJsonFile($"Mega.Crawler.appsettings.{Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT")}.json", true);
 
             var settings = builder.Build();
-            ApplicationLogging.LoggerFactory
-                .AddConsole((category, level) =>
-                {
-                    if ((category.Contains("CollectContent") || category.Contains("UrlFinder")) && level >= LogLevel.Warning)
-                    {
-                        return true;
-                    }
-
-                    if (category.Contains("Program") && level >= LogLevel.Information)
-                    {
-                        return true;
-                    }
-
-                    return false;
-                })
-                .AddEventLog(LogLevel.Debug);
+            ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug);
             var depth = Convert.ToInt32(settings["depth"]);
             var limit = Convert.ToInt32(settings["count"]);
             var attempt = Convert.ToInt32(settings["attempt"]);
@@ -70,8 +54,7 @@ namespace Mega.Crawler
             var visitedUrls = new HashSet<Uri>();
             using (var client = new WebClient())
             {
-                var collectContent = new CollectContent(messages, reports, visitedUrls, rootUri,
-                    client.DownloadString, limit, attempt);
+                var collectContent = new CollectContent(messages, reports, visitedUrls, rootUri, client.DownloadString, limit, attempt);
                 var uriFinder = new UrlFinder(messages, reports, depth);
                 while (!reports.IsEmpty() || !messages.IsEmpty())
                 {
