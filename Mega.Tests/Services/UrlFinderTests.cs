@@ -13,11 +13,13 @@ namespace Mega.Tests.Services
         {
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
+
             reports.Send(new UriBody(
                 uri: new Uri("https://docs.microsoft.com/ru-ru"), 
                 body: "href='https://docs.microsoft.com/ru-ru/kenguru'"));
-            var uriFinder = new UrlFinder(messages, reports);
-            uriFinder.Work();
+
+            new UrlFinder(messages, reports).Work();
+
             Assert.IsFalse(messages.IsEmpty());
             Assert.IsTrue(reports.IsEmpty());
         }
@@ -45,11 +47,13 @@ namespace Mega.Tests.Services
         {
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
+
             reports.Send(new UriBody(
                 uri: new Uri("https://docs.microsoft.com/ru-ru"),
                 body: "csdcdscdscsdhref='http:/docs.microsoft.com/ru-ru/kenguru'dcsdsfdsfsfsfdsf"));
-            var uriFinder = new UrlFinder(messages, reports);
-            uriFinder.Work();
+
+            new UrlFinder(messages, reports).Work();
+
             Assert.IsFalse(messages.TryReceive(out var receiveMessage));
         }
 
@@ -59,12 +63,14 @@ namespace Mega.Tests.Services
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
             var checkUrl = "https://docs.microsoft.com/ru-ru/kenguru";
+
             reports.Send(new UriBody(
                 uri: new Uri("https://docs.microsoft.com/ru-ru"),
                 body: "csdcdscdscsdhref='https://docs.microsoft.com/ru-ru/kenguru'dcsdsfdsfsfsfdsf"));
-            var uriFinder = new UrlFinder(messages, reports);
-            uriFinder.Work();
-            messages.TryReceive(out var receiveMessage);
+
+            new UrlFinder(messages, reports).Work();
+   
+            Assert.IsTrue(messages.TryReceive(out var receiveMessage));
             Assert.AreEqual(new Uri(checkUrl), receiveMessage.Uri);
         }
     }
