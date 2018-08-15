@@ -27,14 +27,17 @@ namespace Mega.Tests.Services
         {
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
-            var sendMessage = new UriBody(
-                uri: new Uri("https://docs.microsoft.com/ru-ru"),
+
+            var uriBody = new UriBody(
+                uri: new Uri("https://docs.microsoft.com/ru-ru"), 
                 body: "csdcdscdscsdhref='https://docs.microsoft.com/ru-ru/kenguru'dcsdsfdsfsfsfdsf");
-            reports.Send(sendMessage);
-            var uriFinder = new UrlFinder(messages, reports, checkDepth:3);
-            uriFinder.Work();
-            messages.TryReceive(out var checkDepth);
-            Assert.AreEqual(2, checkDepth.Depth);
+
+            reports.Send(uriBody);
+
+            new UrlFinder(messages, reports, checkDepth: 3).Work();
+
+            Assert.IsTrue(messages.TryReceive(out var uriLimits));
+            Assert.AreEqual(2, uriLimits.Depth);
         }
 
         [Test]
