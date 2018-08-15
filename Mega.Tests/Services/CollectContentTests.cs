@@ -18,7 +18,7 @@ namespace Mega.Tests.Services
             var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
             var collectContent = new CollectContent(messages, reports,
                 visitedUrls, rootUri, body => "8");
-            collectContent.Work();
+            collectContent.Run();
             Assert.IsTrue(messages.IsEmpty() && !reports.IsEmpty());
         }
 
@@ -33,7 +33,7 @@ namespace Mega.Tests.Services
                 visitedUrls, rootUri, uri => "8");
             var someUrl = new Uri("http://someurl");
             messages.Send(new UriLimits(someUrl));
-            collectContent.Work();
+            collectContent.Run();
             reports.TryReceive(out var receiveMessage1);
             Assert.IsFalse(reports.TryReceive(out var receiveMessage2));
         }
@@ -54,10 +54,10 @@ namespace Mega.Tests.Services
             }
 
             var collectContent = new CollectContent(messages, reports,
-                visitedUrls, rootUri, uri => "8", limit);
+                visitedUrls, rootUri, uri => "8", false, limit);
             while (!messages.IsEmpty())
             {
-                collectContent.Work();
+                collectContent.Run();
             }
 
             Assert.AreNotEqual(visitedUrls.Count, total);
@@ -73,7 +73,7 @@ namespace Mega.Tests.Services
             var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
             var collectContent = new CollectContent(messages, reports,
                 visitedUrls, rootUri, uri => "8");
-            collectContent.Work();
+            collectContent.Run();
             reports.TryReceive(out var receiveMessage);
             Assert.AreEqual(receiveMessage.Uri, rootUri);
             Assert.AreEqual(receiveMessage.Body, "8");

@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Mega.Services
 {
-    public class ArticleUrlParcer
+    public class ArticleUrlParcer : IMessageProcessor
     {
         private readonly MessageBroker<UriLimits> articles;
         private readonly int maxdepth;
@@ -24,7 +24,7 @@ namespace Mega.Services
         private static ILogger Logger { get; } =
             ApplicationLogging.CreateLogger<ArticleUrlParcer>();
 
-        public bool Work()
+        public bool Run()
         {
             if (this.reports.TryReceive(out var uri))
             {

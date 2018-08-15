@@ -6,17 +6,18 @@ using Microsoft.Extensions.Logging;
 
 namespace Mega.Services
 {
-    public class CollectContent
+    public class CollectContent : IMessageProcessor
     {
         private readonly int attempt;
         private readonly int limit;
+        private readonly bool timeout;
         private readonly MessageBroker<UriLimits> messages;
         private readonly MessageBroker<UriBody> reports;
 
 
         public CollectContent(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports,
             HashSet<Uri> visitedUrls,
-            Uri rootUri, Func<Uri, string> clientDelegate, int limit = -1, int attempt = 0)
+            Uri rootUri, Func<Uri, string> clientDelegate, bool timeout = false, int limit = -1, int attempt = 0)
         {
             this.messages = messages;
             this.reports = reports;
@@ -26,6 +27,7 @@ namespace Mega.Services
             this.ClientDelegate = clientDelegate;
             this.limit = limit;
             this.attempt = attempt;
+            this.timeout = timeout;
         }
 
         private static ILogger Logger { get; } =
@@ -35,7 +37,7 @@ namespace Mega.Services
         private Uri RootUri { get; }
         private Func<Uri, string> ClientDelegate { get; }
 
-        public bool Work(bool timeouut = false)
+        public bool Run()
         {
             if (this.messages.TryReceive(out var uri))
             {
@@ -71,7 +73,7 @@ namespace Mega.Services
                 }
             }
 
-            if (timeouut)
+            if (this.timeout)
             {
                 Thread.Sleep(new Random().Next(5000, 15000));
             }

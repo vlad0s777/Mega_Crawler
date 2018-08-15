@@ -19,7 +19,7 @@ namespace Mega.Tests.Services
                        $"<div class='meta'><div class='date-time'> 3 декабря 2015, 08:00</div></div><div class='text'><p>1999 год</p> </div>";
             articleReports.Send(new UriBody(rootUri, body));
             var uriFinder = new ArticleInfoParcer(infoDictionary, articleReports);
-            uriFinder.Work();
+            uriFinder.Run();
             foreach (var i in infoDictionary)
             {
                 Assert.AreEqual(i.Value.DateCreate, TimeSpan.Parse("3 декабря 2015, 08:00"));
@@ -41,7 +41,7 @@ namespace Mega.Tests.Services
                        $"</li><li><a href='/tag/only-in-russia'>только в России</a></li></ul></div></div>";
             articleReports.Send(new UriBody(rootUri, body));
             var uriFinder = new ArticleInfoParcer(infoDictionary, articleReports);
-            uriFinder.Work();
+            uriFinder.Run();
             Assert.IsEmpty(infoDictionary);
         }
 
@@ -57,7 +57,7 @@ namespace Mega.Tests.Services
                        $"</li><li><a href='/tag/only-in-russia'>только в России</a></li></ul></div></div><div class='text'><p>1999 год</p> </div>";
             articleReports.Send(new UriBody(rootUri, body));
             var uriFinder = new ArticleInfoParcer(infoDictionary, articleReports);
-            uriFinder.Work();
+            uriFinder.Run();
             foreach (var i in infoDictionary)
             {
                 Assert.AreEqual(i.Value.DateCreate, TimeSpan.Parse("3 декабря 2015, 08:00"));

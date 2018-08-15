@@ -6,7 +6,7 @@ using Microsoft.Extensions.Logging;
 
 namespace Mega.Services
 {
-    public class ArticleInfoParcer
+    public class ArticleInfoParcer : IMessageProcessor
     {
         public readonly Dictionary<string, ArticleInfo> Info;
         private readonly int maxdepth;
@@ -23,7 +23,7 @@ namespace Mega.Services
         private static ILogger Logger { get; } =
             ApplicationLogging.CreateLogger<ArticleInfoParcer>();
 
-        public bool Work()
+        public bool Run()
         {
             if (this.reports.TryReceive(out var uri))
             {

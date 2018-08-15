@@ -20,7 +20,7 @@ namespace Mega.Tests.Services
 
             pageReports.Send(new UriBody(rootUri, body));
             var uriFinder = new ArticleUrlParcer(pageMessages, pageReports, articleMessages);
-            uriFinder.Work();
+            uriFinder.Run();
             Assert.IsFalse(pageMessages.IsEmpty());
             Assert.IsTrue(pageReports.IsEmpty());
             Assert.IsFalse(articleMessages.IsEmpty());
@@ -37,7 +37,7 @@ namespace Mega.Tests.Services
                 $"<div class='story' id='story-13494'><h2><a href='/story/13494' > Нужны сильные программисты</a></h2></div>";
             pageReports.Send(new UriBody(rootUri, body));
             var uriFinder = new ArticleUrlParcer(pageMessages, pageReports, articleMessages);
-            uriFinder.Work();
+            uriFinder.Run();
             Assert.IsTrue(pageMessages.IsEmpty());
             Assert.IsTrue(pageReports.IsEmpty());
             Assert.IsFalse(articleMessages.IsEmpty());
@@ -53,7 +53,7 @@ namespace Mega.Tests.Services
             var body = $"<li class='prev'><a href='/page/1485'>1485</a></li>";
             pageReports.Send(new UriBody(rootUri, body));
             var uriFinder = new ArticleUrlParcer(pageMessages, pageReports, articleMessages);
-            uriFinder.Work();
+            uriFinder.Run();
             Assert.IsFalse(pageMessages.IsEmpty());
             Assert.IsTrue(pageReports.IsEmpty());
             Assert.IsTrue(articleMessages.IsEmpty());
@@ -71,7 +71,7 @@ namespace Mega.Tests.Services
 
             pageReports.Send(new UriBody(rootUri, body));
             var uriFinder = new ArticleUrlParcer(pageMessages, pageReports, articleMessages);
-            uriFinder.Work();
+            uriFinder.Run();
             pageMessages.TryReceive(out var uri);
             Assert.AreEqual(uri.Uri.LocalPath, "/page/1485");
             articleMessages.TryReceive(out var uri2);

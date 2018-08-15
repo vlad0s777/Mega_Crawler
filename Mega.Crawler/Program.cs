@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Net;
+using Mega.Crawler.Infrastructure.IoC;
 using Mega.Messaging;
 using Mega.Services;
 using Microsoft.Extensions.Configuration;
@@ -26,6 +27,10 @@ namespace Mega.Crawler
         //   private static int vvv = 10/ttt;
         private static void Main(string[] args)
         {
+
+            var cont = new RegisterByScanWithNaming().Container;
+            var t = cont.GetAllInstances<IClass>();
+            Console.WriteLine(cont.WhatDoIHave());
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Path.GetFullPath(@"../../../Properties"))
                 .AddJsonFile("Mega.Crawler.appsettings.json", false, true)
@@ -74,16 +79,16 @@ namespace Mega.Crawler
             using (var client = new WebClient())
             {
                 var collectPageContent = new CollectContent(pageMessages, pageReports, visitedUrls, rootUri,
-                    client.DownloadString, limit, attempt);
+                    client.DownloadString,true, limit, attempt);
                 var uriFinderArticle = new ArticleUrlParcer(pageMessages, pageReports, articleMessages, depth);
                 var collectArticleContent = new CollectContent(articleMessages, articleReports, visitedUrls, rootUri,
-                    client.DownloadString, limit, attempt);
+                    client.DownloadString, true, limit, attempt);
                 var infoFinderArticle = new ArticleInfoParcer(infoDictionary, articleReports, depth);
                 while (!pageReports.IsEmpty() || !pageMessages.IsEmpty() || !articleMessages.IsEmpty() ||
                        !articleReports.IsEmpty())
                 {
-                    if (!collectPageContent.Work(true) || !uriFinderArticle.Work() ||
-                        !collectArticleContent.Work(true) || !infoFinderArticle.Work())
+                    if (!collectPageContent.Run() || !uriFinderArticle.Run() ||
+                        !collectArticleContent.Run() || !infoFinderArticle.Run())
                     {
                         break;
                     }
@@ -94,7 +99,6 @@ namespace Mega.Crawler
                     }
                 }
             }
-
             Logger.LogInformation($"All {visitedUrls.Count} urls done! All {infoDictionary.Count} articles done!");
             Console.ReadLine();
             Logger.LogDebug("Exit Application");
