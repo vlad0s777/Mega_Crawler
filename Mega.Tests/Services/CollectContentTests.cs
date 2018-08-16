@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel;
+using Mega.Crawler.Infrastructure.IoC;
 using Mega.Messaging;
 using Mega.Services;
 using NUnit.Framework;
@@ -18,7 +20,7 @@ namespace Mega.Tests.Services
             new CollectContent(messages, reports,
                 visitedUrls: new HashSet<Uri>(),
                 rootUri: new Uri("https://docs.microsoft.com/ru-ru"),
-                clientDelegate: body => "8").Work();
+                clientDelegate: body => "8").Run();
 
             Assert.IsTrue(messages.IsEmpty());
             Assert.IsFalse(reports.IsEmpty());
@@ -37,7 +39,7 @@ namespace Mega.Tests.Services
 
             messages.Send(new UriLimits("http://someurl"));
 
-            collectContent.Work();
+            collectContent.Run();
 
             Assert.IsTrue(reports.TryReceive(out var receiveMessage1));
             Assert.IsFalse(reports.TryReceive(out var receiveMessage2));
@@ -61,7 +63,7 @@ namespace Mega.Tests.Services
             new CollectContent(messages, reports, visitedUrls, 
                 rootUri:new Uri(childUri),
                 clientDelegate:uri => "8", 
-                limit:6).Work();
+                limit:6).Run();
          
             Assert.AreEqual(6, visitedUrls.Count);
         }
@@ -77,10 +79,31 @@ namespace Mega.Tests.Services
             new CollectContent(messages, reports,
                 visitedUrls: new HashSet<Uri>(),
                 rootUri: rootUri,
-                clientDelegate: body => "8").Work();
+                clientDelegate: body => "8").Run();
            
             Assert.IsTrue(reports.TryReceive(out var receiveMessage));
             Assert.AreEqual(rootUri, receiveMessage.Uri);
+            Assert.AreEqual("8", receiveMessage.Body);
+        }
+
+        [Test]
+        public void ContainerTest()
+        {
+          
+            var cont = new InstallClass(new Limitations(2,100,3)).Container;
+            //var reports = (MessageBroker<UriBody>) cont.GetInstance<IMessageBroker>("uribody");
+            //var messages = (MessageBroker<UriLimits>)cont.GetInstance<IMessageBroker>("urilimits");
+            //cont.GetAllInstances<IMessageBroker>();
+            var messages = cont.GetInstance<IMessageBroker>("pageMessages");
+            var reports = (MessageBroker<UriBody>)cont.GetInstance<IMessageBroker>("pageReports");
+            var proc = cont/*.With(messages).With(reports)*/.With(new HashSet<Uri>()).With(new Uri("https://docs.microsoft.com/ru-ru"))
+                .With(new Func<Uri, string>(uri =>"8" )).GetInstance<IMessageProcessor>();
+            proc.Run();
+            
+            Assert.IsTrue(messages.IsEmpty());
+            Assert.IsFalse(reports.IsEmpty());
+            Assert.IsTrue(reports.TryReceive(out var receiveMessage));
+            Assert.AreEqual(new Uri("https://docs.microsoft.com/ru-ru"), receiveMessage.Uri);
             Assert.AreEqual("8", receiveMessage.Body);
         }
     }

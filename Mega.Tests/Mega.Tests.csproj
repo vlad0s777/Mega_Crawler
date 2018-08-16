@@ -20,6 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Mega.Crawler\Mega.Crawler.csproj" />
     <ProjectReference Include="..\Mega.Messaging\Mega.Messaging.csproj" />
     <ProjectReference Include="..\Mega.Services\Mega.Services.csproj" />
   </ItemGroup>
