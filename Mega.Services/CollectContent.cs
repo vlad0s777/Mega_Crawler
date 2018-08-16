@@ -8,16 +8,18 @@ namespace Mega.Services
 {
     public class CollectContent : IMessageProcessor
     {
+        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<CollectContent>();
+
         private readonly int attempt;
+
         private readonly int limit;
         private readonly bool timeout;
         private readonly MessageBroker<UriLimits> messages;
+
         private readonly MessageBroker<UriBody> reports;
 
-
-        public CollectContent(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports,
-            HashSet<Uri> visitedUrls,
-            Uri rootUri, Func<Uri, string> clientDelegate, bool timeout = false, int limit = -1, int attempt = 0)
+        public CollectContent(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports, HashSet<Uri> visitedUrls, Uri rootUri,
+            Func<Uri, string> clientDelegate, bool timeout = false, int limit = -1, int attempt = 0)
         {
             this.messages = messages;
             this.reports = reports;
@@ -30,11 +32,10 @@ namespace Mega.Services
             this.timeout = timeout;
         }
 
-        private static ILogger Logger { get; } =
-            ApplicationLogging.CreateLogger<CollectContent>();
-
         private HashSet<Uri> VisitedUrls { get; }
+
         private Uri RootUri { get; }
+
         private Func<Uri, string> ClientDelegate { get; }
 
         public bool Run()
@@ -52,7 +53,7 @@ namespace Mega.Services
                     try
                     {
                         var documentBody = this.ClientDelegate.Invoke(uri.Uri);
-                        Logger.LogDebug($"OK {uri.Uri} Depth: {uri.Depth}");
+                        Logger.LogInformation($"OK {uri.Uri} Depth: {uri.Depth}");
                         this.reports.Send(new UriBody(uri.Uri, documentBody));
                     }
                     catch (Exception e)
@@ -62,8 +63,7 @@ namespace Mega.Services
                         if (att < this.attempt)
                         {
                             this.messages.Send(new UriLimits(uri.Uri, att, uri.Depth));
-                            Logger.LogDebug(
-                                $"{e.Message} in {uri.Uri}. There are still attempts: {this.attempt - uri.Attempt}");
+                            Logger.LogDebug($"{e.Message} in {uri.Uri}. Еhere are still attempts: {this.attempt - uri.Attempt}");
                         }
                         else
                         {
