@@ -22,27 +22,25 @@ namespace Mega.Crawler.Infrastructure.IoC
             this.Container = new Container();
             this.Container.Configure(r =>
             {
-                /* r.For<IMessageBroker>().Use<MessageBroker<UriBody>>().Named("pageReports");
-                 var pageMessages = r.For<IMessageBroker>().Use<MessageBroker<UriLimits>>();
-                 var articleReports = r.For<IMessageBroker>().Use<MessageBroker<UriBody>>();
-                 var articleMessages = r.For<IMessageBroker>().Use<MessageBroker<UriLimits>>();
 
-                 r.For<IMessageProcessor>().Use<CollectContent>()
-                     .Ctor<IMessageBroker>("pageMessages").Is(pageMessages)
-                     .Ctor<IMessageBroker>("pageReports").Is(i => i.)
-                     .Ctor<HashSet<Uri>>("visitedUrls").Is(uries)
-                     .Ctor<string>("rootUri").Is(rootUri)
-                     .Ctor<Func<Uri, string>>("clientDelegate").Is(clientDelegate)
-                     ;*/
-       
-                var pageReports = r.For<IMessageBroker>().Use<MessageBroker<UriBody>>().Named("pageReports");
-                var pageMessages = r.For<IMessageBroker>().Use<MessageBroker<UriLimits>>().Named("pageMessages");
-                var articleReports = r.For<IMessageBroker>().Use<MessageBroker<UriBody>>().Named("articleReports");
-                var articleMessages = r.For<IMessageBroker>().Use<MessageBroker<UriLimits>>().Named("articleMessages");
+                /* var pageReports = r.For<IMessageBroker>().Use<MessageBroker<UriBody>>().Named("pageReports");
+                 var pageMessages = r.For<IMessageBroker>().Use<MessageBroker<UriLimits>>().Named("pageMessages");
+                 var articleReports = r.For<IMessageBroker>().Use<MessageBroker<UriBody>>().Named("articleReports");
+                 var articleMessages = r.For<IMessageBroker>().Use<MessageBroker<UriLimits>>().Named("articleMessages");*/
+                var BodyBroker = r.For<IMessageBroker>().Use<MessageBroker<UriBody>>().Named("BodyBroker");
+                var LimitsBroker = r.For<IMessageBroker>().Use<MessageBroker<UriLimits>>().Named("LimitsBroker");
 
                 r.For<IMessageProcessor>().Use<CollectContent>()
-                    .Ctor<IMessageBroker>("messages").Is(pageMessages)
-                    .Ctor<IMessageBroker>("reports").Is(pageReports)
+                    .Ctor<int>("limit").Is(limits.countLimit)
+                    .Ctor<int>("attempt").Is(limits.attemptLimit);
+
+                r.For<IMessageProcessor>().Use<ArticleInfoParcer>()
+                    .Ctor<int>("maxdepth").Is(limits.depthLimit);
+
+                r.For<IMessageProcessor>().Use<ArticleUrlParcer>()
+                    .Ctor<int>("maxdepth").Is(limits.depthLimit);
+
+                r.For<IMessageProcessor>().Use<CollectContent>()
                     .Ctor<int>("limit").Is(limits.countLimit)
                     .Ctor<int>("attempt").Is(limits.attemptLimit);
             });

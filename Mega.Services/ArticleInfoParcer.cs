@@ -12,8 +12,7 @@ namespace Mega.Services
         private readonly int maxdepth;
         private readonly MessageBroker<UriBody> reports;
 
-        public ArticleInfoParcer(Dictionary<string, ArticleInfo> info, MessageBroker<UriBody> reports,
-            int maxdepth = -1)
+        public ArticleInfoParcer(Dictionary<string, ArticleInfo> info, MessageBroker<UriBody> reports, int maxdepth = -1)
         {
             this.Info = info;
             this.reports = reports;
