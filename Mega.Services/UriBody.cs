@@ -4,10 +4,11 @@ namespace Mega.Services
 {
     public class UriBody
     {
-        public readonly string Body;
-        public readonly int Depth;
-
         public readonly Uri Uri;
+
+        public readonly string Body;
+
+        public readonly int Depth;
 
         public UriBody(Uri uri, string body, int depth = 1)
         {

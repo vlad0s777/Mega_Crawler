@@ -29,27 +29,10 @@ namespace Mega.Crawler
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Path.GetFullPath(@"../../../Properties"))
                 .AddJsonFile("Mega.Crawler.appsettings.json", false, true)
-                .AddJsonFile(
-                    $"Mega.Crawler.appsettings.{Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT")}.json", true);
+                .AddJsonFile($"Mega.Crawler.appsettings.{Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT")}.json", true);
 
             var settings = builder.Build();
-            ApplicationLogging.LoggerFactory
-                .AddConsole((category, level) =>
-                {
-                    if (category.Contains("CollectContent") || category.Contains("ArticleUrlParcer") ||
-                        category.Contains("ArticleInfoFinder") && level >= LogLevel.Debug)
-                    {
-                        return true;
-                    }
-
-                    if (category.Contains("Program") && level >= LogLevel.Information)
-                    {
-                        return true;
-                    }
-
-                    return false;
-                })
-                .AddEventLog(LogLevel.Debug);
+            ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug);
             var depth = Convert.ToInt32(settings["depth"]);
             var limit = Convert.ToInt32(settings["count"]);
             var attempt = Convert.ToInt32(settings["attempt"]);
