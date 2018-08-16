@@ -18,8 +18,10 @@ namespace Mega.Services
 
         private readonly MessageBroker<UriBody> reports;
 
+        private readonly bool is_timeout;
+
         public CollectContent(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports, HashSet<Uri> visitedUrls, Uri rootUri,
-            Func<Uri, string> clientDelegate, int limit = -1, int attempt = 0)
+            Func<Uri, string> clientDelegate, int limit = -1, int attempt = 0, bool timeout = false)
         {
             this.messages = messages;
             this.reports = reports;
@@ -29,6 +31,7 @@ namespace Mega.Services
             this.ClientDelegate = clientDelegate;
             this.limit = limit;
             this.attempt = attempt;
+            this.is_timeout = timeout;
         }
 
         private HashSet<Uri> VisitedUrls { get; }
@@ -37,7 +40,7 @@ namespace Mega.Services
 
         private Func<Uri, string> ClientDelegate { get; }
 
-        public bool Work(bool timeouut = false)
+        public bool Work()
         {
             if (this.messages.TryReceive(out var uri))
             {
@@ -72,7 +75,7 @@ namespace Mega.Services
                 }
             }
 
-            if (timeouut)
+            if (this.is_timeout)
             {
                 Thread.Sleep(new Random().Next(5000, 15000));
             }

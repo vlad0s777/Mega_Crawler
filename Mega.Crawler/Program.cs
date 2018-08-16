@@ -33,9 +33,9 @@ namespace Mega.Crawler
 
             var settings = builder.Build();
             ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug);
-            var depth = Convert.ToInt32(settings["depth"]);
-            var limit = Convert.ToInt32(settings["count"]);
-            var attempt = Convert.ToInt32(settings["attempt"]);
+            var depthLimit = Convert.ToInt32(settings["depthLimit"]);
+            var countLimit = Convert.ToInt32(settings["countLimit"]);
+            var attemptLimit = Convert.ToInt32(settings["attemptLimit"]);
             var rootUriString = args.FirstOrDefault();
             while (string.IsNullOrWhiteSpace(rootUriString))
             {
@@ -47,6 +47,7 @@ namespace Mega.Crawler
             var pageMessages = new MessageBroker<UriLimits>();
             var articleMessages = new MessageBroker<UriLimits>();
             var articleReports = new MessageBroker<UriBody>();
+
             Logger.LogInformation($"Starting with {rootUriString}");
 
             // Preload
@@ -57,16 +58,20 @@ namespace Mega.Crawler
             using (var client = new WebClient())
             {
                 var collectPageContent = new CollectContent(pageMessages, pageReports, visitedUrls, rootUri,
-                    client.DownloadString, limit, attempt);
-                var uriFinderArticle = new ArticleUrlParcer(pageMessages, pageReports, articleMessages, depth);
+                    client.DownloadString, countLimit, attemptLimit, timeout: true);
+
+                var uriFinderArticle = new ArticleUrlParcer(pageMessages, pageReports, articleMessages, depthLimit);
+
                 var collectArticleContent = new CollectContent(articleMessages, articleReports, visitedUrls, rootUri,
-                    client.DownloadString, limit, attempt);
-                var infoFinderArticle = new ArticleInfoParcer(infoDictionary, articleReports, depth);
+                    client.DownloadString, countLimit, attemptLimit, timeout: true);
+
+                var infoFinderArticle = new ArticleInfoParcer(infoDictionary, articleReports, depthLimit);
+
                 while (!pageReports.IsEmpty() || !pageMessages.IsEmpty() || !articleMessages.IsEmpty() ||
                        !articleReports.IsEmpty())
                 {
-                    if (!collectPageContent.Work(true) || !uriFinderArticle.Work() ||
-                        !collectArticleContent.Work(true) || !infoFinderArticle.Work())
+                    if (!collectPageContent.Work() || !uriFinderArticle.Work() ||
+                        !collectArticleContent.Work() || !infoFinderArticle.Work())
                     {
                         break;
                     }
