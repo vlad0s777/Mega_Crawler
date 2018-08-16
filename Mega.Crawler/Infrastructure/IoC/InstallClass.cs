@@ -1,38 +1,54 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Net.Mime;
 using System.Text;
 using Mega.Messaging;
 using Mega.Services;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using StructureMap;
 
 namespace Mega.Crawler.Infrastructure.IoC
 {
 
-    public interface IClass { }
 
-    public interface IClass1 : IClass { }
-
-    public interface IClass2 : IClass { }
-
-    public class Class1 : IClass1 { }
-
-    public class Class2 : IClass2 { }
-    public class RegisterByScanWithNaming
+    public class GenericTypes
     {
         public IContainer Container;
 
-        public RegisterByScanWithNaming()
+        public GenericTypes()
         {
-            this.Container = new Container(x => x.Scan(s =>
-            {
-                s.AddAllTypesOf(typeof(IClass)).NameBy(t => t.Name);
-                s.AssembliesFromPath(".");
-                s.WithDefaultConventions();
-                s.LookForRegistries();
-            }));
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Path.GetFullPath(@"../../../Properties"))
+                .AddJsonFile("Mega.Crawler.appsettings.json", false, true)
+                .AddJsonFile(
+                    $"Mega.Crawler.appsettings.{Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT")}.json", true);
+
+            var settings = builder.Build();
+            this.Container = new Container();
+            this.Container.Configure(r => r
+            .For(typeof(IMessageBroker<>))
+            .Use(typeof(MessageBroker<>))
+            .Named("MessageBroker"));
+            /*this.Container.Configure(r =>
+                r.Scan(s =>
+                {
+                    //s.AssemblyContainingType<Steak>();
+                    s.AddAllTypesOf<IMessageProcessor>();
+                }));*/
+            this.Container.Configure(r => r
+                .For<IMessageProcessor>()
+                .Use<CollectContent>()
+                /*.Ctor<MessageBroker<UriLimits>>("messages")
+                .IsNamedInstance("MessageBroker")
+                .Ctor<MessageBroker<UriBody>>("reports")
+                .IsNamedInstance("MessageBroker")
+                .Ctor<HashSet<Uri>>("visitedUrls")
+                .IsTheDefault()*/
+            );
         }
+        
     }
 
 }

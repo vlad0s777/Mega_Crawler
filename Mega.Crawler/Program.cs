@@ -8,6 +8,8 @@ using Mega.Messaging;
 using Mega.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
+using StructureMap;
+using StructureMap.Pipeline;
 
 namespace Mega.Crawler
 {
@@ -28,9 +30,6 @@ namespace Mega.Crawler
         private static void Main(string[] args)
         {
 
-            var cont = new RegisterByScanWithNaming().Container;
-            var t = cont.GetAllInstances<IClass>();
-            Console.WriteLine(cont.WhatDoIHave());
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Path.GetFullPath(@"../../../Properties"))
                 .AddJsonFile("Mega.Crawler.appsettings.json", false, true)
@@ -78,6 +77,10 @@ namespace Mega.Crawler
             var infoDictionary = new Dictionary<string, ArticleInfo>();
             using (var client = new WebClient())
             {
+                var cont = new Container();
+                var brok = cont.TryGetInstance<IMessageBroker>();
+                var colCon = cont.TryGetInstance<IMessageProcessor>();
+                colCon.Run();
                 var collectPageContent = new CollectContent(pageMessages, pageReports, visitedUrls, rootUri,
                     client.DownloadString,true, limit, attempt);
                 var uriFinderArticle = new ArticleUrlParcer(pageMessages, pageReports, articleMessages, depth);
