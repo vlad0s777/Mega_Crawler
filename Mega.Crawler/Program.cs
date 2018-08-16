@@ -57,15 +57,15 @@ namespace Mega.Crawler
             var infoDictionary = new Dictionary<string, ArticleInfo>();
             using (var client = new WebClient())
             {
-                var collectPageContent = new CollectContent(pageMessages, pageReports, visitedUrls, rootUri,
+                var collectPageContent = new ServiceCollectContent(pageMessages, pageReports, visitedUrls, rootUri,
                     client.DownloadString, countLimit, attemptLimit, timeout: true);
 
-                var uriFinderArticle = new ArticleUrlParcer(pageMessages, pageReports, articleMessages, depthLimit);
+                var uriFinderArticle = new ServiceUrlParcer(pageMessages, pageReports, articleMessages, depthLimit);
 
-                var collectArticleContent = new CollectContent(articleMessages, articleReports, visitedUrls, rootUri,
+                var collectArticleContent = new ServiceCollectContent(articleMessages, articleReports, visitedUrls, rootUri,
                     client.DownloadString, countLimit, attemptLimit, timeout: true);
 
-                var infoFinderArticle = new ArticleInfoParcer(infoDictionary, articleReports, depthLimit);
+                var infoFinderArticle = new ServiceInfoParcer(infoDictionary, articleReports, depthLimit);
 
                 while (!pageReports.IsEmpty() || !pageMessages.IsEmpty() || !articleMessages.IsEmpty() ||
                        !articleReports.IsEmpty())

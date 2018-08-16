@@ -6,22 +6,26 @@ using Microsoft.Extensions.Logging;
 
 namespace Mega.Services
 {
-    public class ArticleInfoParcer
+    public class ServiceInfoParcer
     {
-        public readonly Dictionary<string, ArticleInfo> Info;
-        private readonly int maxdepth;
+        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<ServiceInfoParcer>();
+
         private readonly MessageBroker<UriBody> reports;
 
-        public ArticleInfoParcer(Dictionary<string, ArticleInfo> info, MessageBroker<UriBody> reports,
-            int maxdepth = -1)
+        public readonly Dictionary<string, ArticleInfo> Info;
+
+        private readonly int maxdepth;
+
+        public ServiceInfoParcer(Dictionary<string, ArticleInfo> info, MessageBroker<UriBody> reports, int maxdepth = -1)
         {
             this.Info = info;
+
             this.reports = reports;
+
             this.maxdepth = maxdepth;
         }
 
-        private static ILogger Logger { get; } =
-            ApplicationLogging.CreateLogger<ArticleInfoParcer>();
+
 
         public bool Work()
         {
@@ -42,15 +46,19 @@ namespace Mega.Services
                     var body = document.QuerySelector("div.text").InnerHtml;
                     var tagsSelector = document.QuerySelectorAll("div.story>div.meta>div.tags>ul>li>a");
                     var tagsDictionary = new Dictionary<string, string>();
+
                     foreach (var selector in tagsSelector)
                     {
                         var href = selector.Attributes["href"].Value;
                         var text = selector.InnerHtml;
+
                         tagsDictionary.Add(href, text);
                     }
 
-                    this.Info.Add(uri.Uri.LocalPath, new ArticleInfo(date, tagsDictionary, body, head));
-                    Logger.LogDebug($"Add {head} document!");
+                    var artInfo = new ArticleInfo(date, tagsDictionary, body, head);
+                    this.Info.Add(uri.Uri.LocalPath, artInfo);
+   
+                    Logger.LogInformation($"Add '{head}' document!");
                 }
                 catch (Exception e)
                 {

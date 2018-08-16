@@ -7,7 +7,7 @@ namespace Mega.Services
 {
     public class UrlFinder
     {
-        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<CollectContent>();
+        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<ServiceCollectContent>();
 
         private const string HrefPattern = "href\\s*=\\s*(?:[\"'](?<uri>[^\"']*)[\"'])";
 

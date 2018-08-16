@@ -7,7 +7,7 @@ using NUnit.Framework;
 namespace Mega.Tests.Services
 {
     [TestFixture]
-    public class CollectContentTests
+    public class ServiceCollectContentTests
     {
         [Test]
         public void AddReports()
@@ -15,7 +15,7 @@ namespace Mega.Tests.Services
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
 
-            new CollectContent(messages, reports,
+            new ServiceCollectContent(messages, reports,
                 visitedUrls: new HashSet<Uri>(),
                 rootUri: new Uri("https://docs.microsoft.com/ru-ru"),
                 clientDelegate: body => "8").Work();
@@ -30,7 +30,7 @@ namespace Mega.Tests.Services
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
 
-            var collectContent = new CollectContent(messages, reports,
+            var collectContent = new ServiceCollectContent(messages, reports,
                 visitedUrls: new HashSet<Uri>(),
                 rootUri: new Uri("https://docs.microsoft.com/ru-ru"),
                 clientDelegate: body => "8");
@@ -58,10 +58,15 @@ namespace Mega.Tests.Services
                 messages.Send(new UriLimits(childUri+i));
             }
 
-            new CollectContent(messages, reports, visitedUrls, 
-                rootUri:new Uri(childUri),
-                clientDelegate:uri => "8", 
-                limit:6).Work();
+            var colCon = new ServiceCollectContent(messages, reports, visitedUrls, 
+                rootUri: new Uri(childUri),
+                clientDelegate: uri => "8", 
+                countLimit: 6);
+
+            while (!messages.IsEmpty())
+            {
+                colCon.Work();
+            }
          
             Assert.AreEqual(6, visitedUrls.Count);
         }
@@ -74,7 +79,7 @@ namespace Mega.Tests.Services
 
             var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
 
-            new CollectContent(messages, reports,
+            new ServiceCollectContent(messages, reports,
                 visitedUrls: new HashSet<Uri>(),
                 rootUri: rootUri,
                 clientDelegate: body => "8").Work();

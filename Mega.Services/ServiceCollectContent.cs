@@ -6,13 +6,13 @@ using Microsoft.Extensions.Logging;
 
 namespace Mega.Services
 {
-    public class CollectContent
+    public class ServiceCollectContent
     {
-        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<CollectContent>();
+        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<ServiceCollectContent>();
 
-        private readonly int attempt;
+        private readonly int countAttempt;
 
-        private readonly int limit;
+        private readonly int countLimit;
 
         private readonly MessageBroker<UriLimits> messages;
 
@@ -20,17 +20,22 @@ namespace Mega.Services
 
         private readonly bool is_timeout;
 
-        public CollectContent(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports, HashSet<Uri> visitedUrls, Uri rootUri,
-            Func<Uri, string> clientDelegate, int limit = -1, int attempt = 0, bool timeout = false)
+        public ServiceCollectContent(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports, HashSet<Uri> visitedUrls, Uri rootUri,
+            Func<Uri, string> clientDelegate, int countLimit = -1, int countAttempt = 0, bool timeout = false)
         {
             this.messages = messages;
             this.reports = reports;
+
             this.VisitedUrls = visitedUrls;
+
             this.RootUri = rootUri;
+
             messages.Send(new UriLimits(rootUri));
+
             this.ClientDelegate = clientDelegate;
-            this.limit = limit;
-            this.attempt = attempt;
+
+            this.countLimit = countLimit;
+            this.countAttempt = countAttempt;
             this.is_timeout = timeout;
         }
 
@@ -44,9 +49,9 @@ namespace Mega.Services
         {
             if (this.messages.TryReceive(out var uri))
             {
-                if (this.VisitedUrls.Count == this.limit)
+                if (this.VisitedUrls.Count == this.countLimit)
                 {
-                    Logger.LogDebug($"You have reached the limit of visited pages: {this.limit}");
+                    Logger.LogDebug($"You have reached the limit of visited pages: {this.countLimit}");
                     return false;
                 }
 
@@ -62,10 +67,10 @@ namespace Mega.Services
                     {
                         this.VisitedUrls.Remove(uri.Uri);
                         var att = uri.Attempt + 1;
-                        if (att < this.attempt)
+                        if (att < this.countAttempt)
                         {
                             this.messages.Send(new UriLimits(uri.Uri, att, uri.Depth));
-                            Logger.LogDebug($"{e.Message} in {uri.Uri}. There are still attempts: {this.attempt - uri.Attempt}");
+                            Logger.LogDebug($"{e.Message} in {uri.Uri}. There are still attempts: {this.countAttempt - uri.Attempt}");
                         }
                         else
                         {

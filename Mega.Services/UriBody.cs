@@ -16,5 +16,7 @@ namespace Mega.Services
             this.Body = body;
             this.Depth = depth;
         }
+
+        public UriBody(string uri, string body, int depth = 1) : this(new Uri(uri), body, depth) { }
     }
 }
