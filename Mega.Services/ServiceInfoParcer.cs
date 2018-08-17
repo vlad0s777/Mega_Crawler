@@ -1,14 +1,19 @@
-﻿using System;
-using System.Collections.Generic;
-using AngleSharp.Parser.Html;
-using Mega.Messaging;
-using Microsoft.Extensions.Logging;
-
-namespace Mega.Services
+﻿namespace Mega.Services
 {
+    using System;
+    using System.Collections.Generic;
+
+    using AngleSharp.Parser.Html;
+
+    using Mega.Messaging;
+
+    using Microsoft.Extensions.Logging;
+
     public class ServiceInfoParcer
     {
         private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<ServiceInfoParcer>();
+
+        private readonly MessageBroker<UriLimits> messages;
 
         private readonly MessageBroker<UriBody> reports;
 
@@ -16,13 +21,15 @@ namespace Mega.Services
 
         private readonly int maxdepth;
 
-        public ServiceInfoParcer(Dictionary<string, ArticleInfo> info, MessageBroker<UriBody> reports, int maxdepth = -1)
+        public ServiceInfoParcer(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports, Dictionary<string, ArticleInfo> info, int maxdepth = -1)
         {
             this.Info = info;
 
             this.reports = reports;
 
             this.maxdepth = maxdepth;
+
+            this.messages = messages;
         }
 
 
@@ -39,26 +46,50 @@ namespace Mega.Services
 
                 var parser = new HtmlParser();
                 var document = parser.Parse(uri.Body);
+
                 try
                 {
-                    var head = document.QuerySelector("div.story>h1").InnerHtml;
-                    var date = DateTime.Parse(document.QuerySelector("div.story>div.meta>div.date-time").InnerHtml);
-                    var body = document.QuerySelector("div.text").InnerHtml;
-                    var tagsSelector = document.QuerySelectorAll("div.story>div.meta>div.tags>ul>li>a");
-                    var tagsDictionary = new Dictionary<string, string>();
-
-                    foreach (var selector in tagsSelector)
+                    var articleBody = document.QuerySelectorAll("div.story");
+                    foreach (var article in articleBody)
                     {
-                        var href = selector.Attributes["href"].Value;
-                        var text = selector.InnerHtml;
+                        try
+                        {
+                            var articleDoc = parser.Parse(article.InnerHtml);
+                            var head = articleDoc.QuerySelector("h2").TextContent;
+                            var urlArticle = articleDoc.QuerySelector("h2>a").Attributes["href"];
+                            var date = DateTime.Parse(articleDoc.QuerySelector("div.meta>div.date-time").InnerHtml);
+                            var body = articleDoc.QuerySelector("div.text").InnerHtml;
+                            var tagsSelector = articleDoc.QuerySelectorAll("div.meta>div.tags>ul>li>a");
+                            var tagsDictionary = new Dictionary<string, string>();
+                            foreach (var selector in tagsSelector)
+                            {
+                                var href = selector.Attributes["href"].Value;
+                                var text = selector.InnerHtml;
 
-                        tagsDictionary.Add(href, text);
+                                tagsDictionary.Add(href, text);
+                            }
+
+                            var artInfo = new ArticleInfo(date, tagsDictionary, body, head);
+                            this.Info.Add(urlArticle.Value, artInfo);
+                            Logger.LogInformation($"Add '{head}' document!");
+                        }
+                        catch (Exception e)
+                        {
+                            Logger.LogWarning(e.Message);
+                        }
                     }
+                }
+                catch (Exception e)
+                {
+                    Logger.LogWarning(e.Message);
+                }
 
-                    var artInfo = new ArticleInfo(date, tagsDictionary, body, head);
-                    this.Info.Add(uri.Uri.LocalPath, artInfo);
-   
-                    Logger.LogInformation($"Add '{head}' document!");
+                try
+                {
+                    var hrefPrevPage = document.QuerySelector("li.prev>a").Attributes["href"].Value;
+                    var absUriPrevPage = new Uri(uri.Uri, new Uri(hrefPrevPage, UriKind.RelativeOrAbsolute));
+
+                    this.messages.Send(new UriLimits(absUriPrevPage));
                 }
                 catch (Exception e)
                 {

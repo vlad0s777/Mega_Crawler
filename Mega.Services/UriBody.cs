@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace Mega.Services
+﻿namespace Mega.Services
 {
+    using System;
+
     public class UriBody
     {
         public readonly Uri Uri;
@@ -17,6 +17,9 @@ namespace Mega.Services
             this.Depth = depth;
         }
 
-        public UriBody(string uri, string body, int depth = 1) : this(new Uri(uri), body, depth) { }
+        public UriBody(string uri, string body, int depth = 1)
+            : this(new Uri(uri), body, depth)
+        {
+        }
     }
 }

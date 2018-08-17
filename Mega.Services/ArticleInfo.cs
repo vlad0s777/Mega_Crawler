@@ -1,8 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
-
-namespace Mega.Services
+﻿namespace Mega.Services
 {
+    using System;
+    using System.Collections.Generic;
+
     public class ArticleInfo
     {
         public readonly DateTime DateCreate;

@@ -1,10 +1,12 @@
-﻿using System;
-using Mega.Messaging;
-using Mega.Services;
-using NUnit.Framework;
-
-namespace Mega.Tests.Services
+﻿namespace Mega.Tests.Services
 {
+    using System;
+
+    using Mega.Messaging;
+    using Mega.Services;
+
+    using NUnit.Framework;
+
     [TestFixture]
     public class UrlFinderTests
     {

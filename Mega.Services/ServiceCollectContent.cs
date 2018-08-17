@@ -1,11 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using Mega.Messaging;
-using Microsoft.Extensions.Logging;
-
-namespace Mega.Services
+﻿namespace Mega.Services
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+
+    using Mega.Messaging;
+
+    using Microsoft.Extensions.Logging;
+
     public class ServiceCollectContent
     {
         private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<ServiceCollectContent>();
@@ -20,10 +22,18 @@ namespace Mega.Services
 
         private readonly bool is_timeout;
 
-        public ServiceCollectContent(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports, HashSet<Uri> visitedUrls, Uri rootUri,
-            Func<Uri, string> clientDelegate, int countLimit = -1, int countAttempt = 0, bool timeout = false)
+        public ServiceCollectContent(
+            MessageBroker<UriLimits> messages,
+            MessageBroker<UriBody> reports,
+            HashSet<Uri> visitedUrls,
+            Uri rootUri,
+            Func<Uri, string> clientDelegate,
+            int countLimit = -1,
+            int countAttempt = 0,
+            bool timeout = false)
         {
             this.messages = messages;
+
             this.reports = reports;
 
             this.VisitedUrls = visitedUrls;
@@ -35,7 +45,9 @@ namespace Mega.Services
             this.ClientDelegate = clientDelegate;
 
             this.countLimit = countLimit;
+
             this.countAttempt = countAttempt;
+
             this.is_timeout = timeout;
         }
 
@@ -60,7 +72,7 @@ namespace Mega.Services
                     try
                     {
                         var documentBody = this.ClientDelegate.Invoke(uri.Uri);
-                        Logger.LogInformation($"OK {uri.Uri} Depth: {uri.Depth}");
+                        Logger.LogInformation($"OK {uri.Uri}");
                         this.reports.Send(new UriBody(uri.Uri, documentBody));
                     }
                     catch (Exception e)

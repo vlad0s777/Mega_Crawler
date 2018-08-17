@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using Mega.Messaging;
-using Mega.Services;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-
-namespace Mega.Crawler
+﻿namespace Mega.Crawler
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Net;
+
+    using Mega.Messaging;
+    using Mega.Services;
+
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Logging;
+
     internal class Program
     {
         private static readonly ILogger Logger = getLogger();
@@ -43,10 +45,8 @@ namespace Mega.Crawler
                 rootUriString = Console.ReadLine();
             }
 
-            var pageReports = new MessageBroker<UriBody>();
-            var pageMessages = new MessageBroker<UriLimits>();
-            var articleMessages = new MessageBroker<UriLimits>();
-            var articleReports = new MessageBroker<UriBody>();
+            var reports = new MessageBroker<UriBody>();
+            var messages = new MessageBroker<UriLimits>();
 
             Logger.LogInformation($"Starting with {rootUriString}");
 
@@ -57,21 +57,13 @@ namespace Mega.Crawler
             var infoDictionary = new Dictionary<string, ArticleInfo>();
             using (var client = new WebClient())
             {
-                var collectPageContent = new ServiceCollectContent(pageMessages, pageReports, visitedUrls, rootUri,
-                    client.DownloadString, countLimit, attemptLimit, timeout: true);
+                var collectPage = new ServiceCollectContent(messages, reports, visitedUrls, rootUri, client.DownloadString, countLimit, attemptLimit, true);
 
-                var uriFinderArticle = new ServiceUrlParcer(pageMessages, pageReports, articleMessages, depthLimit);
+                var infoParcer = new ServiceInfoParcer(messages, reports, infoDictionary, depthLimit);
 
-                var collectArticleContent = new ServiceCollectContent(articleMessages, articleReports, visitedUrls, rootUri,
-                    client.DownloadString, countLimit, attemptLimit, timeout: true);
-
-                var infoFinderArticle = new ServiceInfoParcer(infoDictionary, articleReports, depthLimit);
-
-                while (!pageReports.IsEmpty() || !pageMessages.IsEmpty() || !articleMessages.IsEmpty() ||
-                       !articleReports.IsEmpty())
+                while (!reports.IsEmpty() || !messages.IsEmpty())
                 {
-                    if (!collectPageContent.Work() || !uriFinderArticle.Work() ||
-                        !collectArticleContent.Work() || !infoFinderArticle.Work())
+                    if (!collectPage.Work() || !infoParcer.Work())
                     {
                         break;
                     }

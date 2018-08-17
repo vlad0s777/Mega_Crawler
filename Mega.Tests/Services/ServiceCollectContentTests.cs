@@ -1,11 +1,13 @@
-﻿using System;
-using System.Collections.Generic;
-using Mega.Messaging;
-using Mega.Services;
-using NUnit.Framework;
-
-namespace Mega.Tests.Services
+﻿namespace Mega.Tests.Services
 {
+    using System;
+    using System.Collections.Generic;
+
+    using Mega.Messaging;
+    using Mega.Services;
+
+    using NUnit.Framework;
+
     [TestFixture]
     public class ServiceCollectContentTests
     {
@@ -15,7 +17,9 @@ namespace Mega.Tests.Services
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
 
-            new ServiceCollectContent(messages, reports,
+            new ServiceCollectContent(
+                messages,
+                reports,
                 visitedUrls: new HashSet<Uri>(),
                 rootUri: new Uri("https://docs.microsoft.com/ru-ru"),
                 clientDelegate: body => "8").Work();
@@ -30,7 +34,9 @@ namespace Mega.Tests.Services
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
 
-            var collectContent = new ServiceCollectContent(messages, reports,
+            var collectContent = new ServiceCollectContent(
+                messages,
+                reports,
                 visitedUrls: new HashSet<Uri>(),
                 rootUri: new Uri("https://docs.microsoft.com/ru-ru"),
                 clientDelegate: body => "8");
@@ -55,10 +61,13 @@ namespace Mega.Tests.Services
 
             for (var i = 0; i < 10; i++)
             {
-                messages.Send(new UriLimits(childUri+i));
+                messages.Send(new UriLimits(childUri + i));
             }
 
-            var colCon = new ServiceCollectContent(messages, reports, visitedUrls, 
+            var colCon = new ServiceCollectContent(
+                messages,
+                reports,
+                visitedUrls,
                 rootUri: new Uri(childUri),
                 clientDelegate: uri => "8", 
                 countLimit: 6);
@@ -79,7 +88,9 @@ namespace Mega.Tests.Services
 
             var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
 
-            new ServiceCollectContent(messages, reports,
+            new ServiceCollectContent(
+                messages,
+                reports,
                 visitedUrls: new HashSet<Uri>(),
                 rootUri: rootUri,
                 clientDelegate: body => "8").Work();
