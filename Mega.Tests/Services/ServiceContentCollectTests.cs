@@ -9,7 +9,7 @@
     using NUnit.Framework;
 
     [TestFixture]
-    public class ServiceCollectContentTests
+    public class ServiceContentCollectTests
     {
         [Test]
         public void AddReports()
@@ -17,12 +17,15 @@
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
 
-            new ServiceCollectContent(
+            var rootUri = "https://docs.microsoft.com/ru-ru";
+            messages.Send(new UriLimits(rootUri));
+
+            new ServiceContentCollect(
                 messages,
                 reports,
                 visitedUrls: new HashSet<Uri>(),
-                rootUri: new Uri("https://docs.microsoft.com/ru-ru"),
-                clientDelegate: body => "8").Work();
+                clientDelegate: body => "8",
+                settings: new Settings(rootUri)).Work();
 
             Assert.IsTrue(messages.IsEmpty());
             Assert.IsFalse(reports.IsEmpty());
@@ -34,16 +37,19 @@
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
 
-            var collectContent = new ServiceCollectContent(
+            var rootUri = "https://docs.microsoft.com/ru-ru";
+            messages.Send(new UriLimits(rootUri));
+
+            var contentCollect = new ServiceContentCollect(
                 messages,
                 reports,
                 visitedUrls: new HashSet<Uri>(),
-                rootUri: new Uri("https://docs.microsoft.com/ru-ru"),
-                clientDelegate: body => "8");
+                clientDelegate: body => "8",
+                settings: new Settings(rootUri));
 
             messages.Send(new UriLimits("http://someurl"));
 
-            collectContent.Work();
+            contentCollect.Work();
 
             Assert.IsTrue(reports.TryReceive(out var receiveMessage1));
             Assert.IsFalse(reports.TryReceive(out var receiveMessage2));
@@ -57,20 +63,21 @@
 
             var visitedUrls = new HashSet<Uri>();
 
-            var childUri = "https://docs.microsoft.com/ru-ru/";
-
+            var rootUri = "https://docs.microsoft.com/ru-ru/";
+            
             for (var i = 0; i < 10; i++)
             {
-                messages.Send(new UriLimits(childUri + i));
+                messages.Send(new UriLimits(rootUri + i));
             }
 
-            var colCon = new ServiceCollectContent(
+            messages.Send(new UriLimits(rootUri));
+
+            var colCon = new ServiceContentCollect(
                 messages,
                 reports,
                 visitedUrls,
-                rootUri: new Uri(childUri),
                 clientDelegate: uri => "8", 
-                countLimit: 6);
+                settings: new Settings(rootUri, countLimit: 6));
 
             while (!messages.IsEmpty())
             {
@@ -86,17 +93,17 @@
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
 
-            var rootUri = new Uri("https://docs.microsoft.com/ru-ru");
-
-            new ServiceCollectContent(
+            var rootUri = "https://docs.microsoft.com/ru-ru";
+            messages.Send(new UriLimits(rootUri));
+            new ServiceContentCollect(
                 messages,
                 reports,
                 visitedUrls: new HashSet<Uri>(),
-                rootUri: rootUri,
-                clientDelegate: body => "8").Work();
+                clientDelegate: body => "8",
+                settings: new Settings(rootUri)).Work();
            
             Assert.IsTrue(reports.TryReceive(out var receiveMessage));
-            Assert.AreEqual(rootUri, receiveMessage.Uri);
+            Assert.AreEqual(rootUri, receiveMessage.Uri.AbsoluteUri);
             Assert.AreEqual("8", receiveMessage.Body);
         }
     }

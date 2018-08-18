@@ -9,7 +9,7 @@
 
     public class UrlFinder
     {
-        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<ServiceCollectContent>();
+        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<ServiceContentCollect>();
 
         private const string HrefPattern = "href\\s*=\\s*(?:[\"'](?<uri>[^\"']*)[\"'])";
 

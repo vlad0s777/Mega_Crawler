@@ -9,9 +9,9 @@
 
     using Microsoft.Extensions.Logging;
 
-    public class ServiceInfoParcer
+    public class ServiceInfoParser
     {
-        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<ServiceInfoParcer>();
+        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<ServiceInfoParser>();
 
         private readonly MessageBroker<UriLimits> messages;
 
@@ -21,13 +21,20 @@
 
         private readonly int maxdepth;
 
-        public ServiceInfoParcer(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports, Dictionary<string, ArticleInfo> info, int maxdepth = -1)
+        public ServiceInfoParser(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports, Dictionary<string, ArticleInfo> info, Settings settings = null)
         {
             this.Info = info;
 
             this.reports = reports;
 
-            this.maxdepth = maxdepth;
+            if (settings != null)
+            {
+                this.maxdepth = settings.DepthLimit;
+            }
+            else
+            {
+                this.maxdepth = -1;
+            }
 
             this.messages = messages;
         }

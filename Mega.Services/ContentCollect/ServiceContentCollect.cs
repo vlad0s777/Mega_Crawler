@@ -8,9 +8,9 @@
 
     using Microsoft.Extensions.Logging;
 
-    public class ServiceCollectContent
+    public class ServiceContentCollect
     {
-        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<ServiceCollectContent>();
+        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<ServiceContentCollect>();
 
         private readonly int countAttempt;
 
@@ -22,15 +22,8 @@
 
         private readonly bool is_timeout;
 
-        public ServiceCollectContent(
-            MessageBroker<UriLimits> messages,
-            MessageBroker<UriBody> reports,
-            HashSet<Uri> visitedUrls,
-            Uri rootUri,
-            Func<Uri, string> clientDelegate,
-            int countLimit = -1,
-            int countAttempt = 0,
-            bool timeout = false)
+        public ServiceContentCollect(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports, HashSet<Uri> visitedUrls,
+            Func<Uri, string> clientDelegate, Settings settings)
         {
             this.messages = messages;
 
@@ -38,17 +31,15 @@
 
             this.VisitedUrls = visitedUrls;
 
-            this.RootUri = rootUri;
-
-            messages.Send(new UriLimits(rootUri));
+            this.RootUri = new Uri(settings.RootUriString, UriKind.Absolute);
 
             this.ClientDelegate = clientDelegate;
 
-            this.countLimit = countLimit;
+            this.countLimit = settings.CountLimit;
 
-            this.countAttempt = countAttempt;
+            this.countAttempt = settings.AttemptLimit;
 
-            this.is_timeout = timeout;
+            this.is_timeout = settings.IsTimeout;
         }
 
         private HashSet<Uri> VisitedUrls { get; }

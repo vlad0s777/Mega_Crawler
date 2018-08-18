@@ -14,9 +14,9 @@
 
     internal class Program
     {
-        private static readonly ILogger Logger = getLogger();
+        private static readonly ILogger Logger = GetLogger();
 
-        private static ILogger getLogger()
+        private static ILogger GetLogger()
         {
             var logger = ApplicationLogging.CreateLogger<Program>();
             AppDomain.CurrentDomain.UnhandledException +=
@@ -24,8 +24,6 @@
             return logger;
         }
 
-        //   private static int ttt = 0;
-        //   private static int vvv = 10/ttt;
         private static void Main(string[] args)
         {
             var builder = new ConfigurationBuilder()
@@ -33,49 +31,54 @@
                 .AddJsonFile("Mega.Crawler.appsettings.json", false, true)
                 .AddJsonFile($"Mega.Crawler.appsettings.{Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT")}.json", true);
 
-            var settings = builder.Build();
+            var settings = new Settings(builder.Build());
+
             ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug);
-            var depthLimit = Convert.ToInt32(settings["depthLimit"]);
-            var countLimit = Convert.ToInt32(settings["countLimit"]);
-            var attemptLimit = Convert.ToInt32(settings["attemptLimit"]);
-            var rootUriString = args.FirstOrDefault();
-            while (string.IsNullOrWhiteSpace(rootUriString))
+            
+            while (string.IsNullOrWhiteSpace(settings.RootUriString))
             {
                 Console.WriteLine("Please enter absolute root url to crawl: ");
-                rootUriString = Console.ReadLine();
+                settings.RootUriString = Console.ReadLine();
             }
 
             var reports = new MessageBroker<UriBody>();
             var messages = new MessageBroker<UriLimits>();
 
-            Logger.LogInformation($"Starting with {rootUriString}");
-
-            // Preload
-            var rootUri = new Uri(rootUriString, UriKind.Absolute);
-
-            var visitedUrls = new HashSet<Uri>();
-            var infoDictionary = new Dictionary<string, ArticleInfo>();
-            using (var client = new WebClient())
+            Logger.LogInformation($"Starting with {settings.RootUriString}");
+            try
             {
-                var collectPage = new ServiceCollectContent(messages, reports, visitedUrls, rootUri, client.DownloadString, countLimit, attemptLimit, true);
+                var rootUri = new Uri(settings.RootUriString, UriKind.Absolute);
+                messages.Send(new UriLimits(rootUri));
 
-                var infoParcer = new ServiceInfoParcer(messages, reports, infoDictionary, depthLimit);
-
-                while (!reports.IsEmpty() || !messages.IsEmpty())
+                var visitedUrls = new HashSet<Uri>();
+                var infoDictionary = new Dictionary<string, ArticleInfo>();
+                using (var client = new WebClient())
                 {
-                    if (!collectPage.Work() || !infoParcer.Work())
-                    {
-                        break;
-                    }
+                    var pageCollect = new ServiceContentCollect(messages, reports, visitedUrls, client.DownloadString, settings);
 
-                    if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter)
+                    var infoParser = new ServiceInfoParser(messages, reports, infoDictionary, settings);
+
+                    while (!reports.IsEmpty() || !messages.IsEmpty())
                     {
-                        break;
+                        if (!pageCollect.Work() || !infoParser.Work())
+                        {
+                            break;
+                        }
+
+                        if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter)
+                        {
+                            break;
+                        }
                     }
                 }
+
+                Logger.LogInformation($"All {visitedUrls.Count} urls done! All {infoDictionary.Count} articles done!");
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e.Message);
             }
 
-            Logger.LogInformation($"All {visitedUrls.Count} urls done! All {infoDictionary.Count} articles done!");
             Console.ReadLine();
             Logger.LogDebug("Exit Application");
         }

@@ -9,7 +9,7 @@
     using NUnit.Framework;
 
     [TestFixture]
-    internal class ServiceInfoParcerTest
+    internal class ServiceInfoParserTest
     {
         [Test]
         public void EmptyTagsTest()
@@ -23,7 +23,7 @@
                 body: $"<div class='story'><h2><a href='123'>Нужны сильные программисты</a></h2><div class='meta'><div class='date-time'>"
                         +$"3 декабря 2015, 08:00</div></div><div class='text'><p>1999 год</p></div></div>"));
 
-            new ServiceInfoParcer(messages, reports, infoDictionary).Work();
+            new ServiceInfoParser(messages, reports, infoDictionary).Work();
 
             foreach (var i in infoDictionary)
             {
@@ -48,7 +48,7 @@
                       $"<ul><li><a href = '/tag/longago' > давным - давно </ a >" +
                       $"</li><li><a href='/tag/only-in-russia'>только в России</a></li></ul></div></div>"));
 
-            new ServiceInfoParcer(messages, reports, infoDictionary).Work();
+            new ServiceInfoParser(messages, reports, infoDictionary).Work();
 
             Assert.IsEmpty(infoDictionary);
         }
@@ -67,7 +67,7 @@
                       + $"<ul><li><a href = '/tag/longago' > давным - давно </ a >" +
                       $"</li><li><a href='/tag/only-in-russia'>только в России</a></li></ul></div></div><div class='text'><p>1999 год</p> </div>"));
 
-            new ServiceInfoParcer(messages, reports, infoDictionary).Work();
+            new ServiceInfoParser(messages, reports, infoDictionary).Work();
 
             foreach (var i in infoDictionary)
             {
@@ -89,7 +89,7 @@
             reports.Send(new UriBody(
                 uri: "https://someurl",
                 body: $"<li class='prev'><a href='https://prevurl'></a></li>"));
-            new ServiceInfoParcer(messages, reports, infoDictionary).Work();
+            new ServiceInfoParser(messages, reports, infoDictionary).Work();
             Assert.IsTrue(messages.TryReceive(out var uri));
             Assert.AreEqual("https://prevurl/", uri.Uri.AbsoluteUri);
             
