@@ -1,13 +1,15 @@
-﻿using System;
-using System.Text.RegularExpressions;
-using Mega.Messaging;
-using Microsoft.Extensions.Logging;
-
-namespace Mega.Services
+﻿namespace Mega.Services
 {
+    using System;
+    using System.Text.RegularExpressions;
+
+    using Mega.Messaging;
+
+    using Microsoft.Extensions.Logging;
+
     public class UrlFinder
     {
-        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<CollectContent>();
+        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<ServiceContentCollect>();
 
         private const string HrefPattern = "href\\s*=\\s*(?:[\"'](?<uri>[^\"']*)[\"'])";
 

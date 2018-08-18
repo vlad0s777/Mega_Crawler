@@ -1,8 +1,9 @@
-﻿using Mega.Messaging;
-using NUnit.Framework;
-
-namespace Mega.Tests.Messaging
+﻿namespace Mega.Tests.Messaging
 {
+    using Mega.Messaging;
+
+    using NUnit.Framework;
+
     [TestFixture]
     public class MessageBrokerTests
     {
@@ -16,12 +17,9 @@ namespace Mega.Tests.Messaging
         [Test]
         public void IsEmptyFunctionTest()
         {
-            //arrange
             var queue = new MessageBroker<object>();
             var queue2 = new MessageBroker<object>();
-            //act
             queue2.Send(new object());
-            //assert
             Assert.IsTrue(queue.IsEmpty());
             Assert.IsFalse(queue2.IsEmpty());
         }

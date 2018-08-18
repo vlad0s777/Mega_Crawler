@@ -2,7 +2,6 @@
   "profiles": {
     "Mega.Crawler": {
       "commandName": "Project",
-      "commandLineArgs": "https://ithappens.me",
       "environmentVariables": {
         "NETCORE_ENVIRONMENT": "development"
       }

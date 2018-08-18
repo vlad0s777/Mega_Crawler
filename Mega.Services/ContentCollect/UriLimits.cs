@@ -1,7 +1,7 @@
-﻿using System;
-
-namespace Mega.Services
+﻿namespace Mega.Services
 {
+    using System;
+
     public class UriLimits
     {
         public readonly int Attempt;
@@ -17,6 +17,9 @@ namespace Mega.Services
             this.Depth = depth;
         }
 
-        public UriLimits(string uri, int attempt = 0, int depth = 1) : this(new Uri(uri), attempt, depth) { }
+        public UriLimits(string uri, int attempt = 0, int depth = 1)
+            : this(new Uri(uri), attempt, depth)
+        {
+        }
     }
 }

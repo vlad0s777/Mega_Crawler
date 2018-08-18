@@ -1,35 +1,45 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading;
-using Mega.Messaging;
-using Microsoft.Extensions.Logging;
-
-namespace Mega.Services
+﻿namespace Mega.Services
 {
-    public class CollectContent : IMessageProcessor
+    using System;
+    using System.Collections.Generic;
+    using System.Threading;
+
+    using Mega.Messaging;
+
+    using Microsoft.Extensions.Logging;
+
+    public class ServiceContentCollect
     {
-        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<CollectContent>();
+        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<ServiceContentCollect>();
 
-        private readonly int attempt;
+        private readonly int countAttempt;
 
-        private readonly int limit;
-        private readonly bool timeout;
+        private readonly int countLimit;
+
         private readonly MessageBroker<UriLimits> messages;
 
         private readonly MessageBroker<UriBody> reports;
 
-        public CollectContent(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports, HashSet<Uri> visitedUrls, Uri rootUri,
-            Func<Uri, string> clientDelegate, bool timeout = false, int limit = -1, int attempt = 0)
+        private readonly bool is_timeout;
+
+        public ServiceContentCollect(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports, HashSet<Uri> visitedUrls,
+            Func<Uri, string> clientDelegate, Settings settings)
         {
             this.messages = messages;
+
             this.reports = reports;
+
             this.VisitedUrls = visitedUrls;
-            this.RootUri = rootUri;
-            messages.Send(new UriLimits(rootUri));
+
+            this.RootUri = new Uri(settings.RootUriString, UriKind.Absolute);
+
             this.ClientDelegate = clientDelegate;
-            this.limit = limit;
-            this.attempt = attempt;
-            this.timeout = timeout;
+
+            this.countLimit = settings.CountLimit;
+
+            this.countAttempt = settings.AttemptLimit;
+
+            this.is_timeout = settings.IsTimeout;
         }
 
         private HashSet<Uri> VisitedUrls { get; }
@@ -38,13 +48,13 @@ namespace Mega.Services
 
         private Func<Uri, string> ClientDelegate { get; }
 
-        public bool Run()
+        public bool Work()
         {
             if (this.messages.TryReceive(out var uri))
             {
-                if (this.VisitedUrls.Count == this.limit)
+                if (this.VisitedUrls.Count == this.countLimit)
                 {
-                    Logger.LogDebug($"You have reached the limit of visited pages: {this.limit}");
+                    Logger.LogDebug($"You have reached the limit of visited pages: {this.countLimit}");
                     return false;
                 }
 
@@ -53,17 +63,17 @@ namespace Mega.Services
                     try
                     {
                         var documentBody = this.ClientDelegate.Invoke(uri.Uri);
-                        Logger.LogInformation($"OK {uri.Uri} Depth: {uri.Depth}");
+                        Logger.LogInformation($"OK {uri.Uri}");
                         this.reports.Send(new UriBody(uri.Uri, documentBody));
                     }
                     catch (Exception e)
                     {
                         this.VisitedUrls.Remove(uri.Uri);
                         var att = uri.Attempt + 1;
-                        if (att < this.attempt)
+                        if (att < this.countAttempt)
                         {
                             this.messages.Send(new UriLimits(uri.Uri, att, uri.Depth));
-                            Logger.LogDebug($"{e.Message} in {uri.Uri}. Еhere are still attempts: {this.attempt - uri.Attempt}");
+                            Logger.LogDebug($"{e.Message} in {uri.Uri}. There are still attempts: {this.countAttempt - uri.Attempt}");
                         }
                         else
                         {
@@ -73,7 +83,7 @@ namespace Mega.Services
                 }
             }
 
-            if (this.timeout)
+            if (this.is_timeout)
             {
                 Thread.Sleep(new Random().Next(5000, 15000));
             }

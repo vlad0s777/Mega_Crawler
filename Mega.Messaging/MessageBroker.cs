@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-
-namespace Mega.Messaging
+﻿namespace Mega.Messaging
 {
+    using System.Collections.Generic;
+
     public class MessageBroker<T> : IMessageBroker<T>
     {
         private readonly Queue<T> _queue = new Queue<T>();
