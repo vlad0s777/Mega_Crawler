@@ -84,8 +84,6 @@
                 }
             }
 
-            Thread.Sleep(new Random().Next(5000, 15000));
-
             return true;
         }
     }
