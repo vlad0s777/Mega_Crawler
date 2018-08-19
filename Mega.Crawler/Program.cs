@@ -3,11 +3,12 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Net;
 
     using Mega.Messaging;
     using Mega.Services;
+    using Mega.Services.ContentCollector;
+    using Mega.Services.InfoParser;
 
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
@@ -41,26 +42,27 @@
                 settings.RootUriString = Console.ReadLine();
             }
 
-            var reports = new MessageBroker<UriBody>();
-            var messages = new MessageBroker<UriLimits>();
+            var bodies = new MessageBroker<UriBody>();
+            var requests = new MessageBroker<UriRequest>();
 
             Logger.LogInformation($"Starting with {settings.RootUriString}");
+
             try
             {
                 var rootUri = new Uri(settings.RootUriString, UriKind.Absolute);
-                messages.Send(new UriLimits(rootUri));
+                requests.Send(new UriRequest(rootUri));
 
                 var visitedUrls = new HashSet<Uri>();
-                var infoDictionary = new Dictionary<string, ArticleInfo>();
+                var articles = new Dictionary<string, ArticleInfo>();
                 using (var client = new WebClient())
                 {
-                    var pageCollect = new ServiceContentCollect(messages, reports, visitedUrls, client.DownloadString, settings);
+                    var pageCollector = new ServiceContentCollector(requests, bodies, visitedUrls, client.DownloadString, settings);
 
-                    var infoParser = new ServiceInfoParser(messages, reports, infoDictionary, settings);
+                    var infoParser = new ServiceInfoParser(requests, bodies, articles, settings);
 
-                    while (!reports.IsEmpty() || !messages.IsEmpty())
+                    while (!bodies.IsEmpty() || !requests.IsEmpty())
                     {
-                        if (!pageCollect.Work() || !infoParser.Work())
+                        if (!pageCollector.Work() || !infoParser.Work())
                         {
                             break;
                         }
@@ -72,7 +74,7 @@
                     }
                 }
 
-                Logger.LogInformation($"All {visitedUrls.Count} urls done! All {infoDictionary.Count} articles done!");
+                Logger.LogInformation($"All {visitedUrls.Count} urls done! All {articles.Count} articles done!");
             }
             catch (Exception e)
             {

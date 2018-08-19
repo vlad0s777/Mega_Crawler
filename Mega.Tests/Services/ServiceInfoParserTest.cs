@@ -4,7 +4,8 @@
     using System.Collections.Generic;
 
     using Mega.Messaging;
-    using Mega.Services;
+    using Mega.Services.ContentCollector;
+    using Mega.Services.InfoParser;
 
     using NUnit.Framework;
 
@@ -14,18 +15,18 @@
         [Test]
         public void EmptyTagsTest()
         {
-            var infoDictionary = new Dictionary<string, ArticleInfo>();
-            var messages = new MessageBroker<UriLimits>();
-            var reports = new MessageBroker<UriBody>();
+            var articles = new Dictionary<string, ArticleInfo>();
+            var requests = new MessageBroker<UriRequest>();
+            var bodies = new MessageBroker<UriBody>();
 
-            reports.Send(new UriBody(
+            bodies.Send(new UriBody(
                 uri: "https://someurlu",
                 body: $"<div class='story'><h2><a href='123'>Нужны сильные программисты</a></h2><div class='meta'><div class='date-time'>"
                         +$"3 декабря 2015, 08:00</div></div><div class='text'><p>1999 год</p></div></div>"));
 
-            new ServiceInfoParser(messages, reports, infoDictionary).Work();
+            new ServiceInfoParser(requests, bodies, articles).Work();
 
-            foreach (var i in infoDictionary)
+            foreach (var i in articles)
             {
                 Assert.AreEqual(DateTime.Parse("3 декабря 2015, 08:00"), i.Value.DateCreate);
                 Assert.AreEqual("Нужны сильные программисты", i.Value.Head);
@@ -37,39 +38,39 @@
         [Test]
         public void EmptyTextTest()
         {
-            var infoDictionary = new Dictionary<string, ArticleInfo>();
-            var messages = new MessageBroker<UriLimits>();
-            var reports = new MessageBroker<UriBody>();
+            var articles = new Dictionary<string, ArticleInfo>();
+            var requests = new MessageBroker<UriRequest>();
+            var bodies = new MessageBroker<UriBody>();
 
-            reports.Send(new UriBody(
+            bodies.Send(new UriBody(
                 uri: "https://someurl/",
                 body: $"<h2><a href='123'>Нужны сильные программисты</a></h2> " +
                       $"<div class='meta'><div class='date-time'> 3 декабря 2015, 08:00</div><div class='tags'><i class='icon-tags'></i>" +
                       $"<ul><li><a href = '/tag/longago' > давным - давно </ a >" +
                       $"</li><li><a href='/tag/only-in-russia'>только в России</a></li></ul></div></div>"));
 
-            new ServiceInfoParser(messages, reports, infoDictionary).Work();
+            new ServiceInfoParser(requests, bodies, articles).Work();
 
-            Assert.IsEmpty(infoDictionary);
+            Assert.IsEmpty(articles);
         }
 
         [Test]
         public void TrueParceTest()
         {
-            var infoDictionary = new Dictionary<string, ArticleInfo>();
-            var messages = new MessageBroker<UriLimits>();
-            var reports = new MessageBroker<UriBody>();
+            var articles = new Dictionary<string, ArticleInfo>();
+            var requests = new MessageBroker<UriRequest>();
+            var bodies = new MessageBroker<UriBody>();
 
-            reports.Send(new UriBody(
+            bodies.Send(new UriBody(
                 uri: "https://someurl",
                 body: $"<h1>Нужны сильные программисты</h1> "
                       + $"<div class='meta'><div class='date-time'> 3 декабря 2015, 08:00</div><div class='tags'><i class='icon-tags'></i>"
                       + $"<ul><li><a href = '/tag/longago' > давным - давно </ a >" +
                       $"</li><li><a href='/tag/only-in-russia'>только в России</a></li></ul></div></div><div class='text'><p>1999 год</p> </div>"));
 
-            new ServiceInfoParser(messages, reports, infoDictionary).Work();
+            new ServiceInfoParser(requests, bodies, articles).Work();
 
-            foreach (var i in infoDictionary)
+            foreach (var i in articles)
             {
                 Assert.AreEqual(DateTime.Parse("3 декабря 2015, 08:00"), i.Value.DateCreate);
                 Assert.AreEqual("Нужны сильные программисты", i.Value.Head);
@@ -82,15 +83,15 @@
         [Test]
         public void TruePrevPageTest()
         {
-            var infoDictionary = new Dictionary<string, ArticleInfo>();
-            var messages = new MessageBroker<UriLimits>();
-            var reports = new MessageBroker<UriBody>();
+            var articles = new Dictionary<string, ArticleInfo>();
+            var requests = new MessageBroker<UriRequest>();
+            var bodies = new MessageBroker<UriBody>();
 
-            reports.Send(new UriBody(
+            bodies.Send(new UriBody(
                 uri: "https://someurl",
                 body: $"<li class='prev'><a href='https://prevurl'></a></li>"));
-            new ServiceInfoParser(messages, reports, infoDictionary).Work();
-            Assert.IsTrue(messages.TryReceive(out var uri));
+            new ServiceInfoParser(requests, bodies, articles).Work();
+            Assert.IsTrue(requests.TryReceive(out var uri));
             Assert.AreEqual("https://prevurl/", uri.Uri.AbsoluteUri);
             
         }

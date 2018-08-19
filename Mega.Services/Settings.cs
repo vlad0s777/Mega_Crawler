@@ -14,28 +14,16 @@
 
         public string RootUriString { get; set; }
 
-        public bool IsTimeout { get; }
-
-        public Settings(string rootUriString, int depthLimit = -1, int countLimit = -1, int attemptLimit = 0, bool isTimeout = false)
+        public Settings(string rootUriString, int depthLimit = -1, int countLimit = -1, int attemptLimit = 0)
         {
             this.DepthLimit = depthLimit;
             this.CountLimit = countLimit;
             this.AttemptLimit = attemptLimit;
             this.RootUriString = rootUriString;
-            this.IsTimeout = isTimeout;
         }
 
         public Settings(IConfiguration settings)
-        {
-            try
-            {
-                this.IsTimeout = Convert.ToBoolean(settings["isTimeout"]);
-            }
-            catch
-            {
-                this.IsTimeout = false;
-            }
-            
+        {   
             try
             {
                 this.RootUriString = settings["rootUrl"];

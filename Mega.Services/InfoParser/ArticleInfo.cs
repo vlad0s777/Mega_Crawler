@@ -1,4 +1,4 @@
-﻿namespace Mega.Services
+﻿namespace Mega.Services.InfoParser
 {
     using System;
     using System.Collections.Generic;
@@ -6,7 +6,7 @@
     public class ArticleInfo
     {
         public readonly DateTime DateCreate;
-        public readonly Dictionary<string,string> Tags;
+        public readonly Dictionary<string, string> Tags;
         public readonly string Text;
         public readonly string Head;
 

@@ -1,4 +1,4 @@
-﻿namespace Mega.Services
+﻿namespace Mega.Services.InfoParser
 {
     using System;
 

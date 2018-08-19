@@ -1,33 +1,36 @@
-﻿namespace Mega.Services
+﻿namespace Mega.Services.ContentCollector
 {
     using System;
     using System.Collections.Generic;
     using System.Threading;
 
     using Mega.Messaging;
+    using Mega.Services.InfoParser;
 
     using Microsoft.Extensions.Logging;
 
-    public class ServiceContentCollect
+    public class ServiceContentCollector
     {
-        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<ServiceContentCollect>();
+        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ServiceContentCollector>();
 
-        private readonly int countAttempt;
+        private readonly int count_attempt;
 
-        private readonly int countLimit;
+        private readonly int count_limit;
 
-        private readonly MessageBroker<UriLimits> messages;
+        private readonly MessageBroker<UriRequest> requests;
 
-        private readonly MessageBroker<UriBody> reports;
+        private readonly MessageBroker<UriBody> bodies;
 
-        private readonly bool is_timeout;
-
-        public ServiceContentCollect(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports, HashSet<Uri> visitedUrls,
-            Func<Uri, string> clientDelegate, Settings settings)
+        public ServiceContentCollector(
+            MessageBroker<UriRequest> requests,
+            MessageBroker<UriBody> bodies,
+            HashSet<Uri> visitedUrls,
+            Func<Uri, string> clientDelegate,
+            Settings settings)
         {
-            this.messages = messages;
+            this.requests = requests;
 
-            this.reports = reports;
+            this.bodies = bodies;
 
             this.VisitedUrls = visitedUrls;
 
@@ -35,11 +38,9 @@
 
             this.ClientDelegate = clientDelegate;
 
-            this.countLimit = settings.CountLimit;
+            this.count_limit = settings.CountLimit;
 
-            this.countAttempt = settings.AttemptLimit;
-
-            this.is_timeout = settings.IsTimeout;
+            this.count_attempt = settings.AttemptLimit;
         }
 
         private HashSet<Uri> VisitedUrls { get; }
@@ -50,11 +51,11 @@
 
         public bool Work()
         {
-            if (this.messages.TryReceive(out var uri))
+            if (this.requests.TryReceive(out var uri))
             {
-                if (this.VisitedUrls.Count == this.countLimit)
+                if (this.VisitedUrls.Count == this.count_limit)
                 {
-                    Logger.LogDebug($"You have reached the limit of visited pages: {this.countLimit}");
+                    Logger.LogDebug($"You have reached the limit of visited pages: {this.count_limit}");
                     return false;
                 }
 
@@ -64,16 +65,16 @@
                     {
                         var documentBody = this.ClientDelegate.Invoke(uri.Uri);
                         Logger.LogInformation($"OK {uri.Uri}");
-                        this.reports.Send(new UriBody(uri.Uri, documentBody));
+                        this.bodies.Send(new UriBody(uri.Uri, documentBody));
                     }
                     catch (Exception e)
                     {
                         this.VisitedUrls.Remove(uri.Uri);
                         var att = uri.Attempt + 1;
-                        if (att < this.countAttempt)
+                        if (att < this.count_attempt)
                         {
-                            this.messages.Send(new UriLimits(uri.Uri, att, uri.Depth));
-                            Logger.LogDebug($"{e.Message} in {uri.Uri}. There are still attempts: {this.countAttempt - uri.Attempt}");
+                            this.requests.Send(new UriRequest(uri.Uri, att, uri.Depth));
+                            Logger.LogDebug($"{e.Message} in {uri.Uri}. There are still attempts: {this.count_attempt - uri.Attempt}");
                         }
                         else
                         {
@@ -83,10 +84,7 @@
                 }
             }
 
-            if (this.is_timeout)
-            {
                 Thread.Sleep(new Random().Next(5000, 15000));
-            }
 
             return true;
         }
