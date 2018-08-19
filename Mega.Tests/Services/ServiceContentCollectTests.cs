@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
 
+    using Mega.Crawler.Infrastructure.IoC;
     using Mega.Messaging;
     using Mega.Services;
 
@@ -25,7 +26,7 @@
                 reports,
                 visitedUrls: new HashSet<Uri>(),
                 clientDelegate: body => "8",
-                settings: new Settings(rootUri)).Work();
+                settings: new Settings(rootUri)).Run();
 
             Assert.IsTrue(messages.IsEmpty());
             Assert.IsFalse(reports.IsEmpty());
@@ -49,7 +50,7 @@
 
             messages.Send(new UriLimits("http://someurl"));
 
-            contentCollect.Work();
+            contentCollect.Run();
 
             Assert.IsTrue(reports.TryReceive(out var receiveMessage1));
             Assert.IsFalse(reports.TryReceive(out var receiveMessage2));
@@ -81,7 +82,7 @@
 
             while (!messages.IsEmpty())
             {
-                colCon.Work();
+                colCon.Run();
             }
          
             Assert.AreEqual(6, visitedUrls.Count);
@@ -100,11 +101,25 @@
                 reports,
                 visitedUrls: new HashSet<Uri>(),
                 clientDelegate: body => "8",
-                settings: new Settings(rootUri)).Work();
+                settings: new Settings(rootUri)).Run();
            
             Assert.IsTrue(reports.TryReceive(out var receiveMessage));
             Assert.AreEqual(rootUri, receiveMessage.Uri.AbsoluteUri);
             Assert.AreEqual("8", receiveMessage.Body);
+        }
+
+        [Test]
+        public void ContainerTest()
+        {
+            var rootUri = "https://docs.microsoft.com/ru-ru";
+            var container = new InstallClass(new Settings(rootUri)).Container;
+            var reports = container.GetInstance<IMessageBroker>("reports");
+            var messages = (IMessageBroker<UriLimits>)container.GetInstance<IMessageBroker>("messages");
+            messages.Send(new UriLimits(rootUri));
+            var visitedUrls = new HashSet<Uri>();
+            container.With(visitedUrls).GetInstance<IMessageProcessor>("ServiceContentCollect").Run();
+            Assert.IsTrue(messages.IsEmpty());
+            Assert.IsFalse(reports.IsEmpty());
         }
     }
 }

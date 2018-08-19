@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
 
+    using Mega.Crawler.Infrastructure.IoC;
     using Mega.Messaging;
     using Mega.Services;
 
@@ -23,7 +24,7 @@
                 body: $"<div class='story'><h2><a href='123'>Нужны сильные программисты</a></h2><div class='meta'><div class='date-time'>"
                         +$"3 декабря 2015, 08:00</div></div><div class='text'><p>1999 год</p></div></div>"));
 
-            new ServiceInfoParser(messages, reports, infoDictionary).Work();
+            new ServiceInfoParser(messages, reports, infoDictionary).Run();
 
             foreach (var i in infoDictionary)
             {
@@ -48,7 +49,7 @@
                       $"<ul><li><a href = '/tag/longago' > давным - давно </ a >" +
                       $"</li><li><a href='/tag/only-in-russia'>только в России</a></li></ul></div></div>"));
 
-            new ServiceInfoParser(messages, reports, infoDictionary).Work();
+            new ServiceInfoParser(messages, reports, infoDictionary).Run();
 
             Assert.IsEmpty(infoDictionary);
         }
@@ -67,7 +68,7 @@
                       + $"<ul><li><a href = '/tag/longago' > давным - давно </ a >" +
                       $"</li><li><a href='/tag/only-in-russia'>только в России</a></li></ul></div></div><div class='text'><p>1999 год</p> </div>"));
 
-            new ServiceInfoParser(messages, reports, infoDictionary).Work();
+            new ServiceInfoParser(messages, reports, infoDictionary).Run();
 
             foreach (var i in infoDictionary)
             {
@@ -89,10 +90,27 @@
             reports.Send(new UriBody(
                 uri: "https://someurl",
                 body: $"<li class='prev'><a href='https://prevurl'></a></li>"));
-            new ServiceInfoParser(messages, reports, infoDictionary).Work();
+            new ServiceInfoParser(messages, reports, infoDictionary).Run();
             Assert.IsTrue(messages.TryReceive(out var uri));
             Assert.AreEqual("https://prevurl/", uri.Uri.AbsoluteUri);
             
+        }
+
+        [Test]
+        public void ContainerTest()
+        {
+            var infoDictionary = new Dictionary<string, ArticleInfo>();
+            var rootUri = "https://docs.microsoft.com/ru-ru";
+            var container = new InstallClass(new Settings(rootUri)).Container;
+            var reports = (IMessageBroker<UriBody>)container.GetInstance<IMessageBroker>("reports");
+            var messages = (IMessageBroker<UriLimits>)container.GetInstance<IMessageBroker>("messages");
+            reports.Send(new UriBody(
+                uri: "https://someurl",
+                body: $"<li class='prev'><a href='https://prevurl'></a></li>"));
+            container.With(infoDictionary).GetInstance<IMessageProcessor>("ServiceInfoParser").Run();
+            Assert.IsFalse(reports.TryReceive(out var uri2));
+            Assert.IsTrue(messages.TryReceive(out var uri));
+            Assert.AreEqual("https://prevurl/", uri.Uri.AbsoluteUri);
         }
     }
 }

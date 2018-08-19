@@ -8,7 +8,7 @@
 
     using Microsoft.Extensions.Logging;
 
-    public class ServiceContentCollect
+    public class ServiceContentCollect : IMessageProcessor
     {
         private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<ServiceContentCollect>();
 
@@ -48,7 +48,7 @@
 
         private Func<Uri, string> ClientDelegate { get; }
 
-        public bool Work()
+        public bool Run()
         {
             if (this.messages.TryReceive(out var uri))
             {

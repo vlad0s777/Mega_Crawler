@@ -9,7 +9,7 @@
 
     using Microsoft.Extensions.Logging;
 
-    public class ServiceInfoParser
+    public class ServiceInfoParser : IMessageProcessor
     {
         private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<ServiceInfoParser>();
 
@@ -41,7 +41,7 @@
 
 
 
-        public bool Work()
+        public bool Run()
         {
             if (this.reports.TryReceive(out var uri))
             {

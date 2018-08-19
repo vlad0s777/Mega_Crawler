@@ -6,6 +6,7 @@
     using System.Linq;
     using System.Net;
 
+    using Mega.Crawler.Infrastructure.IoC;
     using Mega.Messaging;
     using Mega.Services;
 
@@ -33,6 +34,7 @@
 
             var settings = new Settings(builder.Build());
 
+            //var settings = container.GetInstance<Settings>();
             ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug);
             
             while (string.IsNullOrWhiteSpace(settings.RootUriString))
@@ -41,26 +43,29 @@
                 settings.RootUriString = Console.ReadLine();
             }
 
-            var reports = new MessageBroker<UriBody>();
-            var messages = new MessageBroker<UriLimits>();
+            var container = new InstallClass(settings).Container;
 
+            //var reports = new MessageBroker<UriBody>();
+            //var messages = new MessageBroker<UriLimits>();
+            var reports = container.GetInstance<IMessageBroker>("reports");
+            var messages = (IMessageBroker<UriLimits>)container.GetInstance<IMessageBroker>("messages");
             Logger.LogInformation($"Starting with {settings.RootUriString}");
             try
             {
                 var rootUri = new Uri(settings.RootUriString, UriKind.Absolute);
-                messages.Send(new UriLimits(rootUri));
-
+                ((IMessageBroker<UriLimits>)container.GetInstance<IMessageBroker>("messages")).Send(new UriLimits(rootUri));
                 var visitedUrls = new HashSet<Uri>();
                 var infoDictionary = new Dictionary<string, ArticleInfo>();
                 using (var client = new WebClient())
                 {
-                    var pageCollect = new ServiceContentCollect(messages, reports, visitedUrls, client.DownloadString, settings);
+                    // var pageCollect = new ServiceContentCollect(messages, reports, visitedUrls, client.DownloadString, settings);
+                    var pageCollect = container.With(visitedUrls).GetInstance<IMessageProcessor>("ServiceContentCollect");
 
-                    var infoParser = new ServiceInfoParser(messages, reports, infoDictionary, settings);
-
+                    // var infoParser = new ServiceInfoParser(messages, reports, infoDictionary, settings);
+                    var infoParser = container.With(infoDictionary).GetInstance<IMessageProcessor>("ServiceInfoParser"); 
                     while (!reports.IsEmpty() || !messages.IsEmpty())
                     {
-                        if (!pageCollect.Work() || !infoParser.Work())
+                        if (!pageCollect.Run() || !infoParser.Run())
                         {
                             break;
                         }
@@ -70,6 +75,7 @@
                             break;
                         }
                     }
+                    container.EjectAllInstancesOf<IMessageProcessor>();
                 }
 
                 Logger.LogInformation($"All {visitedUrls.Count} urls done! All {infoDictionary.Count} articles done!");
