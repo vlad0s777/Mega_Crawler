@@ -1,4 +1,4 @@
-﻿namespace Mega.Services
+﻿namespace Mega.Services.InfoParser
 {
     using System;
     using System.Collections.Generic;
@@ -6,26 +6,27 @@
     using AngleSharp.Parser.Html;
 
     using Mega.Messaging;
+    using Mega.Services.ContentCollector;
 
     using Microsoft.Extensions.Logging;
 
     public class ServiceInfoParser : IMessageProcessor
     {
-        private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<ServiceInfoParser>();
+        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ServiceInfoParser>();
 
-        private readonly MessageBroker<UriLimits> messages;
+        private readonly MessageBroker<UriRequest> requests;
 
-        private readonly MessageBroker<UriBody> reports;
+        private readonly MessageBroker<UriBody> bodies;
 
-        public readonly Dictionary<string, ArticleInfo> Info;
+        private readonly Dictionary<string, ArticleInfo> articles;
 
         private readonly int maxdepth;
 
-        public ServiceInfoParser(MessageBroker<UriLimits> messages, MessageBroker<UriBody> reports, Dictionary<string, ArticleInfo> info, Settings settings = null)
+        public ServiceInfoParser(MessageBroker<UriRequest> requests, MessageBroker<UriBody> bodies, Dictionary<string, ArticleInfo> articles, Settings settings = null)
         {
-            this.Info = info;
+            this.articles = articles;
 
-            this.reports = reports;
+            this.bodies = bodies;
 
             if (settings != null)
             {
@@ -36,23 +37,23 @@
                 this.maxdepth = -1;
             }
 
-            this.messages = messages;
+            this.requests = requests;
         }
 
 
 
         public bool Run()
         {
-            if (this.reports.TryReceive(out var uri))
+            if (this.bodies.TryReceive(out var body))
             {
-                if (uri.Depth == this.maxdepth)
+                if (body.Depth == this.maxdepth)
                 {
-                    Logger.LogDebug($"In {uri.Uri} max depth. Next report..");
+                    Logger.LogDebug($"In {body.Uri} max depth. Next report..");
                     return false;
                 }
 
                 var parser = new HtmlParser();
-                var document = parser.Parse(uri.Body);
+                var document = parser.Parse(body.Body);
 
                 try
                 {
@@ -65,7 +66,7 @@
                             var head = articleDoc.QuerySelector("h2").TextContent;
                             var urlArticle = articleDoc.QuerySelector("h2>a").Attributes["href"];
                             var date = DateTime.Parse(articleDoc.QuerySelector("div.meta>div.date-time").InnerHtml);
-                            var body = articleDoc.QuerySelector("div.text").InnerHtml;
+                            var content = articleDoc.QuerySelector("div.text").InnerHtml;
                             var tagsSelector = articleDoc.QuerySelectorAll("div.meta>div.tags>ul>li>a");
                             var tagsDictionary = new Dictionary<string, string>();
                             foreach (var selector in tagsSelector)
@@ -76,8 +77,8 @@
                                 tagsDictionary.Add(href, text);
                             }
 
-                            var artInfo = new ArticleInfo(date, tagsDictionary, body, head);
-                            this.Info.Add(urlArticle.Value, artInfo);
+                            var artInfo = new ArticleInfo(date, tagsDictionary, content, head);
+                            this.articles.Add(urlArticle.Value, artInfo);
                             Logger.LogInformation($"Add '{head}' document!");
                         }
                         catch (Exception e)
@@ -94,9 +95,9 @@
                 try
                 {
                     var hrefPrevPage = document.QuerySelector("li.prev>a").Attributes["href"].Value;
-                    var absUriPrevPage = new Uri(uri.Uri, new Uri(hrefPrevPage, UriKind.RelativeOrAbsolute));
+                    var absUriPrevPage = new Uri(body.Uri, new Uri(hrefPrevPage, UriKind.RelativeOrAbsolute));
 
-                    this.messages.Send(new UriLimits(absUriPrevPage));
+                    this.requests.Send(new UriRequest(absUriPrevPage));
                 }
                 catch (Exception e)
                 {

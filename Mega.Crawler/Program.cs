@@ -3,12 +3,13 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
-    using System.Linq;
     using System.Net;
 
     using Mega.Crawler.Infrastructure.IoC;
     using Mega.Messaging;
     using Mega.Services;
+    using Mega.Services.ContentCollector;
+    using Mega.Services.InfoParser;
 
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
@@ -34,7 +35,6 @@
 
             var settings = new Settings(builder.Build());
 
-            //var settings = container.GetInstance<Settings>();
             ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug);
             
             while (string.IsNullOrWhiteSpace(settings.RootUriString))
@@ -50,12 +50,15 @@
             var reports = container.GetInstance<IMessageBroker>("reports");
             var messages = (IMessageBroker<UriLimits>)container.GetInstance<IMessageBroker>("messages");
             Logger.LogInformation($"Starting with {settings.RootUriString}");
+
             try
             {
                 var rootUri = new Uri(settings.RootUriString, UriKind.Absolute);
+                requests.Send(new UriRequest(rootUri));
+
                 ((IMessageBroker<UriLimits>)container.GetInstance<IMessageBroker>("messages")).Send(new UriLimits(rootUri));
                 var visitedUrls = new HashSet<Uri>();
-                var infoDictionary = new Dictionary<string, ArticleInfo>();
+                var articles = new Dictionary<string, ArticleInfo>();
                 using (var client = new WebClient())
                 {
                     // var pageCollect = new ServiceContentCollect(messages, reports, visitedUrls, client.DownloadString, settings);
@@ -78,7 +81,7 @@
                     container.EjectAllInstancesOf<IMessageProcessor>();
                 }
 
-                Logger.LogInformation($"All {visitedUrls.Count} urls done! All {infoDictionary.Count} articles done!");
+                Logger.LogInformation($"All {visitedUrls.Count} urls done! All {articles.Count} articles done!");
             }
             catch (Exception e)
             {

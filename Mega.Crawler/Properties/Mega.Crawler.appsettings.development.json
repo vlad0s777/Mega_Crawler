@@ -1,6 +1,5 @@
 {
   "rootUrl": "https://ithappens.me",
-  "isTimeout": true, 
   "depthLimit": 2,
   "countLimit": 100,
   "attemptLimit": 3

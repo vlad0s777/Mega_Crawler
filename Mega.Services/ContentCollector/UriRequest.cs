@@ -1,8 +1,8 @@
-﻿namespace Mega.Services
+﻿namespace Mega.Services.ContentCollector
 {
     using System;
 
-    public class UriLimits
+    public class UriRequest
     {
         public readonly int Attempt;
 
@@ -10,14 +10,14 @@
 
         public readonly Uri Uri;
 
-        public UriLimits(Uri uri, int attempt = 0, int depth = 1)
+        public UriRequest(Uri uri, int attempt = 0, int depth = 1)
         {
             this.Uri = uri;
             this.Attempt = attempt;
             this.Depth = depth;
         }
 
-        public UriLimits(string uri, int attempt = 0, int depth = 1)
+        public UriRequest(string uri, int attempt = 0, int depth = 1)
             : this(new Uri(uri), attempt, depth)
         {
         }
