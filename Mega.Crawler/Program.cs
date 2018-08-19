@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.IO;
+    using System.Linq;
     using System.Net;
 
     using Mega.Crawler.Infrastructure.IoC;
@@ -13,6 +14,8 @@
 
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
+
+    using StructureMap;
 
     internal class Program
     {
@@ -26,7 +29,7 @@
             return logger;
         }
 
-        private static void Main(string[] args)
+        private static void Main()
         {
             var builder = new ConfigurationBuilder()
                 .SetBasePath(Path.GetFullPath(@"../../../Properties"))
@@ -43,44 +46,40 @@
                 settings.RootUriString = Console.ReadLine();
             }
 
-            var container = new InstallClass(settings).Container;
+            var installClass = new ClassInstallator
+            {
+                Container = new Container()
+            };
+            installClass.InstallClass(settings);
+            var container = installClass.Container;
 
-            //var reports = new MessageBroker<UriBody>();
-            //var messages = new MessageBroker<UriLimits>();
-            var reports = container.GetInstance<IMessageBroker>("reports");
-            var messages = (IMessageBroker<UriLimits>)container.GetInstance<IMessageBroker>("messages");
+            var requests = container.GetInstance<IMessageBroker<UriRequest>>();
             Logger.LogInformation($"Starting with {settings.RootUriString}");
 
             try
             {
                 var rootUri = new Uri(settings.RootUriString, UriKind.Absolute);
                 requests.Send(new UriRequest(rootUri));
-
-                ((IMessageBroker<UriLimits>)container.GetInstance<IMessageBroker>("messages")).Send(new UriLimits(rootUri));
                 var visitedUrls = new HashSet<Uri>();
                 var articles = new Dictionary<string, ArticleInfo>();
-                using (var client = new WebClient())
+
+                    var pageCollector = container.With(visitedUrls).GetInstance<IMessageProcessor<UriRequest>>();
+                    var infoParser = container.With(articles).GetInstance<IMessageProcessor<UriBody>>();
+
+                var brokers = container.GetAllInstances<IMessageBroker>();
+                while (!brokers.All(broker => broker.IsEmpty()))
                 {
-                    // var pageCollect = new ServiceContentCollect(messages, reports, visitedUrls, client.DownloadString, settings);
-                    var pageCollect = container.With(visitedUrls).GetInstance<IMessageProcessor>("ServiceContentCollect");
-
-                    // var infoParser = new ServiceInfoParser(messages, reports, infoDictionary, settings);
-                    var infoParser = container.With(infoDictionary).GetInstance<IMessageProcessor>("ServiceInfoParser"); 
-                    while (!reports.IsEmpty() || !messages.IsEmpty())
+                    if (!pageCollector.Run() || !infoParser.Run())
                     {
-                        if (!pageCollect.Run() || !infoParser.Run())
-                        {
-                            break;
-                        }
-
-                        if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter)
-                        {
-                            break;
-                        }
+                        break;
                     }
-                    container.EjectAllInstancesOf<IMessageProcessor>();
-                }
 
+                    if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter)
+                    {
+                        break;
+                    }
+                }
+                //container.EjectAllInstancesOf<>();
                 Logger.LogInformation($"All {visitedUrls.Count} urls done! All {articles.Count} articles done!");
             }
             catch (Exception e)

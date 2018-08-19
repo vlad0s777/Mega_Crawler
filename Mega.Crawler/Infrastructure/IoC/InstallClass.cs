@@ -1,59 +1,48 @@
 ﻿namespace Mega.Crawler.Infrastructure.IoC
 {
     using System;
+    using System.Collections;
     using System.Collections.Generic;
-    using System.IO;
     using System.Net;
-    using System.Net.Mime;
-    using System.Text;
 
     using Mega.Messaging;
     using Mega.Services;
-
-    using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.DependencyInjection;
+    using Mega.Services.ContentCollector;
+    using Mega.Services.InfoParser;
 
     using StructureMap;
 
-    public class InstallClass
+    public class ClassInstallator
     {
-        public IContainer Container { get; }
+        public IContainer Container { get; set; }
 
-        public InstallClass(Settings settings)
+        public void InstallClass(Settings settings)
         {
-            this.Container = new Container();
             this.Container.Configure(
                 r =>
                     {
-                        r.For<IMessageBroker>().Singleton().Use<MessageBroker<UriBody>>().Named("reports");
-                        r.For<IMessageBroker>().Singleton().Use<MessageBroker<UriLimits>>().Named("messages");                       
+                        
+                        r.For<IMessageBroker<UriBody>>().Singleton().Use<MessageBroker<UriBody>>();
+                        
+                        r.For<IMessageBroker<UriRequest>>().Singleton().Use<MessageBroker<UriRequest>>();
+                        r.For<ICollection<Uri>>().Singleton().Use<HashSet<Uri>>();
+                        r.Forward<IMessageBroker<UriRequest>, IMessageBroker>();
                     });
+
             this.Container.Configure(
                 r =>
                     {
-                        r.For<IMessageProcessor>().Use<ServiceInfoParser>().Ctor<IMessageBroker>("reports")
-                            .Is(this.Container.GetInstance<IMessageBroker>("reports")).Ctor<IMessageBroker>("messages")
-                            .Is(this.Container.GetInstance<IMessageBroker>("messages")).Ctor<Settings>("settings").Is(settings)
-                            .Named("ServiceInfoParser");
+                        r.For<IMessageProcessor<UriBody>>().Use<ServiceInfoParser>()
+                            .Ctor<IMessageBroker>("bodies").Is(this.Container.GetInstance<IMessageBroker<UriBody>>())
+                            .Ctor<IMessageBroker>("requests").Is(this.Container.GetInstance<IMessageBroker<UriRequest>>())
+                            .Ctor<Settings>("settings").Is(settings);
 
-                        r.For<IMessageProcessor>().Use<ServiceContentCollect>()
-                            .Ctor<IMessageBroker>("reports").Is(this.Container.GetInstance<IMessageBroker>("reports"))
-                            .Ctor<IMessageBroker>("messages").Is(this.Container.GetInstance<IMessageBroker>("messages"))
-                            .Ctor<Settings>("settings").Is(settings)
-                            .Ctor<Func<Uri, string>>("clientDelegate").Is(uri => new WebClient().DownloadString(uri))
-                            .Named("ServiceContentCollect");
+                        r.For<IMessageProcessor<UriRequest>>().Use<ServiceContentCollector>().Ctor<IMessageBroker>("bodies")
+                            .Is(this.Container.GetInstance<IMessageBroker<UriBody>>()).Ctor<IMessageBroker>("requests")
+                            .Is(this.Container.GetInstance<IMessageBroker<UriRequest>>()).Ctor<Settings>("settings").Is(settings)
+                            .Ctor<Func<Uri, string>>("clientDelegate").Is(uri => new WebClient().DownloadString(uri));
+                        // .Ctor<HashSet<Uri>>("visitedUrls").Is(this.Container.GetInstance<ICollection<Uri>>());  
                     });
-
-            //                r.Scan(
-            //                    s =>
-            //                        {
-            //                            s.AddAllTypesOf<IMessageProcessor>().NameBy(t => t.Name);
-            //                            s.Include(t => t.Name.StartsWith("Service"));
-            //                        });
         }
     }
-
 }
-   
-
-

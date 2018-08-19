@@ -10,7 +10,7 @@
 
     using Microsoft.Extensions.Logging;
 
-    public class ServiceInfoParser : IMessageProcessor
+    public class ServiceInfoParser : IMessageProcessor<UriBody>
     {
         private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ServiceInfoParser>();
 

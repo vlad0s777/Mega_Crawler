@@ -9,7 +9,7 @@
 
     using Microsoft.Extensions.Logging;
 
-    public class ServiceContentCollector IMessageProcessor
+    public class ServiceContentCollector : IMessageProcessor<UriRequest>
     {
         private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ServiceContentCollector>();
 
@@ -84,7 +84,7 @@
                 }
             }
 
-                Thread.Sleep(new Random().Next(5000, 15000));
+            Thread.Sleep(new Random().Next(5000, 15000));
 
             return true;
         }

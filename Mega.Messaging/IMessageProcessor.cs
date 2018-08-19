@@ -1,6 +1,6 @@
 ﻿namespace Mega.Messaging
 {
-    public interface IMessageProcessor
+    public interface IMessageProcessor<T>
     {
         bool Run();
     }

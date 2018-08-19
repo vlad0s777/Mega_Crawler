@@ -5,6 +5,7 @@
 
     using Mega.Crawler.Infrastructure.IoC;
     using Mega.Messaging;
+    using Mega.Services;
     using Mega.Services.ContentCollector;
     using Mega.Services.InfoParser;
 
@@ -100,17 +101,17 @@
         [Test]
         public void ContainerTest()
         {
-            var infoDictionary = new Dictionary<string, ArticleInfo>();
+            var articles = new Dictionary<string, ArticleInfo>();
             var rootUri = "https://docs.microsoft.com/ru-ru";
             var container = new InstallClass(new Settings(rootUri)).Container;
-            var reports = (IMessageBroker<UriBody>)container.GetInstance<IMessageBroker>("reports");
-            var messages = (IMessageBroker<UriLimits>)container.GetInstance<IMessageBroker>("messages");
-            reports.Send(new UriBody(
+            var bodies = (IMessageBroker<UriBody>)container.GetInstance<IMessageBroker>("bodies");
+            var requests = (IMessageBroker<UriRequest>)container.GetInstance<IMessageBroker>("requests");
+            bodies.Send(new UriBody(
                 uri: "https://someurl",
                 body: $"<li class='prev'><a href='https://prevurl'></a></li>"));
-            container.With(infoDictionary).GetInstance<IMessageProcessor>("ServiceInfoParser").Run();
-            Assert.IsFalse(reports.TryReceive(out var uri2));
-            Assert.IsTrue(messages.TryReceive(out var uri));
+            container.With(articles).GetInstance<IMessageProcessor<UriBody>>("ServiceInfoParser").Run();
+            Assert.IsFalse(bodies.TryReceive(out var _));
+            Assert.IsTrue(requests.TryReceive(out var uri));
             Assert.AreEqual("https://prevurl/", uri.Uri.AbsoluteUri);
         }
     }
