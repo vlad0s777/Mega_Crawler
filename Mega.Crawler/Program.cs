@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.IO;
     using System.Net;
+    using System.Threading;
 
     using Mega.Messaging;
     using Mega.Services;
@@ -56,7 +57,16 @@
                 var articles = new Dictionary<string, ArticleInfo>();
                 using (var client = new WebClient())
                 {
-                    var pageCollector = new ServiceContentCollector(requests, bodies, visitedUrls, client.DownloadString, settings);
+                    var pageCollector = new ServiceContentCollector(
+                        requests,
+                        bodies,
+                        visitedUrls,
+                        uri =>
+                            {
+                                Thread.Sleep(new Random().Next(5000, 15000));
+                                return client.DownloadString(uri);
+                            },
+                        settings);
 
                     var infoParser = new ServiceInfoParser(requests, bodies, articles, settings);
 
