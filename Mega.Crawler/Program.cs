@@ -1,20 +1,24 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using Mega.Messaging;
-using Mega.Services;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-
-namespace Mega.Crawler
+﻿namespace Mega.Crawler
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Net;
+    using System.Threading;
+
+    using Mega.Messaging;
+    using Mega.Services;
+    using Mega.Services.ContentCollector;
+    using Mega.Services.InfoParser;
+
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Logging;
+
     internal class Program
     {
-        private static readonly ILogger Logger = getLogger();
+        private static readonly ILogger Logger = GetLogger();
 
-        private static ILogger getLogger()
+        private static ILogger GetLogger()
         {
             var logger = ApplicationLogging.CreateLogger<Program>();
             AppDomain.CurrentDomain.UnhandledException +=
@@ -22,8 +26,6 @@ namespace Mega.Crawler
             return logger;
         }
 
-        //   private static int ttt = 0;
-        //   private static int vvv = 10/ttt;
         private static void Main(string[] args)
         {
             var builder = new ConfigurationBuilder()
@@ -31,46 +33,64 @@ namespace Mega.Crawler
                 .AddJsonFile("Mega.Crawler.appsettings.json", false, true)
                 .AddJsonFile($"Mega.Crawler.appsettings.{Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT")}.json", true);
 
-            var settings = builder.Build();
+            var settings = new Settings(builder.Build());
+
             ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug);
-            var depth = Convert.ToInt32(settings["depth"]);
-            var limit = Convert.ToInt32(settings["count"]);
-            var attempt = Convert.ToInt32(settings["attempt"]);
-            var rootUriString = args.FirstOrDefault();
-            while (string.IsNullOrWhiteSpace(rootUriString))
+            
+            while (string.IsNullOrWhiteSpace(settings.RootUriString))
             {
                 Console.WriteLine("Please enter absolute root url to crawl: ");
-                rootUriString = Console.ReadLine();
+                settings.RootUriString = Console.ReadLine();
             }
 
-            var reports = new MessageBroker<UriBody>();
-            var messages = new MessageBroker<UriLimits>();
+            var bodies = new MessageBroker<UriBody>();
+            var requests = new MessageBroker<UriRequest>();
 
-            Logger.LogInformation($"Starting with {rootUriString}");
+            Logger.LogInformation($"Starting with {settings.RootUriString}");
 
-            // Preload
-            var rootUri = new Uri(rootUriString, UriKind.Absolute);
-
-            var visitedUrls = new HashSet<Uri>();
-            using (var client = new WebClient())
+            try
             {
-                var collectContent = new CollectContent(messages, reports, visitedUrls, rootUri, client.DownloadString, limit, attempt);
-                var uriFinder = new UrlFinder(messages, reports, depth);
-                while (!reports.IsEmpty() || !messages.IsEmpty())
-                {
-                    if (!collectContent.Work() || !uriFinder.Work())
-                    {
-                        break;
-                    }
+                var rootUri = new Uri(settings.RootUriString, UriKind.Absolute);
+                requests.Send(new UriRequest(rootUri));
 
-                    if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter)
+                var visitedUrls = new HashSet<Uri>();
+                var articles = new Dictionary<string, ArticleInfo>();
+                using (var client = new WebClient())
+                {
+                    var pageCollector = new ServiceContentCollector(
+                        requests,
+                        bodies,
+                        visitedUrls,
+                        uri =>
+                            {
+                                Thread.Sleep(new Random().Next(5000, 15000));
+                                return client.DownloadString(uri);
+                            },
+                        settings);
+
+                    var infoParser = new ServiceInfoParser(requests, bodies, articles, settings);
+
+                    while (!bodies.IsEmpty() || !requests.IsEmpty())
                     {
-                        break;
+                        if (!pageCollector.Work() || !infoParser.Work())
+                        {
+                            break;
+                        }
+
+                        if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter)
+                        {
+                            break;
+                        }
                     }
                 }
+
+                Logger.LogInformation($"All {visitedUrls.Count} urls done! All {articles.Count} articles done!");
+            }
+            catch (Exception e)
+            {
+                Logger.LogError(e.Message);
             }
 
-            Logger.LogInformation($"All {visitedUrls.Count} urls done!");
             Console.ReadLine();
             Logger.LogDebug("Exit Application");
         }
