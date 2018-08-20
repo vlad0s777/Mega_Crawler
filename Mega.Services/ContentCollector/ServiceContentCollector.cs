@@ -2,14 +2,13 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Threading;
 
     using Mega.Messaging;
     using Mega.Services.InfoParser;
 
     using Microsoft.Extensions.Logging;
 
-    public class ServiceContentCollector : IMessageProcessor<UriRequest>
+    public class ServiceContentCollector : IMessageProcessor
     {
         private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ServiceContentCollector>();
 
@@ -24,7 +23,7 @@
         public ServiceContentCollector(
             MessageBroker<UriRequest> requests,
             MessageBroker<UriBody> bodies,
-            HashSet<Uri> visitedUrls,
+            WrapperUries visitedUrls,
             Func<Uri, string> clientDelegate,
             Settings settings)
         {
@@ -32,7 +31,7 @@
 
             this.bodies = bodies;
 
-            this.VisitedUrls = visitedUrls;
+            this.VisitedUrls = visitedUrls.Uries;
 
             this.RootUri = new Uri(settings.RootUriString, UriKind.Absolute);
 

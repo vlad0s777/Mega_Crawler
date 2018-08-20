@@ -1,11 +1,8 @@
 ﻿namespace Mega.Crawler
 {
     using System;
-    using System.Collections.Generic;
     using System.IO;
     using System.Linq;
-    using System.Net;
-    using System.Threading;
 
     using Mega.Crawler.Infrastructure.IoC;
     using Mega.Messaging;
@@ -53,24 +50,20 @@
             };
             installClass.InstallClass(settings);
             var container = installClass.Container;
-
-            var requests = container.GetInstance<IMessageBroker<UriRequest>>();
+            
             Logger.LogInformation($"Starting with {settings.RootUriString}");
 
             try
             {
                 var rootUri = new Uri(settings.RootUriString, UriKind.Absolute);
-                requests.Send(new UriRequest(rootUri));
-                var visitedUrls = new HashSet<Uri>();
-                var articles = new Dictionary<string, ArticleInfo>();
+                container.GetInstance<MessageBroker<UriRequest>>().Send(new UriRequest(rootUri));
 
-                    var pageCollector = container.With(visitedUrls).GetInstance<IMessageProcessor<UriRequest>>();
-                    var infoParser = container.With(articles).GetInstance<IMessageProcessor<UriBody>>();
+                var brokers = container.GetAllInstances<IMessageBroker>().ToArray();
+                var handlers = container.GetAllInstances<IMessageProcessor>().ToArray();
 
-                var brokers = container.GetAllInstances<IMessageBroker>();
                 while (!brokers.All(broker => broker.IsEmpty()))
                 {
-                    if (!pageCollector.Run() || !infoParser.Run())
+                    if (handlers.Any(handler => !handler.Run()))
                     {
                         break;
                     }
@@ -80,8 +73,10 @@
                         break;
                     }
                 }
-                //container.EjectAllInstancesOf<>();
-                Logger.LogInformation($"All {visitedUrls.Count} urls done! All {articles.Count} articles done!");
+
+                Logger.LogInformation($"All {container.GetInstance<WrapperUries>().Uries.Count} urls done! All {container.GetInstance<WrapperArticles>().Articles.Count} articles done!");
+
+                container.Dispose();
             }
             catch (Exception e)
             {

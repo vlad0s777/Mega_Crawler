@@ -25,9 +25,9 @@
             new ServiceContentCollector(
                 requests,
                 bodies,
-                visitedUrls: new HashSet<Uri>(),
+                visitedUrls: new WrapperUries(), 
                 clientDelegate: body => "8",
-                settings: new Settings(rootUri)).Work();
+                settings: new Settings(rootUri)).Run();
 
             Assert.IsTrue(requests.IsEmpty());
             Assert.IsFalse(bodies.IsEmpty());
@@ -45,13 +45,13 @@
             var contentCollector = new ServiceContentCollector(
                 requests,
                 bodies,
-                visitedUrls: new HashSet<Uri>(),
+                visitedUrls: new WrapperUries(), 
                 clientDelegate: body => "8",
                 settings: new Settings(rootUri));
 
             requests.Send(new UriRequest("http://someurl"));
 
-            contentCollector.Work();
+            contentCollector.Run();
 
             Assert.IsTrue(bodies.TryReceive(out var _));
             Assert.IsFalse(bodies.TryReceive(out var _));
@@ -63,7 +63,7 @@
             var bodies = new MessageBroker<UriBody>();
             var requests = new MessageBroker<UriRequest>();
 
-            var visitedUrls = new HashSet<Uri>();
+            var visitedUrls = new WrapperUries();
 
             var rootUri = "https://docs.microsoft.com/ru-ru/";
             
@@ -83,10 +83,10 @@
 
             while (!requests.IsEmpty())
             {
-                colCon.Work();
+                colCon.Run();
             }
          
-            Assert.AreEqual(6, visitedUrls.Count);
+            Assert.AreEqual(6, visitedUrls.Uries.Count);
         }
 
         [Test]
@@ -100,9 +100,9 @@
             new ServiceContentCollector(
                 requests,
                 bodies,
-                visitedUrls: new HashSet<Uri>(),
+                visitedUrls: new WrapperUries(), 
                 clientDelegate: body => "8",
-                settings: new Settings(rootUri)).Work();
+                settings: new Settings(rootUri)).Run();
            
             Assert.IsTrue(bodies.TryReceive(out var receiveMessage));
             Assert.AreEqual(rootUri, receiveMessage.Uri.AbsoluteUri);

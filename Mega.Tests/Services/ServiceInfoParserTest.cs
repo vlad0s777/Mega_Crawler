@@ -11,13 +11,15 @@
 
     using NUnit.Framework;
 
+    using StructureMap;
+
     [TestFixture]
     internal class ServiceInfoParserTest
     {
         [Test]
         public void EmptyTagsTest()
         {
-            var articles = new Dictionary<string, ArticleInfo>();
+            var articles = new WrapperArticles();
             var requests = new MessageBroker<UriRequest>();
             var bodies = new MessageBroker<UriBody>();
 
@@ -28,7 +30,7 @@
 
             new ServiceInfoParser(requests, bodies, articles).Run();
 
-            foreach (var i in articles)
+            foreach (var i in articles.Articles)
             {
                 Assert.AreEqual(DateTime.Parse("3 декабря 2015, 08:00"), i.Value.DateCreate);
                 Assert.AreEqual("Нужны сильные программисты", i.Value.Head);
@@ -40,7 +42,7 @@
         [Test]
         public void EmptyTextTest()
         {
-            var articles = new Dictionary<string, ArticleInfo>();
+            var articles = new WrapperArticles();
             var requests = new MessageBroker<UriRequest>();
             var bodies = new MessageBroker<UriBody>();
 
@@ -53,13 +55,13 @@
 
             new ServiceInfoParser(requests, bodies, articles).Run();
 
-            Assert.IsEmpty(articles);
+            Assert.IsEmpty(articles.Articles);
         }
 
         [Test]
         public void TrueParceTest()
         {
-            var articles = new Dictionary<string, ArticleInfo>();
+            var articles = new WrapperArticles();
             var requests = new MessageBroker<UriRequest>();
             var bodies = new MessageBroker<UriBody>();
 
@@ -72,7 +74,7 @@
 
             new ServiceInfoParser(requests, bodies, articles).Run();
 
-            foreach (var i in articles)
+            foreach (var i in articles.Articles)
             {
                 Assert.AreEqual(DateTime.Parse("3 декабря 2015, 08:00"), i.Value.DateCreate);
                 Assert.AreEqual("Нужны сильные программисты", i.Value.Head);
@@ -85,14 +87,14 @@
         [Test]
         public void TruePrevPageTest()
         {
-            var articles = new Dictionary<string, ArticleInfo>();
+            var articles = new WrapperArticles();
             var requests = new MessageBroker<UriRequest>();
             var bodies = new MessageBroker<UriBody>();
 
             bodies.Send(new UriBody(
                 uri: "https://someurl",
                 body: $"<li class='prev'><a href='https://prevurl'></a></li>"));
-            new ServiceInfoParser(requests, bodies, articles).Run();
+           new ServiceInfoParser(requests, bodies, articles).Run();
             Assert.IsTrue(requests.TryReceive(out var uri));
             Assert.AreEqual("https://prevurl/", uri.Uri.AbsoluteUri);
             
@@ -101,15 +103,19 @@
         [Test]
         public void ContainerTest()
         {
-            var articles = new Dictionary<string, ArticleInfo>();
             var rootUri = "https://docs.microsoft.com/ru-ru";
-            var container = new InstallClass(new Settings(rootUri)).Container;
-            var bodies = (IMessageBroker<UriBody>)container.GetInstance<IMessageBroker>("bodies");
-            var requests = (IMessageBroker<UriRequest>)container.GetInstance<IMessageBroker>("requests");
+            var installClass = new ClassInstallator
+                                   {
+                                       Container = new Container()
+                                   };
+            installClass.InstallClass(new Settings(rootUri));
+            var container = installClass.Container;
+            var bodies = container.GetInstance<MessageBroker<UriBody>>();
+            var requests = container.GetInstance<MessageBroker<UriRequest>>();
             bodies.Send(new UriBody(
                 uri: "https://someurl",
                 body: $"<li class='prev'><a href='https://prevurl'></a></li>"));
-            container.With(articles).GetInstance<IMessageProcessor<UriBody>>("ServiceInfoParser").Run();
+            container.GetInstance<IMessageProcessor>().Run();
             Assert.IsFalse(bodies.TryReceive(out var _));
             Assert.IsTrue(requests.TryReceive(out var uri));
             Assert.AreEqual("https://prevurl/", uri.Uri.AbsoluteUri);
