@@ -28,10 +28,8 @@
             registry.IncludeRegistry<ClassInstaller>();
             var container = new Container(registry);
 
-            var settings = container.GetInstance<Settings>();
-
             ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug);
-            Logger.LogInformation($"Starting with {settings.RootUriString}");
+            Logger.LogInformation($"Starting with {container.GetInstance<Settings>().RootUriString}");
 
             try
             {
@@ -42,7 +40,6 @@
                     $"All {container.GetInstance<WrapperUries>().Uries.Count} urls done! "
                     + $"All {container.GetInstance<WrapperArticles>().Articles.Count} articles done!");
 
-                container.Release(settings);
                 container.Release(runner);
                 container.Dispose();
             }
