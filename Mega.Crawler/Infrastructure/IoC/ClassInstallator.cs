@@ -1,6 +1,7 @@
 ﻿namespace Mega.Crawler.Infrastructure.IoC
 {
     using System;
+    using System.IO;
     using System.Net;
     using System.Threading;
 
@@ -9,40 +10,42 @@
     using Mega.Services.ContentCollector;
     using Mega.Services.InfoParser;
 
+    using Microsoft.Extensions.Configuration;
+
     using StructureMap;
 
-    public class ClassInstallator
+    public class ClassInstaller : Registry
     {
-        public IContainer Container { get; set; }
 
-        public void InstallClass(Settings settings)
+        public ClassInstaller()
         {
-            this.Container.Configure(
-                r =>
+            var builder = new ConfigurationBuilder()
+                .SetBasePath(Path.GetFullPath(@"../../../Properties"))
+                .AddJsonFile("Mega.Crawler.appsettings.json", false, true)
+                .AddJsonFile($"Mega.Crawler.appsettings.{Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT")}.json", true);
+
+            var settings = new Settings(builder.Build());
+
+            ForSingletonOf<IMessageBroker<UriBody>>().Use<MessageBroker<UriBody>>();
+            ForSingletonOf<IMessageBroker<UriRequest>>().Use<MessageBroker<UriRequest>>();
+
+            ForConcreteType<Settings>().Configure.Singleton().Ctor<Settings>("settings").Is(settings);
+
+            ForSingletonOf<WrapperUries>();
+            ForSingletonOf<WrapperArticles>();
+
+            Forward<IMessageBroker<UriBody>, IMessageBroker>();
+            Forward<IMessageBroker<UriRequest>, IMessageBroker>();
+
+            For<IMessageProcessor>().Use<ServiceContentCollector>().Ctor<Func<Uri, string>>("clientDelegate").Is(
+                uri =>
                     {
-                        r.ForConcreteType<MessageBroker<UriBody>>().Configure.Singleton();
-                        r.ForConcreteType<MessageBroker<UriRequest>>().Configure.Singleton();
-
-                        r.ForConcreteType<Settings>().Configure.Singleton().Ctor<Settings>("settings").Is(settings);
-
-                        r.ForConcreteType<WrapperUries>().Configure.Singleton();
-                        r.ForConcreteType<WrapperArticles>().Configure.Singleton();
-
-                        r.Forward<MessageBroker<UriBody>, IMessageBroker>();
-                        r.Forward<MessageBroker<UriRequest>, IMessageBroker>();
+                        Thread.Sleep(new Random().Next(5000, 15000));
+                        return new WebClient().DownloadString(uri);
                     });
-            this.Container.Configure(
-                r =>
-                    {
-                        r.For<IMessageProcessor>().Use<ServiceContentCollector>()
-                            .Ctor<Func<Uri, string>>("clientDelegate").Is(
-                                uri =>
-                                    {
-                                        Thread.Sleep(new Random().Next(5000, 15000));
-                                        return new WebClient().DownloadString(uri);
-                                    });
-                        r.For<IMessageProcessor>().Use<ServiceInfoParser>();
-                    });
+            For<IMessageProcessor>().Use<ServiceInfoParser>();
+
+            ForConcreteType<Runner>();
         }
     }
 }

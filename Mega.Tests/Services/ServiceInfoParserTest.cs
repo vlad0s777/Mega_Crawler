@@ -1,17 +1,12 @@
 ﻿namespace Mega.Tests.Services
 {
     using System;
-    using System.Collections.Generic;
 
-    using Mega.Crawler.Infrastructure.IoC;
     using Mega.Messaging;
-    using Mega.Services;
     using Mega.Services.ContentCollector;
     using Mega.Services.InfoParser;
 
     using NUnit.Framework;
-
-    using StructureMap;
 
     [TestFixture]
     internal class ServiceInfoParserTest
@@ -96,29 +91,7 @@
                 body: $"<li class='prev'><a href='https://prevurl'></a></li>"));
            new ServiceInfoParser(requests, bodies, articles).Run();
             Assert.IsTrue(requests.TryReceive(out var uri));
-            Assert.AreEqual("https://prevurl/", uri.Uri.AbsoluteUri);
-            
-        }
-
-        [Test]
-        public void ContainerTest()
-        {
-            var rootUri = "https://docs.microsoft.com/ru-ru";
-            var installClass = new ClassInstallator
-                                   {
-                                       Container = new Container()
-                                   };
-            installClass.InstallClass(new Settings(rootUri));
-            var container = installClass.Container;
-            var bodies = container.GetInstance<MessageBroker<UriBody>>();
-            var requests = container.GetInstance<MessageBroker<UriRequest>>();
-            bodies.Send(new UriBody(
-                uri: "https://someurl",
-                body: $"<li class='prev'><a href='https://prevurl'></a></li>"));
-            container.GetInstance<IMessageProcessor>().Run();
-            Assert.IsFalse(bodies.TryReceive(out var _));
-            Assert.IsTrue(requests.TryReceive(out var uri));
-            Assert.AreEqual("https://prevurl/", uri.Uri.AbsoluteUri);
+            Assert.AreEqual("https://prevurl/", uri.Uri.AbsoluteUri);        
         }
     }
 }

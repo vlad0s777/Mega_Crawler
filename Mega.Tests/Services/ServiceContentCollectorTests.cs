@@ -1,8 +1,5 @@
 ﻿namespace Mega.Tests.Services
 {
-    using System;
-    using System.Collections.Generic;
-
     using Mega.Messaging;
     using Mega.Services;
     using Mega.Services.ContentCollector;

@@ -21,15 +21,15 @@
         private readonly MessageBroker<UriBody> bodies;
 
         public ServiceContentCollector(
-            MessageBroker<UriRequest> requests,
-            MessageBroker<UriBody> bodies,
+            IMessageBroker<UriRequest> requests,
+            IMessageBroker<UriBody> bodies,
             WrapperUries visitedUrls,
             Func<Uri, string> clientDelegate,
             Settings settings)
         {
-            this.requests = requests;
+            this.requests = (MessageBroker<UriRequest>)requests;
 
-            this.bodies = bodies;
+            this.bodies = (MessageBroker<UriBody>)bodies;
 
             this.VisitedUrls = visitedUrls.Uries;
 

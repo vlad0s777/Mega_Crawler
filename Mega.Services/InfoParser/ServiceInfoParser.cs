@@ -22,11 +22,11 @@
 
         private readonly int maxdepth;
 
-        public ServiceInfoParser(MessageBroker<UriRequest> requests, MessageBroker<UriBody> bodies, WrapperArticles articles, Settings settings = null)
+        public ServiceInfoParser(IMessageBroker<UriRequest> requests, IMessageBroker<UriBody> bodies, WrapperArticles articles, Settings settings = null)
         {
             this.articles = articles.Articles;
 
-            this.bodies = bodies;
+            this.bodies = (MessageBroker<UriBody>)bodies;
 
             if (settings != null)
             {
@@ -37,10 +37,8 @@
                 this.maxdepth = -1;
             }
 
-            this.requests = requests;
+            this.requests = (MessageBroker<UriRequest>)requests;
         }
-
-
 
         public bool Run()
         {
