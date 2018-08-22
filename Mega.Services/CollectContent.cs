@@ -1,10 +1,12 @@
-﻿using System;
-using System.Collections.Generic;
-using Mega.Messaging;
-using Microsoft.Extensions.Logging;
-
-namespace Mega.Services
+﻿namespace Mega.Services
 {
+    using System;
+    using System.Collections.Generic;
+
+    using Mega.Messaging;
+
+    using Microsoft.Extensions.Logging;
+
     public class CollectContent
     {
         private static ILogger Logger { get; } = ApplicationLogging.CreateLogger<CollectContent>();
@@ -61,7 +63,7 @@ namespace Mega.Services
                         if (att < this.attempt)
                         {
                             this.messages.Send(new UriLimits(uri.Uri, att, uri.Depth));
-                            Logger.LogDebug($"{e.Message} in {uri.Uri}. Еhere are still attempts: {this.attempt - uri.Attempt}");
+                            Logger.LogDebug($"{e.Message} in {uri.Uri}. There are still attempts: {this.attempt - uri.Attempt}");
                         }
                         else
                         {

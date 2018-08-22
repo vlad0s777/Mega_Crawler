@@ -1,15 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Net;
-using Mega.Messaging;
-using Mega.Services;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Logging;
-
-namespace Mega.Crawler
+﻿namespace Mega.Crawler
 {
+    using System;
+    using System.Collections.Generic;
+    using System.IO;
+    using System.Linq;
+    using System.Net;
+
+    using Mega.Messaging;
+    using Mega.Services;
+
+    using Microsoft.Extensions.Configuration;
+    using Microsoft.Extensions.Logging;
+
     internal class Program
     {
         private static readonly ILogger Logger = getLogger();
@@ -22,8 +24,8 @@ namespace Mega.Crawler
             return logger;
         }
 
-        //   private static int ttt = 0;
-        //   private static int vvv = 10/ttt;
+        private static int ttt = 0;
+        private static int vvv = 10/ttt;
         private static void Main(string[] args)
         {
             var builder = new ConfigurationBuilder()
@@ -32,7 +34,9 @@ namespace Mega.Crawler
                 .AddJsonFile($"Mega.Crawler.appsettings.{Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT")}.json", true);
 
             var settings = builder.Build();
+
             ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug);
+
             var depth = Convert.ToInt32(settings["depth"]);
             var limit = Convert.ToInt32(settings["count"]);
             var attempt = Convert.ToInt32(settings["attempt"]);
