@@ -2,6 +2,7 @@
 {
     using System;
     using System.Net;
+    using System.Threading;
 
     using Mega.Crawler.Infrastructure.IoC;
     using Mega.Services;
@@ -11,6 +12,7 @@
     using Microsoft.Extensions.Logging;
 
     using StructureMap;
+    using StructureMap.Pipeline;
 
     internal class Program
     {
@@ -32,24 +34,29 @@
             {
                 using (var container = new Container(registry))
                 {
-                    
                     ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug);
                     Logger.LogInformation($"Starting with {container.GetInstance<Settings>().RootUriString}");
                     using (var client = new WebClient())
                     {
-                        container.Configure(r => r.For<Func<Uri, string>>().AddInstance(uri =>
-                            {
-                                return client.DownloadString(uri);
-                            }));
+                        var delegat = new WebClientDelegate(
+                            uri =>
+                                {
+                                    Thread.Sleep(new Random().Next(5000, 15000));
+                                    return client.DownloadString(uri);
+                                });
+
+                        var instance = new LambdaInstance<WebClientDelegate>(c => delegat);
+                        container.Configure(r => r.For<WebClientDelegate>().AddInstance(instance));
+
                         var runner = container.GetInstance<Runner>();
                         runner.Run();
+
+                        Logger.LogInformation(
+                            $"All {container.GetInstance<WrapperUries>().Uries.Count} urls done! "
+                            + $"All {container.GetInstance<WrapperArticles>().Articles.Count} articles done!");
+
+                        container.Release(runner);
                     }
-
-                    Logger.LogInformation(
-                        $"All {container.GetInstance<WrapperUries>().Uries.Count} urls done! "
-                        + $"All {container.GetInstance<WrapperArticles>().Articles.Count} articles done!");
-
-                    container.Release(runner);
                 }
             }
             catch (Exception e)

@@ -19,10 +19,10 @@
 
         public ClassInstaller()
         {
-            var builder = new ConfigurationBuilder()
-                .SetBasePath(Path.GetFullPath(@"../../../Properties"))
-                .AddJsonFile("Mega.Crawler.appsettings.json", false, true)
-                .AddJsonFile($"Mega.Crawler.appsettings.{Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT")}.json", true);
+            var builder = new ConfigurationBuilder().SetBasePath(Path.GetFullPath(@"../../../Properties"))
+                .AddJsonFile("Mega.Crawler.appsettings.json", false, true).AddJsonFile(
+                    $"Mega.Crawler.appsettings.{Environment.GetEnvironmentVariable("NETCORE_ENVIRONMENT")}.json",
+                    true);
 
             var settings = new Settings(builder.Build());
 
@@ -37,13 +37,12 @@
             Forward<IMessageBroker<UriBody>, IMessageBroker>();
             Forward<IMessageBroker<UriRequest>, IMessageBroker>();
 
-            For<IMessageProcessor>().Use<ServiceContentCollector>().Ctor<Func<Uri, string>>("clientDelegate").Is(
-                uri =>
+            Scan(
+                s =>
                     {
-                        Thread.Sleep(new Random().Next(5000, 15000));
-                        return new WebClient().DownloadString(uri);
+                        s.AssembliesFromPath(".");
+                        s.AddAllTypesOf<IMessageProcessor>();
                     });
-            For<IMessageProcessor>().Use<ServiceInfoParser>();
 
             ForConcreteType<Runner>();
         }

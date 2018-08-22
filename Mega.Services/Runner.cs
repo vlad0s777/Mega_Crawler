@@ -4,7 +4,6 @@
     using System.Linq;
 
     using Mega.Messaging;
-    using Mega.Services;
     using Mega.Services.ContentCollector;
 
     public class Runner

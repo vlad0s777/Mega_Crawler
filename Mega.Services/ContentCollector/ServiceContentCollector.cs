@@ -24,7 +24,7 @@
             IMessageBroker<UriRequest> requests,
             IMessageBroker<UriBody> bodies,
             WrapperUries visitedUrls,
-            Func<Uri, string> clientDelegate,
+            WebClientDelegate clientDelegate,
             Settings settings)
         {
             this.requests = (MessageBroker<UriRequest>)requests;
@@ -46,7 +46,7 @@
 
         private Uri RootUri { get; }
 
-        private Func<Uri, string> ClientDelegate { get; }
+        private WebClientDelegate ClientDelegate { get; }
 
         public bool Run()
         {
