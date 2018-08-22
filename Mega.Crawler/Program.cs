@@ -1,6 +1,7 @@
 ﻿namespace Mega.Crawler
 {
     using System;
+    using System.Net;
 
     using Mega.Crawler.Infrastructure.IoC;
     using Mega.Services;
@@ -26,22 +27,30 @@
         {
             var registry = new Registry();
             registry.IncludeRegistry<ClassInstaller>();
-            var container = new Container(registry);
-
-            ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug);
-            Logger.LogInformation($"Starting with {container.GetInstance<Settings>().RootUriString}");
 
             try
             {
-                var runner = container.GetInstance<Runner>();
-                runner.Run();
+                using (var container = new Container(registry))
+                {
+                    
+                    ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug);
+                    Logger.LogInformation($"Starting with {container.GetInstance<Settings>().RootUriString}");
+                    using (var client = new WebClient())
+                    {
+                        container.Configure(r => r.For<Func<Uri, string>>().AddInstance(uri =>
+                            {
+                                return client.DownloadString(uri);
+                            }));
+                        var runner = container.GetInstance<Runner>();
+                        runner.Run();
+                    }
 
-                Logger.LogInformation(
-                    $"All {container.GetInstance<WrapperUries>().Uries.Count} urls done! "
-                    + $"All {container.GetInstance<WrapperArticles>().Articles.Count} articles done!");
+                    Logger.LogInformation(
+                        $"All {container.GetInstance<WrapperUries>().Uries.Count} urls done! "
+                        + $"All {container.GetInstance<WrapperArticles>().Articles.Count} articles done!");
 
-                container.Release(runner);
-                container.Dispose();
+                    container.Release(runner);
+                }
             }
             catch (Exception e)
             {
