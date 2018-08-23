@@ -1,22 +1,35 @@
-﻿namespace Mega.Services
+﻿namespace Mega.Crawler
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
 
     using Mega.Messaging;
+    using Mega.Services;
     using Mega.Services.ContentCollector;
+    using Mega.Services.InfoParser;
+
+    using Microsoft.Extensions.Logging;
 
     public class Runner
     {
+        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<Runner>();
+
         private readonly IMessageBroker[] brokers;
 
         private readonly IMessageProcessor[] handlers;
 
+        private readonly HashSet<Uri> visited_urls;
+
+        private readonly Dictionary<string, ArticleInfo> articles;
+
         private readonly Settings settings;
 
-        public Runner(IMessageBroker[] brokers, IMessageProcessor[] handlers, Settings settings)
+        public Runner(IMessageBroker[] brokers, IMessageProcessor[] handlers, Settings settings, HashSet<Uri> visitedUrls, Dictionary<string, ArticleInfo> articles)
         {
             this.settings = settings;
+            this.visited_urls = visitedUrls;
+            this.articles = articles;
 
             while (string.IsNullOrWhiteSpace(settings.RootUriString))
             {
@@ -31,6 +44,8 @@
         public void Run()
         {
             var rootUri = new Uri(this.settings.RootUriString, UriKind.Absolute);
+
+            Logger.LogInformation($"Starting with {this.settings.RootUriString}");
 
             foreach (var broker in this.brokers)
             {
@@ -53,6 +68,10 @@
                     break;
                 }
             }
+
+            Logger.LogInformation(
+                $"All {this.visited_urls.Count} urls done! "
+                + $"All {this.articles.Count} articles done!");
         }
     }
 }
