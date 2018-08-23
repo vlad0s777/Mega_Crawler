@@ -34,9 +34,9 @@
 
             foreach (var broker in this.brokers)
             {
-                if (broker is IMessageBroker<UriRequest>)
+                if (broker is IMessageBroker<UriRequest> requestBroker)
                 {
-                    (broker as IMessageBroker<UriRequest>).Send(new UriRequest(rootUri));
+                    requestBroker.Send(new UriRequest(rootUri));
                     break;
                 }
             }

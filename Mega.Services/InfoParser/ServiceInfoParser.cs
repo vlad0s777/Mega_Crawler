@@ -22,9 +22,9 @@
 
         private readonly int maxdepth;
 
-        public ServiceInfoParser(IMessageBroker<UriRequest> requests, IMessageBroker<UriBody> bodies, WrapperArticles articles, Settings settings = null)
+        public ServiceInfoParser(IMessageBroker<UriRequest> requests, IMessageBroker<UriBody> bodies, Dictionary<string, ArticleInfo> articles, Settings settings = null)
         {
-            this.articles = articles.Articles;
+            this.articles = articles;
 
             this.bodies = (MessageBroker<UriBody>)bodies;
 

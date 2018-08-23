@@ -1,18 +1,17 @@
 ﻿namespace Mega.Crawler
 {
     using System;
+    using System.Collections.Generic;
     using System.Net;
     using System.Threading;
 
     using Mega.Crawler.Infrastructure.IoC;
     using Mega.Services;
-    using Mega.Services.ContentCollector;
     using Mega.Services.InfoParser;
 
     using Microsoft.Extensions.Logging;
 
     using StructureMap;
-    using StructureMap.Pipeline;
 
     internal class Program
     {
@@ -28,7 +27,8 @@
         private static void Main()
         {
             var registry = new Registry();
-            registry.IncludeRegistry<ClassInstaller>();
+            registry.IncludeRegistry<SettingsInstaller>();
+            registry.IncludeRegistry<ServicesInstaller>();
 
             try
             {
@@ -38,22 +38,20 @@
                     Logger.LogInformation($"Starting with {container.GetInstance<Settings>().RootUriString}");
                     using (var client = new WebClient())
                     {
-                        var delegat = new WebClientDelegate(
-                            uri =>
-                                {
-                                    Thread.Sleep(new Random().Next(5000, 15000));
-                                    return client.DownloadString(uri);
-                                });
-
-                        var instance = new LambdaInstance<WebClientDelegate>(c => delegat);
-                        container.Configure(r => r.For<WebClientDelegate>().AddInstance(instance));
+                        container.Configure(
+                            r => r.For<Func<Uri, string>>().Use(
+                                (Func<Uri, string>)(uri =>
+                                                           {
+                                                               Thread.Sleep(new Random().Next(5000, 15000));
+                                                               return client.DownloadString(uri);
+                                                           })));
 
                         var runner = container.GetInstance<Runner>();
                         runner.Run();
 
                         Logger.LogInformation(
-                            $"All {container.GetInstance<WrapperUries>().Uries.Count} urls done! "
-                            + $"All {container.GetInstance<WrapperArticles>().Articles.Count} articles done!");
+                            $"All {container.GetInstance<HashSet<Uri>>().Count} urls done! "
+                            + $"All {container.GetInstance<Dictionary<string, ArticleInfo>>().Count} articles done!");
 
                         container.Release(runner);
                     }

@@ -1,6 +1,6 @@
 {
   "rootUrl": "https://ithappens.me",
   "depthLimit": 2,
-  "countLimit": 100,
+  "countLimit": 5,
   "attemptLimit": 3
 }

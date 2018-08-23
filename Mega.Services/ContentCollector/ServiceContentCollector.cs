@@ -23,15 +23,15 @@
         public ServiceContentCollector(
             IMessageBroker<UriRequest> requests,
             IMessageBroker<UriBody> bodies,
-            WrapperUries visitedUrls,
-            WebClientDelegate clientDelegate,
+            HashSet<Uri> visitedUrls,
+            Func<Uri, string> clientDelegate,
             Settings settings)
         {
             this.requests = (MessageBroker<UriRequest>)requests;
 
             this.bodies = (MessageBroker<UriBody>)bodies;
 
-            this.VisitedUrls = visitedUrls.Uries;
+            this.VisitedUrls = visitedUrls;
 
             this.RootUri = new Uri(settings.RootUriString, UriKind.Absolute);
 
@@ -46,7 +46,7 @@
 
         private Uri RootUri { get; }
 
-        private WebClientDelegate ClientDelegate { get; }
+        private Func<Uri, string> ClientDelegate { get; }
 
         public bool Run()
         {
