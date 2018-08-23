@@ -34,7 +34,7 @@
                 registry.IncludeRegistry<ServicesInstaller>();
 
                 var random = new Random();
-            
+
                 using (var container = new Container(registry))
                 {
                     using (var client = new WebClient())
@@ -49,8 +49,8 @@
                     }
 
                     var runner = container.GetInstance<Runner>();
-                        runner.Run();
-                        container.Release(runner);              
+                    runner.Run();
+                    container.Release(runner);
                 }
             }
             catch (Exception e)

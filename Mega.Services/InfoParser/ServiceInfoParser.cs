@@ -14,9 +14,9 @@
     {
         private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ServiceInfoParser>();
 
-        private readonly MessageBroker<UriRequest> requests;
+        private readonly IMessageBroker<UriRequest> requests;
 
-        private readonly MessageBroker<UriBody> bodies;
+        private readonly IMessageBroker<UriBody> bodies;
 
         private readonly Dictionary<string, ArticleInfo> articles;
 
@@ -26,7 +26,7 @@
         {
             this.articles = articles;
 
-            this.bodies = (MessageBroker<UriBody>)bodies;
+            this.bodies = bodies;
 
             if (settings != null)
             {
@@ -37,7 +37,7 @@
                 this.maxdepth = -1;
             }
 
-            this.requests = (MessageBroker<UriRequest>)requests;
+            this.requests = requests;
         }
 
         public bool Run()

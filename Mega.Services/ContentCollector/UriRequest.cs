@@ -2,6 +2,8 @@
 {
     using System;
 
+    using Newtonsoft.Json;
+
     public class UriRequest
     {
         public readonly int Attempt;
@@ -17,6 +19,7 @@
             this.Depth = depth;
         }
 
+        [JsonConstructor]
         public UriRequest(string uri, int attempt = 0, int depth = 1)
             : this(new Uri(uri), attempt, depth)
         {

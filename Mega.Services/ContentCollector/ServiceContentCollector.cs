@@ -16,9 +16,9 @@
 
         private readonly int count_limit;
 
-        private readonly MessageBroker<UriRequest> requests;
+        private readonly IMessageBroker<UriRequest> requests;
 
-        private readonly MessageBroker<UriBody> bodies;
+        private readonly IMessageBroker<UriBody> bodies;
 
         public ServiceContentCollector(
             IMessageBroker<UriRequest> requests,
@@ -27,9 +27,9 @@
             Func<Uri, string> clientDelegate,
             Settings settings)
         {
-            this.requests = (MessageBroker<UriRequest>)requests;
+            this.requests = requests;
 
-            this.bodies = (MessageBroker<UriBody>)bodies;
+            this.bodies = bodies;
 
             this.VisitedUrls = visitedUrls;
 
