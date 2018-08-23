@@ -14,6 +14,14 @@
 
         public string RootUriString { get; set; }
 
+        public Settings(Settings settings)
+        {
+            this.DepthLimit = settings.DepthLimit;
+            this.CountLimit = settings.CountLimit;
+            this.AttemptLimit = settings.AttemptLimit;
+            this.RootUriString = settings.RootUriString;
+        }
+
         public Settings(string rootUriString, int depthLimit = -1, int countLimit = -1, int attemptLimit = 0)
         {
             this.DepthLimit = depthLimit;

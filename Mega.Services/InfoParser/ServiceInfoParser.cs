@@ -10,7 +10,7 @@
 
     using Microsoft.Extensions.Logging;
 
-    public class ServiceInfoParser
+    public class ServiceInfoParser : IMessageProcessor
     {
         private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ServiceInfoParser>();
 
@@ -22,11 +22,11 @@
 
         private readonly int maxdepth;
 
-        public ServiceInfoParser(MessageBroker<UriRequest> requests, MessageBroker<UriBody> bodies, Dictionary<string, ArticleInfo> articles, Settings settings = null)
+        public ServiceInfoParser(IMessageBroker<UriRequest> requests, IMessageBroker<UriBody> bodies, Dictionary<string, ArticleInfo> articles, Settings settings = null)
         {
             this.articles = articles;
 
-            this.bodies = bodies;
+            this.bodies = (MessageBroker<UriBody>)bodies;
 
             if (settings != null)
             {
@@ -37,12 +37,10 @@
                 this.maxdepth = -1;
             }
 
-            this.requests = requests;
+            this.requests = (MessageBroker<UriRequest>)requests;
         }
 
-
-
-        public bool Work()
+        public bool Run()
         {
             if (this.bodies.TryReceive(out var body))
             {

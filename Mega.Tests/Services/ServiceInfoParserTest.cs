@@ -1,7 +1,6 @@
 ﻿namespace Mega.Tests.Services
 {
     using System;
-    using System.Collections.Generic;
 
     using Mega.Messaging;
     using Mega.Services.ContentCollector;
@@ -15,7 +14,7 @@
         [Test]
         public void EmptyTagsTest()
         {
-            var articles = new Dictionary<string, ArticleInfo>();
+            var articles = new WrapperArticles();
             var requests = new MessageBroker<UriRequest>();
             var bodies = new MessageBroker<UriBody>();
 
@@ -24,9 +23,9 @@
                 body: $"<div class='story'><h2><a href='123'>Нужны сильные программисты</a></h2><div class='meta'><div class='date-time'>"
                         +$"3 декабря 2015, 08:00</div></div><div class='text'><p>1999 год</p></div></div>"));
 
-            new ServiceInfoParser(requests, bodies, articles).Work();
+            new ServiceInfoParser(requests, bodies, articles).Run();
 
-            foreach (var i in articles)
+            foreach (var i in articles.Articles)
             {
                 Assert.AreEqual(DateTime.Parse("3 декабря 2015, 08:00"), i.Value.DateCreate);
                 Assert.AreEqual("Нужны сильные программисты", i.Value.Head);
@@ -38,7 +37,7 @@
         [Test]
         public void EmptyTextTest()
         {
-            var articles = new Dictionary<string, ArticleInfo>();
+            var articles = new WrapperArticles();
             var requests = new MessageBroker<UriRequest>();
             var bodies = new MessageBroker<UriBody>();
 
@@ -49,15 +48,15 @@
                       $"<ul><li><a href = '/tag/longago' > давным - давно </ a >" +
                       $"</li><li><a href='/tag/only-in-russia'>только в России</a></li></ul></div></div>"));
 
-            new ServiceInfoParser(requests, bodies, articles).Work();
+            new ServiceInfoParser(requests, bodies, articles).Run();
 
-            Assert.IsEmpty(articles);
+            Assert.IsEmpty(articles.Articles);
         }
 
         [Test]
         public void TrueParceTest()
         {
-            var articles = new Dictionary<string, ArticleInfo>();
+            var articles = new WrapperArticles();
             var requests = new MessageBroker<UriRequest>();
             var bodies = new MessageBroker<UriBody>();
 
@@ -68,9 +67,9 @@
                       + $"<ul><li><a href = '/tag/longago' > давным - давно </ a >" +
                       $"</li><li><a href='/tag/only-in-russia'>только в России</a></li></ul></div></div><div class='text'><p>1999 год</p> </div>"));
 
-            new ServiceInfoParser(requests, bodies, articles).Work();
+            new ServiceInfoParser(requests, bodies, articles).Run();
 
-            foreach (var i in articles)
+            foreach (var i in articles.Articles)
             {
                 Assert.AreEqual(DateTime.Parse("3 декабря 2015, 08:00"), i.Value.DateCreate);
                 Assert.AreEqual("Нужны сильные программисты", i.Value.Head);
@@ -83,17 +82,16 @@
         [Test]
         public void TruePrevPageTest()
         {
-            var articles = new Dictionary<string, ArticleInfo>();
+            var articles = new WrapperArticles();
             var requests = new MessageBroker<UriRequest>();
             var bodies = new MessageBroker<UriBody>();
 
             bodies.Send(new UriBody(
                 uri: "https://someurl",
                 body: $"<li class='prev'><a href='https://prevurl'></a></li>"));
-            new ServiceInfoParser(requests, bodies, articles).Work();
+           new ServiceInfoParser(requests, bodies, articles).Run();
             Assert.IsTrue(requests.TryReceive(out var uri));
-            Assert.AreEqual("https://prevurl/", uri.Uri.AbsoluteUri);
-            
+            Assert.AreEqual("https://prevurl/", uri.Uri.AbsoluteUri);        
         }
     }
 }
