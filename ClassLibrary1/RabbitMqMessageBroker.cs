@@ -7,6 +7,7 @@
     using Newtonsoft.Json;
 
     using RabbitMQ.Client;
+    using RabbitMQ.Client.Events;
 
     public class RabbitMqMessageBroker<TMessage> : IMessageBroker<TMessage>, IDisposable
     {
@@ -17,6 +18,8 @@
         private readonly string queue_name;
 
         private readonly Encoding encoding;
+
+        private readonly EventingBasicConsumer consumer;
 
         public RabbitMqMessageBroker()
         {
@@ -38,6 +41,8 @@
                 arguments: null);
 
             this.model.QueuePurge(this.queue_name);
+
+            this.consumer = new EventingBasicConsumer(this.model);
         }
 
         public bool IsEmpty()
@@ -71,6 +76,13 @@
                 message = default(TMessage);
                 return false;
             }
+        }
+
+        public void ConsumeWith(Action<TMessage> onReceive)
+        {
+            
+            this.model.BasicConsume(queue: this.queue_name, autoAck: true, consumer: this.consumer);
+            //onReceive.Invoke();
         }
 
         public void Dispose()
