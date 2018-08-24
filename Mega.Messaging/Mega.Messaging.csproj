@@ -14,7 +14,6 @@
     <PackageReference Include="Microsoft.Extensions.Logging.EventSource" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.Filter" Version="1.1.2" />
     <PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="2.1.1" />
-    <PackageReference Include="RabbitMQ.Client" Version="5.1.0" />
   </ItemGroup>
 
 </Project>

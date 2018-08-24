@@ -2,66 +2,73 @@
 {
     using System;
     using System.Text;
+    using System.Threading;
 
     using Newtonsoft.Json;
 
     using RabbitMQ.Client;
 
-    public class RabbitMqMessageBroker<T> : IMessageBroker<T>, IDisposable
+    public class RabbitMqMessageBroker<TMessage> : IMessageBroker<TMessage>, IDisposable
     {
         private readonly IConnection connection;
 
         private readonly IModel model;
 
+        private readonly string queue_name;
+
+        private readonly Encoding encoding;
+
         public RabbitMqMessageBroker()
         {
+            this.queue_name = typeof(TMessage).FullName;
+
+            this.encoding = Encoding.UTF8;
+
             var factory = new ConnectionFactory();
+
             this.connection = factory.CreateConnection();
+
             this.model = this.connection.CreateModel();
+
             this.model.QueueDeclare(
-                queue: typeof(T).FullName,
+                queue: this.queue_name,
                 durable: true,
                 exclusive: false,
                 autoDelete: true,
                 arguments: null);
-            this.model.QueuePurge(typeof(T).FullName);
+
+            this.model.QueuePurge(this.queue_name);
         }
 
         public bool IsEmpty()
         {
-            if (this.model.MessageCount(typeof(T).FullName) == 0)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            Thread.Sleep(5);
+            return this.model.MessageCount(this.queue_name) == 0;
         }
 
-        public void Send(T message)
+        public void Send(TMessage message)
         {
             var jsonSer = JsonConvert.SerializeObject(message);
-            var body = Encoding.UTF8.GetBytes(jsonSer);
+            var body = this.encoding.GetBytes(jsonSer);
             this.model.BasicPublish(
                 exchange: string.Empty, 
-                routingKey: typeof(T).FullName,
+                routingKey: this.queue_name,
                 basicProperties: null,
                 body: body);
         }
 
-        public bool TryReceive(out T message)
+        public bool TryReceive(out TMessage message)
         {
-            var i = this.model.BasicGet(typeof(T).FullName, false);
+            var i = this.model.BasicGet(this.queue_name, false);
             if (i != null)
             {
-                var body = Encoding.UTF8.GetString(i.Body);
-                message = JsonConvert.DeserializeObject<T>(body);
+                var body = this.encoding.GetString(i.Body);
+                message = JsonConvert.DeserializeObject<TMessage>(body);
                 return true;
             }
             else
             {
-                message = default(T);
+                message = default(TMessage);
                 return false;
             }
         }
