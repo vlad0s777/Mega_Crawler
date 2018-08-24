@@ -21,7 +21,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ClassLibrary1\Mega.Messaging.External.csproj" />
     <ProjectReference Include="..\Mega.Messaging\Mega.Messaging.csproj" />
   </ItemGroup>
 

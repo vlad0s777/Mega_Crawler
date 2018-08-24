@@ -11,7 +11,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mega.Crawler", "Mega.Crawle
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mega.Services", "Mega.Services\Mega.Services.csproj", "{BF7E7C54-AB1E-48B5-9B5E-25D08B960349}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Mega.Messaging.External", "ClassLibrary1\Mega.Messaging.External.csproj", "{F7D942C7-26E8-41A1-8C12-2F6812C75B15}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mega.Messaging.External", "Mega.Messaging.External\Mega.Messaging.External.csproj", "{071BE930-3BA4-49C9-AB56-223C48C8E7A7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -35,10 +35,10 @@ Global
 		{BF7E7C54-AB1E-48B5-9B5E-25D08B960349}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{BF7E7C54-AB1E-48B5-9B5E-25D08B960349}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{BF7E7C54-AB1E-48B5-9B5E-25D08B960349}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F7D942C7-26E8-41A1-8C12-2F6812C75B15}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F7D942C7-26E8-41A1-8C12-2F6812C75B15}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F7D942C7-26E8-41A1-8C12-2F6812C75B15}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F7D942C7-26E8-41A1-8C12-2F6812C75B15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{071BE930-3BA4-49C9-AB56-223C48C8E7A7}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{071BE930-3BA4-49C9-AB56-223C48C8E7A7}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{071BE930-3BA4-49C9-AB56-223C48C8E7A7}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{071BE930-3BA4-49C9-AB56-223C48C8E7A7}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

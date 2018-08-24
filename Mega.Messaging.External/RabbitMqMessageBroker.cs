@@ -2,6 +2,7 @@
 {
     using System;
     using System.Text;
+    using System.Threading;
 
     using Newtonsoft.Json;
 
@@ -41,14 +42,7 @@
 
         public bool IsEmpty()
         {
-            if (this.model.MessageCount(this.queue_name) == 0)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
+            return this.model.MessageCount(this.queue_name) == 0;
         }
 
         public void Send(TMessage message)

@@ -56,7 +56,7 @@
                 }
             }
 
-            while (!this.brokers.All(broker => broker.IsEmpty()))
+            while (true)
             {
                 if (this.handlers.Any(handler => !handler.Run()))
                 {
