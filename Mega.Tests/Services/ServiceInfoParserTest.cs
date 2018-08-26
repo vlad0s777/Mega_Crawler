@@ -1,6 +1,7 @@
 ﻿namespace Mega.Tests.Services
 {
     using System;
+    using System.Collections.Generic;
 
     using Mega.Messaging;
     using Mega.Services.ContentCollector;
@@ -14,7 +15,7 @@
         [Test]
         public void EmptyTagsTest()
         {
-            var articles = new WrapperArticles();
+            var articles = new Dictionary<string, ArticleInfo>();
             var requests = new MessageBroker<UriRequest>();
             var bodies = new MessageBroker<UriBody>();
 
@@ -25,7 +26,7 @@
 
             new ServiceInfoParser(requests, bodies, articles).Run();
 
-            foreach (var i in articles.Articles)
+            foreach (var i in articles)
             {
                 Assert.AreEqual(DateTime.Parse("3 декабря 2015, 08:00"), i.Value.DateCreate);
                 Assert.AreEqual("Нужны сильные программисты", i.Value.Head);
@@ -37,7 +38,7 @@
         [Test]
         public void EmptyTextTest()
         {
-            var articles = new WrapperArticles();
+            var articles = new Dictionary<string, ArticleInfo>();
             var requests = new MessageBroker<UriRequest>();
             var bodies = new MessageBroker<UriBody>();
 
@@ -50,13 +51,13 @@
 
             new ServiceInfoParser(requests, bodies, articles).Run();
 
-            Assert.IsEmpty(articles.Articles);
+            Assert.IsEmpty(articles);
         }
 
         [Test]
         public void TrueParceTest()
         {
-            var articles = new WrapperArticles();
+            var articles = new Dictionary<string, ArticleInfo>();
             var requests = new MessageBroker<UriRequest>();
             var bodies = new MessageBroker<UriBody>();
 
@@ -69,7 +70,7 @@
 
             new ServiceInfoParser(requests, bodies, articles).Run();
 
-            foreach (var i in articles.Articles)
+            foreach (var i in articles)
             {
                 Assert.AreEqual(DateTime.Parse("3 декабря 2015, 08:00"), i.Value.DateCreate);
                 Assert.AreEqual("Нужны сильные программисты", i.Value.Head);
@@ -82,7 +83,7 @@
         [Test]
         public void TruePrevPageTest()
         {
-            var articles = new WrapperArticles();
+            var articles = new Dictionary<string, ArticleInfo>();
             var requests = new MessageBroker<UriRequest>();
             var bodies = new MessageBroker<UriBody>();
 

@@ -14,9 +14,9 @@
     {
         private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ServiceInfoParser>();
 
-        private readonly MessageBroker<UriRequest> requests;
+        private readonly IMessageBroker<UriRequest> requests;
 
-        private readonly MessageBroker<UriBody> bodies;
+        private readonly IMessageBroker<UriBody> bodies;
 
         private readonly Dictionary<string, ArticleInfo> articles;
 
@@ -26,7 +26,7 @@
         {
             this.articles = articles;
 
-            this.bodies = (MessageBroker<UriBody>)bodies;
+            this.bodies = bodies;
 
             if (settings != null)
             {
@@ -37,13 +37,14 @@
                 this.maxdepth = -1;
             }
 
-            this.requests = (MessageBroker<UriRequest>)requests;
+            this.requests = requests;
         }
 
         public bool Run()
         {
             if (this.bodies.TryReceive(out var body))
             {
+                Logger.LogInformation($"Processed is {body.Uri}");
                 if (body.Depth == this.maxdepth)
                 {
                     Logger.LogDebug($"In {body.Uri} max depth. Next report..");

@@ -19,7 +19,7 @@
 
         private readonly IMessageProcessor[] handlers;
 
-        private readonly HashSet<Uri> visited_urls;
+        private readonly HashSet<Uri> visitedUrls;
 
         private readonly Dictionary<string, ArticleInfo> articles;
 
@@ -28,7 +28,7 @@
         public Runner(IMessageBroker[] brokers, IMessageProcessor[] handlers, Settings settings, HashSet<Uri> visitedUrls, Dictionary<string, ArticleInfo> articles)
         {
             this.settings = settings;
-            this.visited_urls = visitedUrls;
+            this.visitedUrls = visitedUrls;
             this.articles = articles;
 
             while (string.IsNullOrWhiteSpace(settings.RootUriString))
@@ -43,20 +43,19 @@
 
         public void Run()
         {
-            var rootUri = new Uri(this.settings.RootUriString, UriKind.Absolute);
-
-            Logger.LogInformation($"Starting with {this.settings.RootUriString}");
-
-            foreach (var broker in this.brokers)
+            if (this.brokers.All(broker => broker.IsEmpty()))
             {
-                if (broker is IMessageBroker<UriRequest> requestBroker)
+                var rootUri = new Uri(this.settings.RootUriString, UriKind.Absolute);
+                foreach (var broker in this.brokers)
                 {
-                    requestBroker.Send(new UriRequest(rootUri));
-                    break;
-                }
+                    if (broker is IMessageBroker<UriRequest> requestBroker)
+                    {
+                        requestBroker.Send(new UriRequest(rootUri));
+                    }
+                }                             
             }
-
-            while (!this.brokers.All(broker => broker.IsEmpty()))
+         
+            while (true)
             {
                 if (this.handlers.Any(handler => !handler.Run()))
                 {
@@ -70,7 +69,7 @@
             }
 
             Logger.LogInformation(
-                $"All {this.visited_urls.Count} urls done! "
+                $"All {this.visitedUrls.Count} urls done! "
                 + $"All {this.articles.Count} articles done!");
         }
     }
