@@ -42,6 +42,7 @@
 
         public void Handle(UriBody message)
         {
+            Logger.LogInformation($"Processed is {body.Uri}");
             if (message.Depth == this.maxdepth)
             {
                 Logger.LogDebug($"In {message.Uri} max depth. Next report..");

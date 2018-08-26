@@ -50,6 +50,7 @@
 
         public void Handle(UriRequest message)
         {
+            Logger.LogInformation($"Processed is {uri.Uri}");
             if (this.RootUri.IsBaseOf(message.Uri) && this.VisitedUrls.Add(message.Uri))
             {
                 try
