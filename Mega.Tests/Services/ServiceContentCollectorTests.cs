@@ -1,5 +1,8 @@
 ﻿namespace Mega.Tests.Services
 {
+    using System;
+    using System.Collections.Generic;
+
     using Mega.Messaging;
     using Mega.Services;
     using Mega.Services.ContentCollector;
@@ -22,7 +25,7 @@
             new ServiceContentCollector(
                 requests,
                 bodies,
-                visitedUrls: new WrapperUries(), 
+                visitedUrls: new HashSet<Uri>(), 
                 clientDelegate: body => "8",
                 settings: new Settings(rootUri)).Run();
 
@@ -42,7 +45,7 @@
             var contentCollector = new ServiceContentCollector(
                 requests,
                 bodies,
-                visitedUrls: new WrapperUries(), 
+                visitedUrls: new HashSet<Uri>(), 
                 clientDelegate: body => "8",
                 settings: new Settings(rootUri));
 
@@ -60,7 +63,7 @@
             var bodies = new MessageBroker<UriBody>();
             var requests = new MessageBroker<UriRequest>();
 
-            var visitedUrls = new WrapperUries();
+            var visitedUrls = new HashSet<Uri>();
 
             var rootUri = "https://docs.microsoft.com/ru-ru/";
             
@@ -83,7 +86,7 @@
                 colCon.Run();
             }
          
-            Assert.AreEqual(6, visitedUrls.Uries.Count);
+            Assert.AreEqual(6, visitedUrls.Count);
         }
 
         [Test]
@@ -97,7 +100,7 @@
             new ServiceContentCollector(
                 requests,
                 bodies,
-                visitedUrls: new WrapperUries(), 
+                visitedUrls: new HashSet<Uri>(), 
                 clientDelegate: body => "8",
                 settings: new Settings(rootUri)).Run();
            

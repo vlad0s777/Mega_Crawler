@@ -13,7 +13,7 @@
 
         private readonly IModel model;
 
-        private readonly string queue_name;
+        private readonly string queueName;
 
         private readonly Encoding encoding;
 
@@ -21,7 +21,7 @@
 
         public RabbitMqMessageBroker()
         {
-            this.queue_name = typeof(TMessage).FullName;
+            this.queueName = typeof(TMessage).FullName;
 
             this.encoding = Encoding.UTF8;
 
@@ -32,7 +32,7 @@
             this.model = this.connection.CreateModel();
 
             this.model.QueueDeclare(
-                queue: this.queue_name,
+                queue: this.queueName,
                 durable: true,
                 exclusive: false,
                 autoDelete: false,
@@ -44,7 +44,7 @@
 
         public bool IsEmpty()
         {
-            return this.model.MessageCount(this.queue_name) == 0;
+            return this.model.MessageCount(this.queueName) == 0;
         }
 
         public void Send(TMessage message)
@@ -53,14 +53,14 @@
             var body = this.encoding.GetBytes(jsonSer);
             this.model.BasicPublish(
                 exchange: string.Empty, 
-                routingKey: this.queue_name,
+                routingKey: this.queueName,
                 basicProperties: this.properties,
                 body: body);
         }
 
         public bool TryReceive(out TMessage message)
         {
-            var i = this.model.BasicGet(this.queue_name, true);
+            var i = this.model.BasicGet(this.queueName, true);
             if (i != null)
             {
                 var body = this.encoding.GetString(i.Body);

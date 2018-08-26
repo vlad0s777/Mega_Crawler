@@ -12,9 +12,9 @@
     {
         private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ServiceContentCollector>();
 
-        private readonly int count_attempt;
+        private readonly int countAttempt;
 
-        private readonly int count_limit;
+        private readonly int countLimit;
 
         private readonly IMessageBroker<UriRequest> requests;
 
@@ -37,9 +37,9 @@
 
             this.ClientDelegate = clientDelegate;
 
-            this.count_limit = settings.CountLimit;
+            this.countLimit = settings.CountLimit;
 
-            this.count_attempt = settings.AttemptLimit;
+            this.countAttempt = settings.AttemptLimit;
         }
 
         private HashSet<Uri> VisitedUrls { get; }
@@ -53,9 +53,9 @@
             if (this.requests.TryReceive(out var uri))
             {
                 Logger.LogInformation($"Processed is {uri.Uri}");
-                if (this.VisitedUrls.Count == this.count_limit)
+                if (this.VisitedUrls.Count == this.countLimit)
                 {
-                    Logger.LogDebug($"You have reached the limit of visited pages: {this.count_limit}");
+                    Logger.LogDebug($"You have reached the limit of visited pages: {this.countLimit}");
                     return false;
                 }
 
@@ -71,10 +71,10 @@
                     {
                         this.VisitedUrls.Remove(uri.Uri);
                         var att = uri.Attempt + 1;
-                        if (att < this.count_attempt)
+                        if (att < this.countAttempt)
                         {
                             this.requests.Send(new UriRequest(uri.Uri, att, uri.Depth));
-                            Logger.LogDebug($"{e.Message} in {uri.Uri}. There are still attempts: {this.count_attempt - uri.Attempt}");
+                            Logger.LogDebug($"{e.Message} in {uri.Uri}. There are still attempts: {this.countAttempt - uri.Attempt}");
                         }
                         else
                         {
