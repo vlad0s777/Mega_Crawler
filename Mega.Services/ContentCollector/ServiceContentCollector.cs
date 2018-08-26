@@ -12,9 +12,9 @@
     {
         private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ServiceContentCollector>();
 
-        private readonly int count_attempt;
+        private readonly int countAttempt;
 
-        private readonly int count_limit;
+        private readonly int countLimit;
 
         private readonly IMessageBroker<UriRequest> requests;
 
@@ -37,9 +37,9 @@
 
             this.ClientDelegate = clientDelegate;
 
-            this.count_limit = settings.CountLimit;
+            this.countLimit = settings.CountLimit;
 
-            this.count_attempt = settings.AttemptLimit;
+            this.countAttempt = settings.AttemptLimit;
         }
 
         private HashSet<Uri> VisitedUrls { get; }
@@ -50,7 +50,7 @@
 
         public void Handle(UriRequest message)
         {
-            Logger.LogInformation($"Processed is {uri.Uri}");
+            Logger.LogInformation($"Processed is {message.Uri}");
             if (this.RootUri.IsBaseOf(message.Uri) && this.VisitedUrls.Add(message.Uri))
             {
                 try
@@ -63,10 +63,10 @@
                 {
                     this.VisitedUrls.Remove(message.Uri);
                     var att = message.Attempt + 1;
-                    if (att < this.count_attempt)
+                    if (att < this.countAttempt)
                     {
                         this.requests.Send(new UriRequest(message.Uri, att, message.Depth));
-                        Logger.LogDebug($"{e.Message} in {message.Uri}. There are still attempts: {this.count_attempt - message.Attempt}");
+                        Logger.LogDebug($"{e.Message} in {message.Uri}. There are still attempts: {this.countAttempt - message.Attempt}");
                     }
                     else
                     {
@@ -78,9 +78,9 @@
 
         public bool Run()
         {
-            if (this.VisitedUrls.Count == this.count_limit)
+            if (this.VisitedUrls.Count == this.countLimit)
             {
-                Logger.LogDebug($"You have reached the limit of visited pages: {this.count_limit}");
+                Logger.LogDebug($"You have reached the limit of visited pages: {this.countLimit}");
                 return false;
             }
 

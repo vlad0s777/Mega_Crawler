@@ -6,6 +6,7 @@
     using Newtonsoft.Json;
 
     using RabbitMQ.Client;
+    using RabbitMQ.Client.Events;
 
     public class RabbitMqMessageBroker<TMessage> : IMessageBroker<TMessage>, IDisposable
     {
@@ -13,15 +14,17 @@
 
         private readonly IModel model;
 
-        private readonly string queue_name;
+        private readonly string queueName;
 
         private readonly Encoding encoding;
 
         private readonly IBasicProperties properties;
 
+        private readonly EventingBasicConsumer consumer;
+
         public RabbitMqMessageBroker()
         {
-            this.queue_name = typeof(TMessage).FullName;
+            this.queueName = typeof(TMessage).FullName;
 
             this.encoding = Encoding.UTF8;
 
@@ -32,7 +35,7 @@
             this.model = this.connection.CreateModel();
 
             this.model.QueueDeclare(
-                queue: this.queue_name,
+                queue: this.queueName,
                 durable: true,
                 exclusive: false,
                 autoDelete: false,
@@ -40,11 +43,14 @@
 
             this.properties = this.model.CreateBasicProperties();
             this.properties.Persistent = true;
+            this.consumer = new EventingBasicConsumer(this.model);
+            this.model.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
+
         }
 
         public bool IsEmpty()
         {
-            return this.model.MessageCount(this.queue_name) == 0;
+            return this.model.MessageCount(this.queueName) == 0;
         }
 
         public void Send(TMessage message)
@@ -53,14 +59,14 @@
             var body = this.encoding.GetBytes(jsonSer);
             this.model.BasicPublish(
                 exchange: string.Empty, 
-                routingKey: this.queue_name,
+                routingKey: this.queueName,
                 basicProperties: this.properties,
                 body: body);
         }
 
         public bool TryReceive(out TMessage message)
         {
-            var i = this.model.BasicGet(this.queue_name, true);
+            var i = this.model.BasicGet(this.queueName, true);
             if (i != null)
             {
                 var body = this.encoding.GetString(i.Body);
@@ -72,6 +78,17 @@
                 message = default(TMessage);
                 return false;
             }
+        }
+
+        public void ConsumeWith(Action<TMessage> onReceive)
+        {
+            this.consumer.Received += (model, ea) =>
+                {
+                    var body = this.encoding.GetString(ea.Body);
+                    var message = JsonConvert.DeserializeObject<TMessage>(body);
+                    onReceive(message);
+                };
+            this.model.BasicConsume(queue: this.queueName, autoAck: true, consumer: this.consumer);
         }
 
         public void Dispose()

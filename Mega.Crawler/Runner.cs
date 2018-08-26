@@ -19,7 +19,7 @@
 
         private readonly IMessageProcessor[] handlers;
 
-        private readonly HashSet<Uri> visited_urls;
+        private readonly HashSet<Uri> visitedUrls;
 
         private readonly Dictionary<string, ArticleInfo> articles;
 
@@ -28,7 +28,7 @@
         public Runner(IMessageBroker[] brokers, IMessageProcessor[] handlers, Settings settings, HashSet<Uri> visitedUrls, Dictionary<string, ArticleInfo> articles)
         {
             this.settings = settings;
-            this.visited_urls = visitedUrls;
+            this.visitedUrls = visitedUrls;
             this.articles = articles;
 
             while (string.IsNullOrWhiteSpace(settings.RootUriString))
@@ -54,11 +54,9 @@
                     }
                 }                             
             }
-         
-            while (true)
 
             this.handlers.Any(handler => !handler.Run());
-            /*while (!this.brokers.All(broker => broker.IsEmpty()))
+            /*while (true)
             {
                 if (this.handlers.Any(handler => !handler.Run()))
                 {
@@ -69,10 +67,10 @@
                 {
                     break;
                 }
-            }
+            }*/
 
             Logger.LogInformation(
-                $"All {this.visited_urls.Count} urls done! "
+                $"All {this.visitedUrls.Count} urls done! "
                 + $"All {this.articles.Count} articles done!");
         }
     }
