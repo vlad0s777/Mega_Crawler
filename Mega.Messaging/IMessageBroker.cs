@@ -7,7 +7,6 @@
         bool IsEmpty();
     }
 
-
     public interface IMessageBroker<TMessage> : IMessageBroker
     {
         void Send(TMessage message);
@@ -17,4 +16,3 @@
         void ConsumeWith(Action<TMessage> onReceive);
     }
 }
-
