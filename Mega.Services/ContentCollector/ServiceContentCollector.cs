@@ -52,6 +52,7 @@
         {
             if (this.requests.TryReceive(out var uri))
             {
+                Logger.LogInformation($"Processed is {uri.Uri}");
                 if (this.VisitedUrls.Count == this.count_limit)
                 {
                     Logger.LogDebug($"You have reached the limit of visited pages: {this.count_limit}");

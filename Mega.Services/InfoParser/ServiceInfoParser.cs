@@ -44,6 +44,7 @@
         {
             if (this.bodies.TryReceive(out var body))
             {
+                Logger.LogInformation($"Processed is {body.Uri}");
                 if (body.Depth == this.maxdepth)
                 {
                     Logger.LogDebug($"In {body.Uri} max depth. Next report..");

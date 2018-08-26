@@ -43,19 +43,18 @@
 
         public void Run()
         {
-            var rootUri = new Uri(this.settings.RootUriString, UriKind.Absolute);
-
-            Logger.LogInformation($"Starting with {this.settings.RootUriString}");
-
-            foreach (var broker in this.brokers)
+            if (this.brokers.All(broker => broker.IsEmpty()))
             {
-                if (broker is IMessageBroker<UriRequest> requestBroker)
+                var rootUri = new Uri(this.settings.RootUriString, UriKind.Absolute);
+                foreach (var broker in this.brokers)
                 {
-                    requestBroker.Send(new UriRequest(rootUri));
-                    break;
-                }
+                    if (broker is IMessageBroker<UriRequest> requestBroker)
+                    {
+                        requestBroker.Send(new UriRequest(rootUri));
+                    }
+                }                             
             }
-
+         
             while (true)
             {
                 if (this.handlers.Any(handler => !handler.Run()))
