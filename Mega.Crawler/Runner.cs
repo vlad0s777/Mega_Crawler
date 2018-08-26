@@ -56,7 +56,8 @@
                 }
             }
 
-            while (!this.brokers.All(broker => broker.IsEmpty()))
+            this.handlers.Any(handler => !handler.Run());
+            /*while (!this.brokers.All(broker => broker.IsEmpty()))
             {
                 if (this.handlers.Any(handler => !handler.Run()))
                 {
@@ -67,7 +68,7 @@
                 {
                     break;
                 }
-            }
+            }*/
 
             Logger.LogInformation(
                 $"All {this.visited_urls.Count} urls done! "

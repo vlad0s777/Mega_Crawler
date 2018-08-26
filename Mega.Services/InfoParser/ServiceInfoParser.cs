@@ -40,69 +40,70 @@
             this.requests = requests;
         }
 
-        public bool Run()
+        public void Handle(UriBody message)
         {
-            if (this.bodies.TryReceive(out var body))
+            if (message.Depth == this.maxdepth)
             {
-                if (body.Depth == this.maxdepth)
-                {
-                    Logger.LogDebug($"In {body.Uri} max depth. Next report..");
-                    return false;
-                }
-
-                var parser = new HtmlParser();
-                var document = parser.Parse(body.Body);
-
-                try
-                {
-                    var articleBody = document.QuerySelectorAll("div.story");
-                    foreach (var article in articleBody)
-                    {
-                        try
-                        {
-                            var articleDoc = parser.Parse(article.InnerHtml);
-                            var head = articleDoc.QuerySelector("h2").TextContent;
-                            var urlArticle = articleDoc.QuerySelector("h2>a").Attributes["href"];
-                            var date = DateTime.Parse(articleDoc.QuerySelector("div.meta>div.date-time").InnerHtml);
-                            var content = articleDoc.QuerySelector("div.text").InnerHtml;
-                            var tagsSelector = articleDoc.QuerySelectorAll("div.meta>div.tags>ul>li>a");
-                            var tagsDictionary = new Dictionary<string, string>();
-                            foreach (var selector in tagsSelector)
-                            {
-                                var href = selector.Attributes["href"].Value;
-                                var text = selector.InnerHtml;
-
-                                tagsDictionary.Add(href, text);
-                            }
-
-                            var artInfo = new ArticleInfo(date, tagsDictionary, content, head);
-                            this.articles.Add(urlArticle.Value, artInfo);
-                            Logger.LogInformation($"Add '{head}' document!");
-                        }
-                        catch (Exception e)
-                        {
-                            Logger.LogWarning(e.Message);
-                        }
-                    }
-                }
-                catch (Exception e)
-                {
-                    Logger.LogWarning(e.Message);
-                }
-
-                try
-                {
-                    var hrefPrevPage = document.QuerySelector("li.prev>a").Attributes["href"].Value;
-                    var absUriPrevPage = new Uri(body.Uri, new Uri(hrefPrevPage, UriKind.RelativeOrAbsolute));
-
-                    this.requests.Send(new UriRequest(absUriPrevPage));
-                }
-                catch (Exception e)
-                {
-                    Logger.LogWarning(e.Message);
-                }
+                Logger.LogDebug($"In {message.Uri} max depth. Next report..");
+                return;
             }
 
+            var parser = new HtmlParser();
+            var document = parser.Parse(message.Body);
+
+            try
+            {
+                var articleBody = document.QuerySelectorAll("div.story");
+                foreach (var article in articleBody)
+                {
+                    try
+                    {
+                        var articleDoc = parser.Parse(article.InnerHtml);
+                        var head = articleDoc.QuerySelector("h2").TextContent;
+                        var urlArticle = articleDoc.QuerySelector("h2>a").Attributes["href"];
+                        var date = DateTime.Parse(articleDoc.QuerySelector("div.meta>div.date-time").InnerHtml);
+                        var content = articleDoc.QuerySelector("div.text").InnerHtml;
+                        var tagsSelector = articleDoc.QuerySelectorAll("div.meta>div.tags>ul>li>a");
+                        var tagsDictionary = new Dictionary<string, string>();
+                        foreach (var selector in tagsSelector)
+                        {
+                            var href = selector.Attributes["href"].Value;
+                            var text = selector.InnerHtml;
+
+                            tagsDictionary.Add(href, text);
+                        }
+
+                        var artInfo = new ArticleInfo(date, tagsDictionary, content, head);
+                        this.articles.Add(urlArticle.Value, artInfo);
+                        Logger.LogInformation($"Add '{head}' document!");
+                    }
+                    catch (Exception e)
+                    {
+                        Logger.LogWarning(e.Message);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Logger.LogWarning(e.Message);
+            }
+
+            try
+            {
+                var hrefPrevPage = document.QuerySelector("li.prev>a").Attributes["href"].Value;
+                var absUriPrevPage = new Uri(message.Uri, new Uri(hrefPrevPage, UriKind.RelativeOrAbsolute));
+
+                this.requests.Send(new UriRequest(absUriPrevPage));
+            }
+            catch (Exception e)
+            {
+                Logger.LogWarning(e.Message);
+            }
+        }
+
+        public bool Run()
+        {
+            this.bodies.ConsumeWith(Handle);
             return true;
         }
     }

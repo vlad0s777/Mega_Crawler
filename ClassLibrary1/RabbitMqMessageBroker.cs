@@ -80,7 +80,12 @@
 
         public void ConsumeWith(Action<TMessage> onReceive)
         {
-            
+            this.consumer.Received += (model, ea) =>
+                {
+                    var body = this.encoding.GetString(ea.Body);
+                    var message = JsonConvert.DeserializeObject<TMessage>(body);
+                    onReceive(message);
+                };
             this.model.BasicConsume(queue: this.queue_name, autoAck: true, consumer: this.consumer);
             //onReceive.Invoke();
         }

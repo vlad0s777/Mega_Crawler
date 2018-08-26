@@ -48,41 +48,42 @@
 
         private Func<Uri, string> ClientDelegate { get; }
 
-        public bool Run()
+        public void Handle(UriRequest message)
         {
-            if (this.requests.TryReceive(out var uri))
+            if (this.RootUri.IsBaseOf(message.Uri) && this.VisitedUrls.Add(message.Uri))
             {
-                if (this.VisitedUrls.Count == this.count_limit)
+                try
                 {
-                    Logger.LogDebug($"You have reached the limit of visited pages: {this.count_limit}");
-                    return false;
+                    var documentBody = this.ClientDelegate.Invoke(message.Uri);
+                    Logger.LogInformation($"OK {message.Uri}");
+                    this.bodies.Send(new UriBody(message.Uri, documentBody));
                 }
-
-                if (this.RootUri.IsBaseOf(uri.Uri) && this.VisitedUrls.Add(uri.Uri))
+                catch (Exception e)
                 {
-                    try
+                    this.VisitedUrls.Remove(message.Uri);
+                    var att = message.Attempt + 1;
+                    if (att < this.count_attempt)
                     {
-                        var documentBody = this.ClientDelegate.Invoke(uri.Uri);
-                        Logger.LogInformation($"OK {uri.Uri}");
-                        this.bodies.Send(new UriBody(uri.Uri, documentBody));
+                        this.requests.Send(new UriRequest(message.Uri, att, message.Depth));
+                        Logger.LogDebug($"{e.Message} in {message.Uri}. There are still attempts: {this.count_attempt - message.Attempt}");
                     }
-                    catch (Exception e)
+                    else
                     {
-                        this.VisitedUrls.Remove(uri.Uri);
-                        var att = uri.Attempt + 1;
-                        if (att < this.count_attempt)
-                        {
-                            this.requests.Send(new UriRequest(uri.Uri, att, uri.Depth));
-                            Logger.LogDebug($"{e.Message} in {uri.Uri}. There are still attempts: {this.count_attempt - uri.Attempt}");
-                        }
-                        else
-                        {
-                            Logger.LogWarning($"{e.Message} in {uri.Uri}. Attempts are no more!");
-                        }
+                        Logger.LogWarning($"{e.Message} in {message.Uri}. Attempts are no more!");
                     }
                 }
             }
+        }
 
+        public bool Run()
+        {
+            if (this.VisitedUrls.Count == this.count_limit)
+            {
+                Logger.LogDebug($"You have reached the limit of visited pages: {this.count_limit}");
+                return false;
+            }
+
+            this.requests.ConsumeWith(Handle);
             return true;
         }
     }
