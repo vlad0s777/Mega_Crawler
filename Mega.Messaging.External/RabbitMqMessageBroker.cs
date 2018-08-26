@@ -45,7 +45,6 @@
             this.properties.Persistent = true;
             this.consumer = new EventingBasicConsumer(this.model);
             this.model.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
-
         }
 
         public bool IsEmpty()
@@ -87,8 +86,8 @@
                     var body = this.encoding.GetString(ea.Body);
                     var message = JsonConvert.DeserializeObject<TMessage>(body);
                     onReceive(message);
+                    this.model.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                 };
-            this.model.BasicConsume(queue: this.queueName, autoAck: true, consumer: this.consumer);
         }
 
         public void Dispose()
