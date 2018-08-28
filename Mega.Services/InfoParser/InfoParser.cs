@@ -10,7 +10,7 @@
 
     using Microsoft.Extensions.Logging;
 
-    public class InfoParser : IMessageProcessor
+    public class InfoParser : IMessageProcessor<UriBody>
     {
         private static readonly ILogger Logger = ApplicationLogging.CreateLogger<InfoParser>();
 
@@ -102,10 +102,6 @@
             }
         }
 
-        public bool Run()
-        {
-            this.bodies.ConsumeWith(Handle);
-            return true;
-        }
+        public void Run() => this.bodies.ConsumeWith(Handle);
     }
 }

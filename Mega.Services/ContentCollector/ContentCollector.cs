@@ -8,13 +8,11 @@
 
     using Microsoft.Extensions.Logging;
 
-    public class ContentCollector : IMessageProcessor
+    public class ContentCollector : IMessageProcessor<UriRequest>
     {
         private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ContentCollector>();
 
         private readonly int countAttempt;
-
-        private readonly int countLimit;
 
         private readonly IMessageBroker<UriRequest> requests;
 
@@ -37,8 +35,6 @@
 
             this.ClientDelegate = clientDelegate;
 
-            this.countLimit = settings.CountLimit;
-
             this.countAttempt = settings.AttemptLimit;
         }
 
@@ -50,13 +46,6 @@
 
         public void Handle(UriRequest message)
         {
-            if (this.VisitedUrls.Count == this.countLimit)
-            {
-                // я не знаю как лучше это сделать, был бы handle, а не void было бы проще
-                Logger.LogInformation($"You have reached the limit of visited pages: {this.countLimit}"); 
-                return;
-            }
-
             Logger.LogInformation($"Processed is {message.Uri}");
             if (this.RootUri.IsBaseOf(message.Uri) && this.VisitedUrls.Add(message.Uri))
             {
@@ -83,10 +72,6 @@
             }
         }
 
-        public bool Run()
-        {
-            this.requests.ConsumeWith(Handle);
-            return true;
-        }
+        public void Run() => this.requests.ConsumeWith(Handle);
     }
 }

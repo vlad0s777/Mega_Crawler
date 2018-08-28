@@ -17,7 +17,7 @@
 
         private readonly IMessageBroker[] brokers;
 
-        private readonly IMessageProcessor[] handlers;
+        private readonly IMessageProcessor[] processors;
 
         private readonly HashSet<Uri> visitedUrls;
 
@@ -30,32 +30,28 @@
             this.settings = settings;
             this.visitedUrls = visitedUrls;
             this.articles = articles;
-
-            while (string.IsNullOrWhiteSpace(settings.RootUriString))
-            {
-                Console.WriteLine("Please enter absolute root url to crawl: ");
-                settings.RootUriString = Console.ReadLine();
-            }
-
             this.brokers = brokers;
-            this.handlers = handlers;     
+            this.processors = handlers;     
         }
 
         public void Run()
         {
+            while (string.IsNullOrWhiteSpace(this.settings.RootUriString))
+            {
+                Console.WriteLine("Please enter absolute root url to crawl: ");
+                this.settings.RootUriString = Console.ReadLine();
+            }
+
             if (this.brokers.All(broker => broker.IsEmpty()))
             {
                 var rootUri = new Uri(this.settings.RootUriString, UriKind.Absolute);
-                foreach (var broker in this.brokers)
-                {
-                    if (broker is IMessageBroker<UriRequest> requestBroker)
-                    {
-                        requestBroker.Send(new UriRequest(rootUri));
-                    }
-                }                             
+                this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(rootUri));                        
             }
 
-                this.handlers.All(handler => handler.Run());
+                foreach (var messageProcessor in this.processors)
+                {
+                    messageProcessor.Run();
+                }
 
             Console.ReadLine();
 

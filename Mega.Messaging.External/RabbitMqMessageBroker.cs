@@ -47,10 +47,7 @@
 
         }
 
-        public bool IsEmpty()
-        {
-            return this.model.MessageCount(this.queueName) == 0;
-        }
+        public bool IsEmpty() => this.model.MessageCount(this.queueName) == 0;
 
         public void Send(TMessage message)
         {
@@ -65,10 +62,10 @@
 
         public bool TryReceive(out TMessage message)
         {
-            var i = this.model.BasicGet(this.queueName, true);
-            if (i != null)
+            var basicGetResult = this.model.BasicGet(this.queueName, true);
+            if (basicGetResult != null)
             {
-                var body = this.encoding.GetString(i.Body);
+                var body = this.encoding.GetString(basicGetResult.Body);
                 message = JsonConvert.DeserializeObject<TMessage>(body);
                 return true;
             }
@@ -81,7 +78,7 @@
 
         public void ConsumeWith(Action<TMessage> onReceive)
         { 
-            this.consumer.Received += (model, ea) =>
+            this.consumer.Received += (_, ea) =>
                 {
                     var body = this.encoding.GetString(ea.Body);
                     var message = JsonConvert.DeserializeObject<TMessage>(body);

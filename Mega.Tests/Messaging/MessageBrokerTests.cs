@@ -1,6 +1,12 @@
 ﻿namespace Mega.Tests.Messaging
 {
+    using System;
+    using System.Collections.Generic;
+
     using Mega.Messaging;
+    using Mega.Services;
+    using Mega.Services.ContentCollector;
+    using Mega.Services.InfoParser;
 
     using NUnit.Framework;
 
@@ -35,6 +41,36 @@
 
             Assert.IsTrue(queue.TryReceive(out var dequeued));
             Assert.AreSame(original, dequeued);
+        }
+
+        [Test]
+        public void DispatchAllMessagesTest()
+        {
+            var requests = new MessageBroker<UriRequest>();
+            var bodies = new MessageBroker<UriBody>();
+
+            var rootUri = "https://docs.microsoft.com/ru-ru/";
+
+            var colCon = new ContentCollector(
+                new MessageBroker<UriRequest>(),
+                bodies,
+                new HashSet<Uri>(),
+                clientDelegate: uri => "8",
+                settings: new Settings(rootUri));
+
+            for (var i = 0; i < 10; i++)
+            {
+                requests.Send(new UriRequest(rootUri + i));
+            }
+
+            requests.DispatchAllMessages(colCon);
+            Assert.IsFalse(requests.TryReceive(out var _));
+            for (var i = 0; i < 10; i++)
+            {
+                Assert.IsTrue(bodies.TryReceive(out var _));
+            }
+
+            Assert.IsFalse(bodies.TryReceive(out var _));
         }
     }
 }

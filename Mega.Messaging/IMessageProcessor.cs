@@ -2,6 +2,11 @@
 {
     public interface IMessageProcessor
     {
-        bool Run();
+        void Run();
+    }
+
+    public interface IMessageProcessor<in TMessage> : IMessageProcessor
+    {
+        void Handle(TMessage message);
     }
 }
