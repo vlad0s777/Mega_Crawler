@@ -53,28 +53,6 @@
         }
 
         [Test]
-        public void LimitTest()
-        {
-            var visitedUrls = new HashSet<Uri>();
-
-            var rootUri = "https://docs.microsoft.com/ru-ru/";
-
-            var colCon = new ContentCollector(
-                new MessageBroker<UriRequest>(),
-                new MessageBroker<UriBody>(),
-                visitedUrls,
-                clientDelegate: uri => "8",
-                settings: new Settings(rootUri, countLimit: 6));
-
-            for (var i = 0; i < 10; i++)
-            {
-                colCon.Handle(new UriRequest(rootUri + i));
-            }
-
-            Assert.AreEqual(6, visitedUrls.Count);
-        }
-
-        [Test]
         public void TrueContentTest()
         {
             var bodies = new MessageBroker<UriBody>();
