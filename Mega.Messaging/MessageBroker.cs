@@ -14,6 +14,7 @@
 
         public void ConsumeWith(Action<T> onReceive)
         {
+            throw new NotSupportedException();
         }
 
         public void Send(T message)

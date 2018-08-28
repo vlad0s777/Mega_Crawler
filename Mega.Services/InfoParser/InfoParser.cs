@@ -10,9 +10,9 @@
 
     using Microsoft.Extensions.Logging;
 
-    public class ServiceInfoParser : IMessageProcessor
+    public class InfoParser : IMessageProcessor
     {
-        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ServiceInfoParser>();
+        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<InfoParser>();
 
         private readonly IMessageBroker<UriRequest> requests;
 
@@ -22,7 +22,7 @@
 
         private readonly int maxdepth;
 
-        public ServiceInfoParser(IMessageBroker<UriRequest> requests, IMessageBroker<UriBody> bodies, Dictionary<string, ArticleInfo> articles, Settings settings = null)
+        public InfoParser(IMessageBroker<UriRequest> requests, IMessageBroker<UriBody> bodies, Dictionary<string, ArticleInfo> articles, Settings settings = null)
         {
             this.articles = articles;
 

@@ -44,7 +44,7 @@
             this.properties = this.model.CreateBasicProperties();
             this.properties.Persistent = true;
             this.consumer = new EventingBasicConsumer(this.model);
-            this.model.BasicQos(prefetchSize: 0, prefetchCount: 1, global: false);
+
         }
 
         public bool IsEmpty()
@@ -80,7 +80,7 @@
         }
 
         public void ConsumeWith(Action<TMessage> onReceive)
-        {
+        { 
             this.consumer.Received += (model, ea) =>
                 {
                     var body = this.encoding.GetString(ea.Body);
@@ -88,12 +88,13 @@
                     onReceive(message);
                     this.model.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                 };
+            this.model.BasicConsume(queue: this.queueName, autoAck: false, consumer: this.consumer);
         }
 
         public void Dispose()
         {
-            this.model?.Dispose();
-            this.connection?.Dispose();
+                this.model?.Dispose();
+                this.connection?.Dispose();
         }
     }
 }

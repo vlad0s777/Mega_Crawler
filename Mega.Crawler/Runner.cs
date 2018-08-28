@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Threading;
 
     using Mega.Messaging;
     using Mega.Services;
@@ -56,19 +55,9 @@
                 }                             
             }
 
-            this.handlers.Any(handler => !handler.Run());
-            /*while (true)
-            {
-                if (this.handlers.Any(handler => !handler.Run()))
-                {
-                    break;
-                }
+                this.handlers.All(handler => handler.Run());
 
-                if (Console.KeyAvailable && Console.ReadKey(true).Key == ConsoleKey.Enter)
-                {
-                    break;
-                }
-            }*/
+            Console.ReadLine();
 
             Logger.LogInformation(
                 $"All {this.visitedUrls.Count} urls done! "

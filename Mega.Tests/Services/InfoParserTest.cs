@@ -16,15 +16,11 @@
         public void EmptyTagsTest()
         {
             var articles = new Dictionary<string, ArticleInfo>();
-            var requests = new MessageBroker<UriRequest>();
-            var bodies = new MessageBroker<UriBody>();
 
-            bodies.Send(new UriBody(
+            new InfoParser(new MessageBroker<UriRequest>(), new MessageBroker<UriBody>(), articles).Handle(new UriBody(
                 uri: "https://someurlu",
                 body: $"<div class='story'><h2><a href='123'>Нужны сильные программисты</a></h2><div class='meta'><div class='date-time'>"
                         +$"3 декабря 2015, 08:00</div></div><div class='text'><p>1999 год</p></div></div>"));
-
-            new ServiceInfoParser(requests, bodies, articles).Run();
 
             foreach (var i in articles)
             {
@@ -39,17 +35,14 @@
         public void EmptyTextTest()
         {
             var articles = new Dictionary<string, ArticleInfo>();
-            var requests = new MessageBroker<UriRequest>();
-            var bodies = new MessageBroker<UriBody>();
 
-            bodies.Send(new UriBody(
-                uri: "https://someurl/",
-                body: $"<h2><a href='123'>Нужны сильные программисты</a></h2> " +
-                      $"<div class='meta'><div class='date-time'> 3 декабря 2015, 08:00</div><div class='tags'><i class='icon-tags'></i>" +
-                      $"<ul><li><a href = '/tag/longago' > давным - давно </ a >" +
-                      $"</li><li><a href='/tag/only-in-russia'>только в России</a></li></ul></div></div>"));
-
-            new ServiceInfoParser(requests, bodies, articles).Run();
+            new InfoParser(new MessageBroker<UriRequest>(), new MessageBroker<UriBody>(), articles).Handle(
+                new UriBody(
+                    uri: "https://someurl/",
+                    body: $"<h2><a href='123'>Нужны сильные программисты</a></h2> "
+                          + $"<div class='meta'><div class='date-time'> 3 декабря 2015, 08:00</div><div class='tags'><i class='icon-tags'></i>"
+                          + $"<ul><li><a href = '/tag/longago' > давным - давно </ a >"
+                          + $"</li><li><a href='/tag/only-in-russia'>только в России</a></li></ul></div></div>"));
 
             Assert.IsEmpty(articles);
         }
@@ -58,17 +51,13 @@
         public void TrueParceTest()
         {
             var articles = new Dictionary<string, ArticleInfo>();
-            var requests = new MessageBroker<UriRequest>();
-            var bodies = new MessageBroker<UriBody>();
 
-            bodies.Send(new UriBody(
+            new InfoParser(new MessageBroker<UriRequest>(), new MessageBroker<UriBody>(), articles).Handle(new UriBody(
                 uri: "https://someurl",
                 body: $"<h1>Нужны сильные программисты</h1> "
                       + $"<div class='meta'><div class='date-time'> 3 декабря 2015, 08:00</div><div class='tags'><i class='icon-tags'></i>"
                       + $"<ul><li><a href = '/tag/longago' > давным - давно </ a >" +
                       $"</li><li><a href='/tag/only-in-russia'>только в России</a></li></ul></div></div><div class='text'><p>1999 год</p> </div>"));
-
-            new ServiceInfoParser(requests, bodies, articles).Run();
 
             foreach (var i in articles)
             {
@@ -83,14 +72,12 @@
         [Test]
         public void TruePrevPageTest()
         {
-            var articles = new Dictionary<string, ArticleInfo>();
             var requests = new MessageBroker<UriRequest>();
-            var bodies = new MessageBroker<UriBody>();
 
-            bodies.Send(new UriBody(
+            new InfoParser(requests, new MessageBroker<UriBody>(), new Dictionary<string, ArticleInfo>()).Handle(new UriBody(
                 uri: "https://someurl",
                 body: $"<li class='prev'><a href='https://prevurl'></a></li>"));
-           new ServiceInfoParser(requests, bodies, articles).Run();
+
             Assert.IsTrue(requests.TryReceive(out var uri));
             Assert.AreEqual("https://prevurl/", uri.Uri.AbsoluteUri);        
         }

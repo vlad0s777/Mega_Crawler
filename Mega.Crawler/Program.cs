@@ -51,7 +51,6 @@
                     var runner = container.GetInstance<Runner>();
 
                     runner.Run();
-                    Console.ReadLine();
                     container.Release(runner);
                 }
             }
@@ -60,7 +59,6 @@
                 Logger.LogError(e.Message);
             }
 
-            
             Logger.LogDebug("Exit Application");
         }
     }
