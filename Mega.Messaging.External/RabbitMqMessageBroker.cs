@@ -6,6 +6,7 @@
     using Newtonsoft.Json;
 
     using RabbitMQ.Client;
+    using RabbitMQ.Client.Events;
 
     public class RabbitMqMessageBroker<TMessage> : IMessageBroker<TMessage>, IDisposable
     {
@@ -18,6 +19,8 @@
         private readonly Encoding encoding;
 
         private readonly IBasicProperties properties;
+
+        private readonly EventingBasicConsumer consumer;
 
         public RabbitMqMessageBroker()
         {
@@ -40,12 +43,11 @@
 
             this.properties = this.model.CreateBasicProperties();
             this.properties.Persistent = true;
+            this.consumer = new EventingBasicConsumer(this.model);
+
         }
 
-        public bool IsEmpty()
-        {
-            return this.model.MessageCount(this.queueName) == 0;
-        }
+        public bool IsEmpty() => this.model.MessageCount(this.queueName) == 0;
 
         public void Send(TMessage message)
         {
@@ -60,10 +62,10 @@
 
         public bool TryReceive(out TMessage message)
         {
-            var i = this.model.BasicGet(this.queueName, true);
-            if (i != null)
+            var basicGetResult = this.model.BasicGet(this.queueName, true);
+            if (basicGetResult != null)
             {
-                var body = this.encoding.GetString(i.Body);
+                var body = this.encoding.GetString(basicGetResult.Body);
                 message = JsonConvert.DeserializeObject<TMessage>(body);
                 return true;
             }
@@ -74,10 +76,22 @@
             }
         }
 
+        public void ConsumeWith(Action<TMessage> onReceive)
+        { 
+            this.consumer.Received += (_, ea) =>
+                {
+                    var body = this.encoding.GetString(ea.Body);
+                    var message = JsonConvert.DeserializeObject<TMessage>(body);
+                    onReceive(message);
+                    this.model.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                };
+            this.model.BasicConsume(queue: this.queueName, autoAck: false, consumer: this.consumer);
+        }
+
         public void Dispose()
         {
-            this.model?.Dispose();
-            this.connection?.Dispose();
+                this.model?.Dispose();
+                this.connection?.Dispose();
         }
     }
 }

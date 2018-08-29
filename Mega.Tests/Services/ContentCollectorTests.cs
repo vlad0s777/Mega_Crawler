@@ -11,7 +11,7 @@
     using NUnit.Framework;
 
     [TestFixture]
-    public class ServiceContentCollectorTests
+    public class ContentCollectorTests
     {
         [Test]
         public void Addbodies()
@@ -20,14 +20,13 @@
             var requests = new MessageBroker<UriRequest>();
 
             var rootUri = "https://docs.microsoft.com/ru-ru";
-            requests.Send(new UriRequest(rootUri));
 
-            new ServiceContentCollector(
+            new ContentCollector(
                 requests,
                 bodies,
                 visitedUrls: new HashSet<Uri>(), 
                 clientDelegate: body => "8",
-                settings: new Settings(rootUri)).Run();
+                settings: new Settings(rootUri)).Handle(new UriRequest(rootUri));
 
             Assert.IsTrue(requests.IsEmpty());
             Assert.IsFalse(bodies.IsEmpty());
@@ -37,72 +36,34 @@
         public void FalseContentTest()
         {
             var bodies = new MessageBroker<UriBody>();
-            var requests = new MessageBroker<UriRequest>();
 
             var rootUri = "https://docs.microsoft.com/ru-ru";
-            requests.Send(new UriRequest(rootUri));
 
-            var contentCollector = new ServiceContentCollector(
-                requests,
+            var contentCollector = new ContentCollector(
+                new MessageBroker<UriRequest>(),
                 bodies,
                 visitedUrls: new HashSet<Uri>(), 
                 clientDelegate: body => "8",
                 settings: new Settings(rootUri));
 
-            requests.Send(new UriRequest("http://someurl"));
 
-            contentCollector.Run();
+            contentCollector.Handle(new UriRequest("http://someurl"));
 
-            Assert.IsTrue(bodies.TryReceive(out var _));
             Assert.IsFalse(bodies.TryReceive(out var _));
-        }
-
-        [Test]
-        public void LimitTest()
-        {
-            var bodies = new MessageBroker<UriBody>();
-            var requests = new MessageBroker<UriRequest>();
-
-            var visitedUrls = new HashSet<Uri>();
-
-            var rootUri = "https://docs.microsoft.com/ru-ru/";
-            
-            for (var i = 0; i < 10; i++)
-            {
-                requests.Send(new UriRequest(rootUri + i));
-            }
-
-            requests.Send(new UriRequest(rootUri));
-
-            var colCon = new ServiceContentCollector(
-                requests,
-                bodies,
-                visitedUrls,
-                clientDelegate: uri => "8", 
-                settings: new Settings(rootUri, countLimit: 6));
-
-            while (!requests.IsEmpty())
-            {
-                colCon.Run();
-            }
-         
-            Assert.AreEqual(6, visitedUrls.Count);
         }
 
         [Test]
         public void TrueContentTest()
         {
             var bodies = new MessageBroker<UriBody>();
-            var requests = new MessageBroker<UriRequest>();
-
             var rootUri = "https://docs.microsoft.com/ru-ru";
-            requests.Send(new UriRequest(rootUri));
-            new ServiceContentCollector(
-                requests,
+
+            new ContentCollector(
+                new MessageBroker<UriRequest>(),
                 bodies,
                 visitedUrls: new HashSet<Uri>(), 
                 clientDelegate: body => "8",
-                settings: new Settings(rootUri)).Run();
+                settings: new Settings(rootUri)).Handle(new UriRequest(rootUri));
            
             Assert.IsTrue(bodies.TryReceive(out var receiveMessage));
             Assert.AreEqual(rootUri, receiveMessage.Uri.AbsoluteUri);
