@@ -46,11 +46,17 @@
                                                                Thread.Sleep(random.Next(5000, 15000));
                                                                return client.DownloadString(uri);
                                                            })));
-                    }
 
-                    var runner = container.GetInstance<Runner>();
-                        runner.Run();
-                        container.Release(runner);              
+                        var runner = container.GetInstance<Runner>();
+                        try
+                        {
+                            runner.Run();
+                        }
+                        finally
+                        {
+                            container.Release(runner);
+                        }
+                    }
                 }
             }
             catch (Exception e)
