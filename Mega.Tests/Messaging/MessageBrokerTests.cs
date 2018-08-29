@@ -17,7 +17,7 @@
         public void Empty()
         {
             var queue = new MessageBroker<object>();
-            Assert.IsFalse(queue.TryReceive(out var message));
+            Assert.IsFalse(queue.TryReceive(out var _));
         }
 
         [Test]
@@ -35,7 +35,7 @@
         {
             var queue = new MessageBroker<object>();
 
-            var original = new {Url = "http://someurl", Body = 8};
+            var original = new { Url = "http://someurl", Body = 8 };
 
             queue.Send(original);
 
@@ -44,7 +44,7 @@
         }
 
         [Test]
-        public void DispatchAllMessagesTest()
+        public void ConsumeWithTest()
         {
             var requests = new MessageBroker<UriRequest>();
             var bodies = new MessageBroker<UriBody>();
@@ -63,7 +63,8 @@
                 requests.Send(new UriRequest(rootUri + i));
             }
 
-            requests.DispatchAllMessages(colCon);
+            requests.ConsumeWith(colCon.Handle);
+
             Assert.IsFalse(requests.TryReceive(out var _));
             for (var i = 0; i < 10; i++)
             {

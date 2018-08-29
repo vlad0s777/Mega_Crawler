@@ -10,17 +10,15 @@
         public bool TryReceive(out T message) => this.queue.TryDequeue(out message);
 
         public void ConsumeWith(Action<T> onReceive)
-        {
-            while (this.TryReceive(out T message))
+        {           
+            while (TryReceive(out T message))
             {
                 onReceive(message);
             }
         }
 
-        public void DispatchAllMessages(IMessageProcessor<T> processor) => this.ConsumeWith(processor.Handle);
-
         public void Send(T message) => this.queue.Enqueue(message);
 
-        public bool IsEmpty() => this.queue.Count == 0 ? true : false;
+        public bool IsEmpty() => this.queue.Count == 0;
     }
 }
