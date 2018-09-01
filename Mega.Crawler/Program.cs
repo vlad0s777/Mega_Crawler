@@ -1,7 +1,9 @@
 ﻿namespace Mega.Crawler
 {
     using System;
+    using System.Diagnostics;
     using System.IO;
+    using System.Linq;
     using System.Net;
     using System.Threading;
 
@@ -25,11 +27,16 @@
             return logger;
         }
 
-        private static void Main()
+        private static void Main(string[] args)
         {
             ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug);
 
-            Directory.SetCurrentDirectory("C:\\Users\\Admin\\Source\\Repos\\mega-martykhin2\\Mega.Crawler\\bin\\Release\\netcoreapp2.1\\publish");
+            var isService = !(Debugger.IsAttached || args.Contains("--console"));
+
+            if (isService)
+            {
+                Directory.SetCurrentDirectory("C:\\Users\\Admin\\Source\\Repos\\mega-martykhin2\\Mega.Crawler\\bin\\Release\\netcoreapp2.1\\publish");
+            }
 
             var registry = new Registry();
 
@@ -63,9 +70,12 @@
                             container.Release(runner);
                         }
 
-                        var myService = new RunAsService();
-                        var serviceHost = new Win32ServiceHost(myService);
-                        serviceHost.Run();
+                        if (isService)
+                        {
+                            var myService = new RunAsService();
+                            var serviceHost = new Win32ServiceHost(myService);
+                            serviceHost.Run();
+                        }
                     }
                 }
             }
