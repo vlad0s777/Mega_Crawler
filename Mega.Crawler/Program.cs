@@ -1,8 +1,11 @@
 ﻿namespace Mega.Crawler
 {
     using System;
+    using System.IO;
     using System.Net;
     using System.Threading;
+
+    using DasMulli.Win32.ServiceUtils;
 
     using Mega.Crawler.Infrastructure.IoC;
     using Mega.Services;
@@ -24,9 +27,11 @@
 
         private static void Main()
         {
-            var registry = new Registry();
-
             ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug);
+
+            Directory.SetCurrentDirectory("C:\\Users\\Admin\\Source\\Repos\\mega-martykhin2\\Mega.Crawler\\bin\\Release\\netcoreapp2.1\\publish");
+
+            var registry = new Registry();
 
             try
             {
@@ -46,12 +51,22 @@
                                                                Thread.Sleep(random.Next(5000, 15000));
                                                                return client.DownloadString(uri);
                                                            })));
+
+
+                        var runner = container.GetInstance<Runner>();
+                        try
+                        {
+                            runner.Run();
+                        }
+                        finally
+                        {
+                            container.Release(runner);
+                        }
+
+                        var myService = new RunAsService();
+                        var serviceHost = new Win32ServiceHost(myService);
+                        serviceHost.Run();
                     }
-
-                    var runner = container.GetInstance<Runner>();
-
-                    runner.Run();
-                    container.Release(runner);
                 }
             }
             catch (Exception e)

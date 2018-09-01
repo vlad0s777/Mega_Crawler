@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
 
     using Mega.Messaging;
     using Mega.Services;
@@ -36,12 +37,6 @@
 
         public void Run()
         {
-            while (string.IsNullOrWhiteSpace(this.settings.RootUriString))
-            {
-                Console.WriteLine("Please enter absolute root url to crawl: ");
-                this.settings.RootUriString = Console.ReadLine();
-            }
-
             if (this.brokers.All(broker => broker.IsEmpty()))
             {
                 var rootUri = new Uri(this.settings.RootUriString, UriKind.Absolute);
@@ -52,12 +47,6 @@
                 {
                     messageProcessor.Run();
                 }
-
-            Console.ReadLine();
-
-            Logger.LogInformation(
-                $"All {this.visitedUrls.Count} urls done! "
-                + $"All {this.articles.Count} articles done!");
         }
     }
 }
