@@ -4,7 +4,6 @@
     using System.Collections.Generic;
 
     using Mega.Messaging;
-    using Mega.Services.InfoParser;
 
     using Microsoft.Extensions.Logging;
 
@@ -47,7 +46,7 @@
                 try
                 {
                     var request = this.ClientDelegate.Invoke(message.Uri);
-
+                    this.requests.Send(request);
                     Logger.LogInformation($"OK {message.Uri}");
                 }
                 catch (Exception e)

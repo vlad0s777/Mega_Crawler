@@ -6,7 +6,6 @@
     using AngleSharp.Parser.Html;
 
     using Mega.Services.ContentCollector;
-    using Mega.Services.InfoParser;
 
     using Microsoft.Extensions.Logging;
 
@@ -16,33 +15,24 @@
 
         private Func<Uri, string> ClientDelegate { get; }
 
-        public Dictionary<string, ArticleInfo> Articles { get; set; }
+        private readonly Dictionary<string, ArticleInfo> articles;
 
-        private HashSet<Uri> VisitedUrls { get; }
-
-        private UriRequest prevPage { get; set; }
-
-        private  ProxyWebClient client { get; set; }
-
-        public IthappensClient(Func<Uri, string> clientDelegate, HashSet<Uri> visitedUrls)
+        public IthappensClient(Dictionary<string, ArticleInfo> articles, Func<Uri, string> clientDelegate)
         {
             this.ClientDelegate = clientDelegate;
-            this.VisitedUrls = visitedUrls;
-            this.Articles = new Dictionary<string, ArticleInfo>();
+            this.articles = articles;
         }
 
-        public void Handle(UriRequest message)
+        public UriRequest Handle(Uri uri)
         {
-            var documentBody = this.ClientDelegate.Invoke(message.Uri);
-            Logger.LogInformation($"OK {message.Uri}");
-            this.Articles = GetArticles(documentBody);
-            this.prevPage = GetPrevPage(documentBody);
+            var documentBody = this.ClientDelegate.Invoke(uri);
+            Logger.LogInformation($"OK {uri}");
+            GetArticles(documentBody);
+            return GetPrevPage(documentBody);
         }
 
-        public Dictionary<string, ArticleInfo> GetArticles(string documentBody)
+        public void GetArticles(string documentBody)
         {
-            //Logger.LogInformation($"Processed is {message.Uri}");
-            var articles = new Dictionary<string, ArticleInfo>();
             var parser = new HtmlParser();
             var document = parser.Parse(documentBody);
 
@@ -69,7 +59,7 @@
                         }
 
                         var artInfo = new ArticleInfo(date, tagsDictionary, content, head);
-                        articles.Add(urlArticle.Value, artInfo);
+                        this.articles.Add(urlArticle.Value, artInfo);
                         Logger.LogInformation($"Add '{head}' document!");
                     }
                     catch (Exception e)
@@ -77,12 +67,10 @@
                         Logger.LogWarning(e.Message);
                     }
                 }
-                return articles;
             }
             catch (Exception e)
             {
                 Logger.LogWarning(e.Message);
-                return null;
             }           
         }
 

@@ -1,4 +1,4 @@
-﻿namespace Mega.Services.InfoParser
+﻿namespace Mega.Services.ContentCollector
 {
     using System;
     using System.Collections.Generic;

@@ -6,7 +6,6 @@
     using Mega.Messaging;
     using Mega.Messaging.External;
     using Mega.Services.ContentCollector;
-    using Mega.Services.InfoParser;
 
     using StructureMap;
 
@@ -19,7 +18,7 @@
 
             ForSingletonOf(typeof(IMessageBroker<>)).Use(typeof(RabbitMqMessageBroker<>));
 
-            Forward<IMessageBroker<UriBody>, IMessageBroker>();
+            //Forward<IMessageBroker<UriBody>, IMessageBroker>();
             Forward<IMessageBroker<UriRequest>, IMessageBroker>();
 
             Scan(

@@ -9,6 +9,7 @@
 
     using Mega.Crawler.Infrastructure.IoC;
     using Mega.Services;
+    using Mega.Services.ContentCollector;
     using Mega.Services.WebClient;
 
     using Microsoft.Extensions.Logging;
@@ -49,6 +50,9 @@
                     using (var client = container.GetInstance<ProxyWebClient>())
                     {
                         container.Configure(r => r.For<Func<Uri, string>>().Use((Func<Uri, string>)(uri => client.DownloadString(uri))));
+
+                        using (var itHappensClient = container.GetInstance<IthappensClient>())
+                        container.Configure(r => r.For<Func<Uri, UriRequest>>().Use((Func<Uri, UriRequest>)(uri => )));
 
                         var runner = container.GetInstance<Runner>();
                         try
