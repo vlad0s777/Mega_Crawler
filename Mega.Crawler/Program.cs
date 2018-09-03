@@ -66,8 +66,7 @@
 
                             if (isService)
                             {
-                                var serviceHost = new Win32ServiceHost(new CrawlerService());
-                                serviceHost.Run();
+                                new Win32ServiceHost(new CrawlerService()).Run();
                             }
                         }
                         finally
