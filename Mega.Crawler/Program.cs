@@ -63,17 +63,17 @@
                         try
                         {
                             runner.Run();
+
+                            if (isService)
+                            {
+                                var myService = new RunAsService();
+                                var serviceHost = new Win32ServiceHost(myService);
+                                serviceHost.Run();
+                            }
                         }
                         finally
                         {
                             container.Release(runner);
-                        }
-
-                        if (isService)
-                        {
-                            var myService = new RunAsService();
-                            var serviceHost = new Win32ServiceHost(myService);
-                            serviceHost.Run();
                         }
                     }
                 }
