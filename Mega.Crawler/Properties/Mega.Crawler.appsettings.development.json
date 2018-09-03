@@ -1,5 +1,9 @@
 {
   "rootUrl": "https://ithappens.me",
   "depthLimit": 2,
-  "attemptLimit": 3
+  "attemptLimit": 3,
+  "proxyServer": "http://95.47.159.155:21213",
+  "delayBegin": 5000,
+  "delayEnd": 15000,
+  "timeout":  20000
 }

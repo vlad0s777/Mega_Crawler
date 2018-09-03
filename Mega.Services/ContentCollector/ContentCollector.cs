@@ -62,7 +62,7 @@
                     if (att < this.countAttempt)
                     {
                         this.requests.Send(new UriRequest(message.Uri, att, message.Depth));
-                        Logger.LogDebug($"{e.Message} in {message.Uri}. There are still attempts: {this.countAttempt - message.Attempt}");
+                        Logger.LogWarning($"{e.Message} in {message.Uri}. There are still attempts: {this.countAttempt - message.Attempt}");
                     }
                     else
                     {
@@ -71,7 +71,6 @@
                 }
             }
         }
-
         public void Run() => this.requests.ConsumeWith(Handle);
     }
 }

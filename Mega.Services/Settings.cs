@@ -14,20 +14,21 @@
 
         public string RootUriString { get; set; }
 
-        public Settings(Settings settings)
-        {
-            this.DepthLimit = settings.DepthLimit;
-            this.CountLimit = settings.CountLimit;
-            this.AttemptLimit = settings.AttemptLimit;
-            this.RootUriString = settings.RootUriString;
-        }
+        public int Timeout { get; set; }
 
-        public Settings(string rootUriString, int depthLimit = -1, int countLimit = -1, int attemptLimit = 0)
+        public int[] Delay { get; set; }
+
+        public Uri ProxyServer { get; set; }
+
+        public Settings(string rootUriString, int depthLimit = -1, int countLimit = -1, int attemptLimit = 0, Uri proxyServer = null, int delayBegin = 0, int delayEnd = 0, int timeout = 0)
         {
             this.DepthLimit = depthLimit;
             this.CountLimit = countLimit;
             this.AttemptLimit = attemptLimit;
             this.RootUriString = rootUriString;
+            this.ProxyServer = proxyServer;
+            this.Delay = new int[] { delayBegin, delayEnd };
+            this.Timeout = timeout;
         }
 
         public Settings(IConfiguration settings)
@@ -66,6 +67,33 @@
             catch
             {
                 this.AttemptLimit = 0;
+            }
+
+            try
+            {
+                this.ProxyServer = new Uri(settings["proxyServer"]);
+            }
+            catch
+            {
+                this.ProxyServer = null;
+            }
+
+            try
+            {
+                this.Delay = new int[] { Convert.ToInt32(settings["delayBegin"]), Convert.ToInt32(settings["delayEnd"]) };
+            }
+            catch
+            {
+                this.Delay = null;
+            }
+
+            try
+            {
+                this.Timeout = Convert.ToInt32(settings["timeout"]);
+            }
+            catch
+            {
+                this.Timeout = 0;
             }
         }
     }

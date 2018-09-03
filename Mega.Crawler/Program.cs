@@ -11,6 +11,7 @@
 
     using Mega.Crawler.Infrastructure.IoC;
     using Mega.Services;
+    using Mega.Services.WebClient;
 
     using Microsoft.Extensions.Logging;
 
@@ -45,20 +46,11 @@
                 registry.IncludeRegistry<SettingsInstaller>();
                 registry.IncludeRegistry<ServicesInstaller>();
 
-                var random = new Random();
-
                 using (var container = new Container(registry))
                 {
-                    using (var client = new WebClient())
+                    using (var client = container.GetInstance<ProxyWebClient>())
                     {
-                        container.Configure(
-                            r => r.For<Func<Uri, string>>().Use(
-                                (Func<Uri, string>)(uri =>
-                                                           {
-                                                               Thread.Sleep(random.Next(5000, 15000));
-                                                               return client.DownloadString(uri);
-                                                           })));
-
+                        container.Configure(r => r.For<Func<Uri, string>>().Use((Func<Uri, string>)(uri => client.DownloadString(uri))));
 
                         var runner = container.GetInstance<Runner>();
                         try
