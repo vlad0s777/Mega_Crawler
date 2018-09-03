@@ -5,10 +5,13 @@
     using System.IO;
     using System.Linq;
     using System.Net;
+    using System.Reflection;
+    using System.Threading;
 
     using DasMulli.Win32.ServiceUtils;
 
     using Mega.Crawler.Infrastructure.IoC;
+    using Mega.Crawler.Services;
     using Mega.Services;
     using Mega.Services.ContentCollector;
     using Mega.Services.WebClient;
@@ -34,10 +37,8 @@
 
             var isService = !(Debugger.IsAttached || args.Contains("--console"));
 
-            if (isService)
-            {
-                Directory.SetCurrentDirectory("C:\\Users\\Admin\\Source\\Repos\\mega-martykhin2\\Mega.Crawler\\bin\\Release\\netcoreapp2.1\\publish");
-            }
+            var pathBin = Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName;
+            Directory.SetCurrentDirectory(pathBin);
 
             var registry = new Registry();
 
@@ -60,18 +61,16 @@
                         try
                         {
                             runner.Run();
+
+                            if (isService)
+                            {
+                                new Win32ServiceHost(new CrawlerService()).Run();
+                            }
                         }
                         finally
                         {
                             container.Release(runner);
                             container.Release(itHappensClient);
-                        }
-
-                        if (isService)
-                        {
-                            var myService = new RunAsService();
-                            var serviceHost = new Win32ServiceHost(myService);
-                            serviceHost.Run();
                         }
                     }
                 }

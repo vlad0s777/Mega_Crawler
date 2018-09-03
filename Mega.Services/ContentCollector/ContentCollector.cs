@@ -40,7 +40,8 @@
 
         public void Handle(UriRequest message)
         {
-            Logger.LogInformation($"Processed is {message.Uri}");
+            Logger.LogInformation($"Processing {message.Uri}");
+
             if (this.RootUri.IsBaseOf(message.Uri) && this.VisitedUrls.Add(message.Uri))
             {
                 try
@@ -66,6 +67,6 @@
             }
         }
 
-        public void Run() => this.requests.ConsumeWith(Handle);
+        public void Run() => this.requests.ConsumeWith(this.Handle);
     }
 }
