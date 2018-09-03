@@ -11,6 +11,7 @@
     using DasMulli.Win32.ServiceUtils;
 
     using Mega.Crawler.Infrastructure.IoC;
+    using Mega.Crawler.Services;
     using Mega.Services;
 
     using Microsoft.Extensions.Logging;
