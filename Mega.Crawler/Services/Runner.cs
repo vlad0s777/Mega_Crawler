@@ -1,4 +1,4 @@
-﻿namespace Mega.Crawler
+﻿namespace Mega.Crawler.Services
 {
     using System;
     using System.Collections.Generic;
@@ -48,16 +48,12 @@
                 this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(rootUri));                        
             }
 
-                foreach (var messageProcessor in this.processors)
-                {
-                    messageProcessor.Run();
-                }
+            foreach (var messageProcessor in this.processors)
+            {
+                messageProcessor.Run();
+            }
 
             Console.ReadLine();
-
-            Logger.LogInformation(
-                $"All {this.visitedUrls.Count} urls done! "
-                + $"All {this.articles.Count} articles done!");
         }
     }
 }

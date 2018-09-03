@@ -1,10 +1,17 @@
 ﻿namespace Mega.Crawler
 {
     using System;
+    using System.Diagnostics;
+    using System.IO;
+    using System.Linq;
     using System.Net;
+    using System.Reflection;
     using System.Threading;
 
+    using DasMulli.Win32.ServiceUtils;
+
     using Mega.Crawler.Infrastructure.IoC;
+    using Mega.Crawler.Services;
     using Mega.Services;
 
     using Microsoft.Extensions.Logging;
@@ -22,11 +29,16 @@
             return logger;
         }
 
-        private static void Main()
+        private static void Main(string[] args)
         {
-            var registry = new Registry();
-
             ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug);
+
+            var isService = !(Debugger.IsAttached || args.Contains("--console"));
+
+            var pathBin = Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName;
+            Directory.SetCurrentDirectory(pathBin);
+
+            var registry = new Registry();
 
             try
             {
@@ -46,12 +58,23 @@
                                                                Thread.Sleep(random.Next(5000, 15000));
                                                                return client.DownloadString(uri);
                                                            })));
+
+
+                        var runner = container.GetInstance<Runner>();
+                        try
+                        {
+                            runner.Run();
+
+                            if (isService)
+                            {
+                                new Win32ServiceHost(new CrawlerService()).Run();
+                            }
+                        }
+                        finally
+                        {
+                            container.Release(runner);
+                        }
                     }
-
-                    var runner = container.GetInstance<Runner>();
-
-                    runner.Run();
-                    container.Release(runner);
                 }
             }
             catch (Exception e)
