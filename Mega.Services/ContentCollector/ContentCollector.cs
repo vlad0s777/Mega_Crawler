@@ -16,18 +16,13 @@
 
         private readonly IMessageBroker<UriRequest> requests;
 
-        private readonly IMessageBroker<UriBody> bodies;
-
         public ContentCollector(
             IMessageBroker<UriRequest> requests,
-            IMessageBroker<UriBody> bodies,
             HashSet<Uri> visitedUrls,
-            Func<Uri, string> clientDelegate,
+            Func<Uri, UriRequest> clientDelegate,
             Settings settings)
         {
             this.requests = requests;
-
-            this.bodies = bodies;
 
             this.VisitedUrls = visitedUrls;
 
@@ -42,7 +37,7 @@
 
         private Uri RootUri { get; }
 
-        private Func<Uri, string> ClientDelegate { get; }
+        private Func<Uri, UriRequest> ClientDelegate { get; }
 
         public void Handle(UriRequest message)
         {
@@ -51,9 +46,9 @@
             {
                 try
                 {
-                    var documentBody = this.ClientDelegate.Invoke(message.Uri);
+                    var request = this.ClientDelegate.Invoke(message.Uri);
+
                     Logger.LogInformation($"OK {message.Uri}");
-                    this.bodies.Send(new UriBody(message.Uri, documentBody));
                 }
                 catch (Exception e)
                 {
@@ -71,6 +66,7 @@
                 }
             }
         }
+
         public void Run() => this.requests.ConsumeWith(Handle);
     }
 }

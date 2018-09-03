@@ -2,33 +2,49 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Net;
 
     using AngleSharp.Parser.Html;
 
+    using Mega.Services.ContentCollector;
     using Mega.Services.InfoParser;
 
     using Microsoft.Extensions.Logging;
 
-    public class IthappensClient : WebClient
+    public class IthappensClient
     {
         private static readonly ILogger Logger = ApplicationLogging.CreateLogger<IthappensClient>();
 
+        private Func<Uri, string> ClientDelegate { get; }
+
         public Dictionary<string, ArticleInfo> Articles { get; set; }
 
-        public string HrefPrevPage { get; set; }
+        private HashSet<Uri> VisitedUrls { get; }
 
-        public IthappensClient()
+        private UriRequest prevPage { get; set; }
+
+        private  ProxyWebClient client { get; set; }
+
+        public IthappensClient(Func<Uri, string> clientDelegate, HashSet<Uri> visitedUrls)
         {
+            this.ClientDelegate = clientDelegate;
+            this.VisitedUrls = visitedUrls;
             this.Articles = new Dictionary<string, ArticleInfo>();
-            base.UploadString()
         }
 
-        protected override void OnDownloadStringCompleted(DownloadStringCompletedEventArgs args)
+        public void Handle(UriRequest message)
         {
-            var message = args.Result;
+            var documentBody = this.ClientDelegate.Invoke(message.Uri);
+            Logger.LogInformation($"OK {message.Uri}");
+            this.Articles = GetArticles(documentBody);
+            this.prevPage = GetPrevPage(documentBody);
+        }
+
+        public Dictionary<string, ArticleInfo> GetArticles(string documentBody)
+        {
+            //Logger.LogInformation($"Processed is {message.Uri}");
+            var articles = new Dictionary<string, ArticleInfo>();
             var parser = new HtmlParser();
-            var document = parser.Parse(message);
+            var document = parser.Parse(documentBody);
 
             try
             {
@@ -53,7 +69,7 @@
                         }
 
                         var artInfo = new ArticleInfo(date, tagsDictionary, content, head);
-                        this.Articles.Add(urlArticle.Value, artInfo);
+                        articles.Add(urlArticle.Value, artInfo);
                         Logger.LogInformation($"Add '{head}' document!");
                     }
                     catch (Exception e)
@@ -61,25 +77,31 @@
                         Logger.LogWarning(e.Message);
                     }
                 }
+                return articles;
             }
             catch (Exception e)
             {
                 Logger.LogWarning(e.Message);
-            }
+                return null;
+            }           
+        }
 
+        public UriRequest GetPrevPage(string body)
+        {
+            var parser = new HtmlParser();
+            var document = parser.Parse(body);
             try
             {
-                this.HrefPrevPage = document.QuerySelector("li.prev>a").Attributes["href"].Value;
-                //var absUriPrevPage = new Uri(message.Uri, new Uri(hrefPrevPage, UriKind.RelativeOrAbsolute));
+                var hrefPrevPage = document.QuerySelector("li.prev>a").Attributes["href"].Value;
+                var absUriPrevPage = new Uri(hrefPrevPage, UriKind.RelativeOrAbsolute);
 
-                //this.requests.Send(new UriRequest(absUriPrevPage));
+                return new UriRequest(absUriPrevPage);
             }
             catch (Exception e)
             {
                 Logger.LogWarning(e.Message);
+                return null;
             }
-            base.OnDownloadStringCompleted(args);
         }
-        
     }
 }
