@@ -5,6 +5,7 @@
     using System.IO;
     using System.Linq;
     using System.Net;
+    using System.Reflection;
     using System.Threading;
 
     using DasMulli.Win32.ServiceUtils;
@@ -33,10 +34,8 @@
 
             var isService = !(Debugger.IsAttached || args.Contains("--console"));
 
-            if (isService)
-            {
-                Directory.SetCurrentDirectory("C:\\Users\\Admin\\Source\\Repos\\mega-martykhin2\\Mega.Crawler\\bin\\Release\\netcoreapp2.1\\publish");
-            }
+            var pathBin = Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName;
+            Directory.SetCurrentDirectory(pathBin);
 
             var registry = new Registry();
 
