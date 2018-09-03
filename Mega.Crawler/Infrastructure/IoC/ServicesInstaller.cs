@@ -27,6 +27,8 @@
                         s.AssembliesFromPath(".");
                         s.AddAllTypesOf<IMessageProcessor>();
                     });
+
+            //For<Func<Uri, UriRequest>>().Use((Func<Uri, UriRequest>)(uri =>)))
         }
     }
 }

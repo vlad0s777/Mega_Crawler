@@ -18,7 +18,7 @@
         public ContentCollector(
             IMessageBroker<UriRequest> requests,
             HashSet<Uri> visitedUrls,
-            Func<Uri, UriRequest> clientDelegate,
+            Func<Uri, Uri> clientDelegate,
             Settings settings)
         {
             this.requests = requests;
@@ -36,7 +36,7 @@
 
         private Uri RootUri { get; }
 
-        private Func<Uri, UriRequest> ClientDelegate { get; }
+        private Func<Uri, Uri> ClientDelegate { get; }
 
         public void Handle(UriRequest message)
         {
@@ -46,7 +46,7 @@
                 try
                 {
                     var request = this.ClientDelegate.Invoke(message.Uri);
-                    this.requests.Send(request);
+                    this.requests.Send(new UriRequest(new Uri(this.RootUri, request)));
                     Logger.LogInformation($"OK {message.Uri}");
                 }
                 catch (Exception e)

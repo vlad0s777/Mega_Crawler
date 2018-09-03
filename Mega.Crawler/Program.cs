@@ -4,6 +4,7 @@
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
+    using System.Net;
 
     using DasMulli.Win32.ServiceUtils;
 
@@ -48,11 +49,12 @@
                 using (var container = new Container(registry))
                 {
                     using (var client = container.GetInstance<ProxyWebClient>())
+                    //using (var client = new WebClient())
                     {
-                        container.Configure(r => r.For<Func<Uri, string>>().Use((Func<Uri, string>)(uri => client.DownloadString(uri))));
+                        container.Configure(r => r.For<Func<Uri, string>>().Use((Func<Uri, string>)(uri => client.DownloadStringTaskAsync(uri))));
+                        var itHappensClient = container.GetInstance<IthappensClient>();
 
-                        using (var itHappensClient = container.GetInstance<IthappensClient>())
-                        container.Configure(r => r.For<Func<Uri, UriRequest>>().Use((Func<Uri, UriRequest>)(uri => )));
+                        container.Configure(r => r.For<Func<Uri, Uri>>().Use((Func<Uri, Uri>)(uri => itHappensClient.Handle(uri))));
 
                         var runner = container.GetInstance<Runner>();
                         try
@@ -62,6 +64,7 @@
                         finally
                         {
                             container.Release(runner);
+                            container.Release(itHappensClient);
                         }
 
                         if (isService)

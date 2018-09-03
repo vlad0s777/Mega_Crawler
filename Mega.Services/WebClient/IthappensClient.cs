@@ -23,7 +23,7 @@
             this.articles = articles;
         }
 
-        public UriRequest Handle(Uri uri)
+        public Uri Handle(Uri uri)
         {
             var documentBody = this.ClientDelegate.Invoke(uri);
             Logger.LogInformation($"OK {uri}");
@@ -74,7 +74,7 @@
             }           
         }
 
-        public UriRequest GetPrevPage(string body)
+        public Uri GetPrevPage(string body)
         {
             var parser = new HtmlParser();
             var document = parser.Parse(body);
@@ -83,7 +83,7 @@
                 var hrefPrevPage = document.QuerySelector("li.prev>a").Attributes["href"].Value;
                 var absUriPrevPage = new Uri(hrefPrevPage, UriKind.RelativeOrAbsolute);
 
-                return new UriRequest(absUriPrevPage);
+                return absUriPrevPage;
             }
             catch (Exception e)
             {

@@ -7,7 +7,6 @@
     using Mega.Messaging;
     using Mega.Services;
     using Mega.Services.ContentCollector;
-    using Mega.Services.InfoParser;
 
     using Microsoft.Extensions.Logging;
 
