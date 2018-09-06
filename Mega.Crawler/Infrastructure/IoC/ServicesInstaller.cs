@@ -5,7 +5,9 @@
 
     using Mega.Messaging;
     using Mega.Messaging.External;
-    using Mega.Services.ContentCollector;
+    using Mega.Services;
+    using Mega.Services.BrokerHandler;
+    using Mega.Services.WebClient;
 
     using StructureMap;
 
@@ -18,7 +20,6 @@
 
             ForSingletonOf(typeof(IMessageBroker<>)).Use(typeof(RabbitMqMessageBroker<>));
 
-            //Forward<IMessageBroker<UriBody>, IMessageBroker>();
             Forward<IMessageBroker<UriRequest>, IMessageBroker>();
 
             Scan(
@@ -27,8 +28,6 @@
                         s.AssembliesFromPath(".");
                         s.AddAllTypesOf<IMessageProcessor>();
                     });
-
-            //For<Func<Uri, UriRequest>>().Use((Func<Uri, UriRequest>)(uri =>)))
         }
     }
 }

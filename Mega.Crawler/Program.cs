@@ -4,16 +4,13 @@
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
-    using System.Net;
     using System.Reflection;
-    using System.Threading;
+    using System.Threading.Tasks;
 
     using DasMulli.Win32.ServiceUtils;
 
     using Mega.Crawler.Infrastructure.IoC;
-    using Mega.Crawler.Services;
     using Mega.Services;
-    using Mega.Services.ContentCollector;
     using Mega.Services.WebClient;
 
     using Microsoft.Extensions.Logging;
@@ -50,12 +47,9 @@
                 using (var container = new Container(registry))
                 {
                     using (var client = container.GetInstance<ProxyWebClient>())
-                    //using (var client = new WebClient())
                     {
-                        container.Configure(r => r.For<Func<Uri, string>>().Use((Func<Uri, string>)(uri => client.DownloadStringTaskAsync(uri))));
-                        var itHappensClient = container.GetInstance<IthappensClient>();
-
-                        container.Configure(r => r.For<Func<Uri, Uri>>().Use((Func<Uri, Uri>)(uri => itHappensClient.Handle(uri))));
+                        container.Configure(r => r.For<Func<Uri, Task<string>>>().Use((Func<Uri, Task<string>>)(uri => client.GetStringAsync(uri))));
+                        container.Configure(r => r.For<Func<Uri, Task<Uri>>>().Use((Func<Uri, Task<Uri>>)(uri => container.GetInstance<ZadolbaliClient>().Handle(uri))));
 
                         var runner = container.GetInstance<Runner>();
                         try
@@ -70,7 +64,7 @@
                         finally
                         {
                             container.Release(runner);
-                            container.Release(itHappensClient);
+                            container.Release(container.GetInstance<ZadolbaliClient>());
                         }
                     }
                 }

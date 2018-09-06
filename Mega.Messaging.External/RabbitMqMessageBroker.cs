@@ -2,6 +2,7 @@
 {
     using System;
     using System.Text;
+    using System.Threading.Tasks;
 
     using Newtonsoft.Json;
 
@@ -76,7 +77,7 @@
             }
         }
 
-        public void ConsumeWith(Action<TMessage> onReceive)
+        public void ConsumeWith(Func<TMessage, Task> onReceive)
         { 
             this.consumer.Received += (_, ea) =>
                 {

@@ -1,4 +1,4 @@
-﻿namespace Mega.Crawler.Services
+﻿namespace Mega.Crawler
 {
     using System;
     using System.Collections.Generic;
@@ -6,7 +6,8 @@
 
     using Mega.Messaging;
     using Mega.Services;
-    using Mega.Services.ContentCollector;
+    using Mega.Services.BrokerHandler;
+    using Mega.Services.WebClient;
 
     using Microsoft.Extensions.Logging;
 
@@ -23,6 +24,7 @@
         private readonly Dictionary<string, ArticleInfo> articles;
 
         private readonly Settings settings;
+
 
         public Runner(IMessageBroker[] brokers, IMessageProcessor[] handlers, Settings settings, HashSet<Uri> visitedUrls, Dictionary<string, ArticleInfo> articles)
         {

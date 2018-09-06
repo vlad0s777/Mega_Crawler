@@ -1,4 +1,4 @@
-﻿namespace Mega.Services.ContentCollector
+﻿namespace Mega.Services.WebClient
 {
     using System;
     using System.Collections.Generic;

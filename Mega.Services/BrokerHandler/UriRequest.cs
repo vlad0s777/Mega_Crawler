@@ -1,4 +1,4 @@
-﻿namespace Mega.Services.ContentCollector
+﻿namespace Mega.Services.BrokerHandler
 {
     using System;
 

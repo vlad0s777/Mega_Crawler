@@ -3,11 +3,10 @@
     using System;
     using System.Linq;
     using System.Net;
-    using System.Threading;
+    using System.Threading.Tasks;
 
     public class ProxyWebClient : WebClient
     {
-
         private readonly int timeout;
 
         private readonly int[] delay;
@@ -23,18 +22,31 @@
             this.proxyServer = new WebProxy(settings.ProxyServer);
             this.random = new Random();
         }
-
+       
         protected override WebRequest GetWebRequest(Uri address)
         {
-            if (this.delay != null)
-            {
-                Thread.Sleep(this.random.Next(this.delay.First(), this.delay.Last()));
-            }
-
             var webRequest = WebRequest.Create(address);
             webRequest.Timeout = this.timeout;
             webRequest.Proxy = this.proxyServer;
+
+            webRequest.Headers.Add(HttpRequestHeader.Accept, "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
+            webRequest.Headers.Add(HttpRequestHeader.AcceptLanguage, "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7");
+            webRequest.Headers.Add(HttpRequestHeader.Connection, "keep-alive");
+            webRequest.Headers.Add(HttpRequestHeader.CacheControl, "max-age=0");
+            webRequest.Headers.Add(HttpRequestHeader.UserAgent, "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/68.0.3440.106 Safari/537.36");
+
             return webRequest;
         }
+
+        public async Task<string> GetStringAsync(Uri uri)
+        {
+            if (this.delay != null)
+            {
+                await Task.Delay(this.random.Next(this.delay.First(), this.delay.Last()));
+            }
+
+            return await this.DownloadStringTaskAsync(uri);
+        }
+
     }
 }

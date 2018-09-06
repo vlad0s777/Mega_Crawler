@@ -1,6 +1,5 @@
 ﻿namespace Mega.Crawler.Infrastructure.IoC
 {
-    using System;
     using System.IO;
 
     using Mega.Services;

@@ -1,5 +1,7 @@
-﻿namespace Mega.Messaging
+﻿namespace Mega.Services
 {
+    using System.Threading.Tasks;
+
     public interface IMessageProcessor
     {
         void Run();
@@ -7,6 +9,6 @@
 
     public interface IMessageProcessor<in TMessage> : IMessageProcessor
     {
-        void Handle(TMessage message);
+        Task Handle(TMessage message);
     }
 }

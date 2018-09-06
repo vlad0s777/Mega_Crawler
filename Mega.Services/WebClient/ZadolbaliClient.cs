@@ -2,39 +2,54 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
 
     using AngleSharp.Parser.Html;
 
-    using Mega.Services.ContentCollector;
-
     using Microsoft.Extensions.Logging;
 
-    public class IthappensClient
+    public class ZadolbaliClient
     {
-        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<IthappensClient>();
+        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ZadolbaliClient>();
 
-        private Func<Uri, string> ClientDelegate { get; }
+        private readonly Func<Uri, Task<string>> clientDelegate;
 
         private readonly Dictionary<string, ArticleInfo> articles;
 
-        public IthappensClient(Dictionary<string, ArticleInfo> articles, Func<Uri, string> clientDelegate)
+        public ZadolbaliClient(Dictionary<string, ArticleInfo> articles, Func<Uri, Task<string>> clientDelegate)
         {
-            this.ClientDelegate = clientDelegate;
+            this.clientDelegate = clientDelegate;
             this.articles = articles;
         }
 
-        public Uri Handle(Uri uri)
+        public static DateTime GetDate(string specificDate)
         {
-            var documentBody = this.ClientDelegate.Invoke(uri);
-            Logger.LogInformation($"OK {uri}");
-            GetArticles(documentBody);
-            return GetPrevPage(documentBody);
+            var parts = specificDate.Split(new char[] { ',', ':' });
+            switch (parts.First().ToLower())
+            {
+                case "сегодня":
+                    return DateTime.Today.AddHours(Convert.ToDouble(parts[1])).AddMinutes(Convert.ToDouble(parts[2]));
+                case "вчера":
+                    return DateTime.Today.AddDays(-1).AddHours(Convert.ToDouble(parts[1])).AddMinutes(Convert.ToDouble(parts[2]));
+                default:
+                    return DateTime.Parse(parts[0]).AddHours(Convert.ToDouble(parts[1])).AddMinutes(Convert.ToDouble(parts[2]));
+            }
         }
 
-        public void GetArticles(string documentBody)
+        public async Task<Uri> Handle(Uri uri)
+        {
+            var documentBody = this.clientDelegate.Invoke(uri);
+            
+            Logger.LogInformation($"OK {uri}");
+            await GetArticles(documentBody.Result);
+            return await GetPrevPage(documentBody.Result);
+        }
+
+        public async Task GetArticles(string documentBody)
         {
             var parser = new HtmlParser();
-            var document = parser.Parse(documentBody);
+            var document = await parser.ParseAsync(documentBody);
 
             try
             {
@@ -43,10 +58,11 @@
                 {
                     try
                     {
-                        var articleDoc = parser.Parse(article.InnerHtml);
+                        var articleDoc = await parser.ParseAsync(article.InnerHtml);
                         var head = articleDoc.QuerySelector("h2").TextContent;
                         var urlArticle = articleDoc.QuerySelector("h2>a").Attributes["href"];
-                        var date = DateTime.Parse(articleDoc.QuerySelector("div.meta>div.date-time").InnerHtml);
+                        var date = GetDate(articleDoc.QuerySelector("div.meta>div.date-time").InnerHtml);
+
                         var content = articleDoc.QuerySelector("div.text").InnerHtml;
                         var tagsSelector = articleDoc.QuerySelectorAll("div.meta>div.tags>ul>li>a");
                         var tagsDictionary = new Dictionary<string, string>();
@@ -74,10 +90,10 @@
             }           
         }
 
-        public Uri GetPrevPage(string body)
+        public async Task<Uri> GetPrevPage(string body)
         {
             var parser = new HtmlParser();
-            var document = parser.Parse(body);
+            var document = await parser.ParseAsync(body);
             try
             {
                 var hrefPrevPage = document.QuerySelector("li.prev>a").Attributes["href"].Value;
