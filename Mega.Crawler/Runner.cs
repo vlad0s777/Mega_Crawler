@@ -1,13 +1,11 @@
 ﻿namespace Mega.Crawler
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
 
     using Mega.Messaging;
     using Mega.Services;
-    using Mega.Services.BrokerHandler;
-    using Mega.Services.WebClient;
+    using Mega.Services.UriRequest;
 
     using Microsoft.Extensions.Logging;
 
@@ -19,20 +17,13 @@
 
         private readonly IMessageProcessor[] processors;
 
-        private readonly HashSet<Uri> visitedUrls;
-
-        private readonly Dictionary<string, ArticleInfo> articles;
-
         private readonly Settings settings;
 
-
-        public Runner(IMessageBroker[] brokers, IMessageProcessor[] handlers, Settings settings, HashSet<Uri> visitedUrls, Dictionary<string, ArticleInfo> articles)
+        public Runner(IMessageBroker[] brokers, IMessageProcessor[] processors, Settings settings)
         {
             this.settings = settings;
-            this.visitedUrls = visitedUrls;
-            this.articles = articles;
             this.brokers = brokers;
-            this.processors = handlers;     
+            this.processors = processors;     
         }
 
         public void Run()

@@ -1,25 +1,26 @@
-﻿namespace Mega.Services.BrokerHandler
+﻿namespace Mega.Services.UriRequest
 {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
     using Mega.Messaging;
+    using Mega.Services.WebClient;
 
     using Microsoft.Extensions.Logging;
 
-    public class BrokerHandler : IMessageProcessor<UriRequest>
+    public class UriRequestProcessor : IMessageProcessor<UriRequest>, IDisposable
     {
-        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<BrokerHandler>();
+        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<UriRequestProcessor>();
 
         private readonly int countAttempt;
 
         private readonly IMessageBroker<UriRequest> requests;
 
-        public BrokerHandler(
+        public UriRequestProcessor(
             IMessageBroker<UriRequest> requests,
             HashSet<Uri> visitedUrls,
-            Func<Uri, Task<Uri>> clientDelegate,
+            ZadolbaliClient client,
             Settings settings)
         {
             this.requests = requests;
@@ -28,7 +29,7 @@
 
             this.RootUri = new Uri(settings.RootUriString, UriKind.Absolute);
 
-            this.ClientDelegate = clientDelegate;
+            this.client = client;
 
             this.countAttempt = settings.AttemptLimit;
         }
@@ -37,7 +38,7 @@
 
         private Uri RootUri { get; }
 
-        private Func<Uri, Task<Uri>> ClientDelegate { get; }
+        private readonly ZadolbaliClient client;
 
         public async Task Handle(UriRequest message)
         {
@@ -50,9 +51,16 @@
 
             try
             {
-                var request = await this.ClientDelegate.Invoke(message.Uri);               
-                this.requests.Send(new UriRequest(new Uri(this.RootUri, request)));
+                var body = await this.client.DownloadUrl(message.Uri);
+                     
+                var prevPage = await this.client.GetPrevPage(body); 
+                this.requests.Send(new UriRequest(new Uri(this.RootUri, prevPage)));
                 Logger.LogInformation($"OK {message.Uri}");
+
+                foreach (var _ in this.client.GetArticle(body))
+                {
+                    //что-то делаем со статьями
+                }
             }
             catch (Exception e)
             {
@@ -70,6 +78,11 @@
             }
         }
 
-        public void Run() => this.requests.ConsumeWith(this.Handle);
+        public void Run() => this.requests.ConsumeWith(Handle);
+
+        public void Dispose()
+        {
+            this.client?.Dispose();
+        }
     }
 }

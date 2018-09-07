@@ -47,6 +47,5 @@
 
             return await this.DownloadStringTaskAsync(uri);
         }
-
     }
 }

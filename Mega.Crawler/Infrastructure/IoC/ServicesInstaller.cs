@@ -6,7 +6,7 @@
     using Mega.Messaging;
     using Mega.Messaging.External;
     using Mega.Services;
-    using Mega.Services.BrokerHandler;
+    using Mega.Services.UriRequest;
     using Mega.Services.WebClient;
 
     using StructureMap;

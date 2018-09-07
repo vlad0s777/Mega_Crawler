@@ -9,19 +9,9 @@
 
     using Microsoft.Extensions.Logging;
 
-    public class ZadolbaliClient
+    public class ZadolbaliClient : IDisposable
     {
         private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ZadolbaliClient>();
-
-        private readonly Func<Uri, Task<string>> clientDelegate;
-
-        private readonly Dictionary<string, ArticleInfo> articles;
-
-        public ZadolbaliClient(Dictionary<string, ArticleInfo> articles, Func<Uri, Task<string>> clientDelegate)
-        {
-            this.clientDelegate = clientDelegate;
-            this.articles = articles;
-        }
 
         public static DateTime GetDate(string specificDate)
         {
@@ -37,57 +27,47 @@
             }
         }
 
-        public async Task<Uri> Handle(Uri uri)
+        private readonly Func<Uri, Task<string>> clientDelegate;
+
+        private readonly ProxyWebClient client;
+
+        public ZadolbaliClient(Settings settings)
         {
-            var documentBody = this.clientDelegate.Invoke(uri);
-            
-            Logger.LogInformation($"OK {uri}");
-            await GetArticles(documentBody.Result);
-            return await GetPrevPage(documentBody.Result);
+            this.client = new ProxyWebClient(settings);
+            this.clientDelegate = uri => this.client.GetStringAsync(uri);
         }
 
-        public async Task GetArticles(string documentBody)
+        public ZadolbaliClient(Func<Uri, Task<string>> clientDelegate) => this.clientDelegate = clientDelegate;
+
+        public async Task<string> DownloadUrl(Uri uri) => await this.clientDelegate.Invoke(uri);
+
+        public IEnumerable<ArticleInfo> GetArticle(string body)
         {
             var parser = new HtmlParser();
-            var document = await parser.ParseAsync(documentBody);
-
-            try
+            var articleBody = parser.Parse(body).QuerySelectorAll("div.story");
+            foreach (var article in articleBody)
             {
-                var articleBody = document.QuerySelectorAll("div.story");
-                foreach (var article in articleBody)
+                var articleDoc = parser.Parse(article.InnerHtml);
+                var head = articleDoc.QuerySelector("h2").TextContent;
+                var urlArticle = articleDoc.QuerySelector("h2>a").Attributes["href"];
+                var date = GetDate(articleDoc.QuerySelector("div.meta>div.date-time").InnerHtml);
+
+                var content = articleDoc.QuerySelector("div.text").InnerHtml;
+                var tagsSelector = articleDoc.QuerySelectorAll("div.meta>div.tags>ul>li>a");
+                var tagsDictionary = new Dictionary<string, string>();
+                foreach (var selector in tagsSelector)
                 {
-                    try
-                    {
-                        var articleDoc = await parser.ParseAsync(article.InnerHtml);
-                        var head = articleDoc.QuerySelector("h2").TextContent;
-                        var urlArticle = articleDoc.QuerySelector("h2>a").Attributes["href"];
-                        var date = GetDate(articleDoc.QuerySelector("div.meta>div.date-time").InnerHtml);
+                    var href = selector.Attributes["href"].Value;
+                    var text = selector.InnerHtml;
 
-                        var content = articleDoc.QuerySelector("div.text").InnerHtml;
-                        var tagsSelector = articleDoc.QuerySelectorAll("div.meta>div.tags>ul>li>a");
-                        var tagsDictionary = new Dictionary<string, string>();
-                        foreach (var selector in tagsSelector)
-                        {
-                            var href = selector.Attributes["href"].Value;
-                            var text = selector.InnerHtml;
-
-                            tagsDictionary.Add(href, text);
-                        }
-
-                        var artInfo = new ArticleInfo(date, tagsDictionary, content, head);
-                        this.articles.Add(urlArticle.Value, artInfo);
-                        Logger.LogInformation($"Add '{head}' document!");
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.LogWarning(e.Message);
-                    }
+                    tagsDictionary.Add(href, text);
                 }
+
+                var artInfo = new ArticleInfo(date, tagsDictionary, content, head, urlArticle.Value);
+                Logger.LogInformation($"Add '{head}' document!");
+
+                yield return artInfo;               
             }
-            catch (Exception e)
-            {
-                Logger.LogWarning(e.Message);
-            }           
         }
 
         public async Task<Uri> GetPrevPage(string body)
@@ -106,6 +86,11 @@
                 Logger.LogWarning(e.Message);
                 return null;
             }
+        }
+
+        public void Dispose()
+        {
+            this.client?.Dispose();
         }
     }
 }

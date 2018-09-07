@@ -3,6 +3,8 @@
     using System;
     using System.Collections.Generic;
 
+    using AngleSharp;
+
     public class ArticleInfo
     {
         public readonly DateTime DateCreate;
@@ -13,12 +15,15 @@
 
         public readonly string Head;
 
-        public ArticleInfo(DateTime dateCreate, Dictionary<string, string> tags, string text, string head)
+        public readonly string Url;
+
+        public ArticleInfo(DateTime dateCreate, Dictionary<string, string> tags, string text, string head, string url)
         {
             this.DateCreate = dateCreate;
             this.Tags = tags;
             this.Text = text;
             this.Head = head;
+            this.Url = url;
         }
     }
 }

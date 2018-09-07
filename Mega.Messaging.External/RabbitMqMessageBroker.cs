@@ -79,11 +79,11 @@
 
         public void ConsumeWith(Func<TMessage, Task> onReceive)
         { 
-            this.consumer.Received += (_, ea) =>
+            this.consumer.Received += async (_, ea) =>
                 {
                     var body = this.encoding.GetString(ea.Body);
                     var message = JsonConvert.DeserializeObject<TMessage>(body);
-                    onReceive(message);
+                    await onReceive(message);
                     this.model.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                 };
             this.model.BasicConsume(queue: this.queueName, autoAck: false, consumer: this.consumer);

@@ -5,13 +5,11 @@
     using System.IO;
     using System.Linq;
     using System.Reflection;
-    using System.Threading.Tasks;
 
     using DasMulli.Win32.ServiceUtils;
 
     using Mega.Crawler.Infrastructure.IoC;
     using Mega.Services;
-    using Mega.Services.WebClient;
 
     using Microsoft.Extensions.Logging;
 
@@ -46,26 +44,19 @@
 
                 using (var container = new Container(registry))
                 {
-                    using (var client = container.GetInstance<ProxyWebClient>())
+                    var runner = container.GetInstance<Runner>();
+                    try
                     {
-                        container.Configure(r => r.For<Func<Uri, Task<string>>>().Use((Func<Uri, Task<string>>)(uri => client.GetStringAsync(uri))));
-                        container.Configure(r => r.For<Func<Uri, Task<Uri>>>().Use((Func<Uri, Task<Uri>>)(uri => container.GetInstance<ZadolbaliClient>().Handle(uri))));
+                        runner.Run();
 
-                        var runner = container.GetInstance<Runner>();
-                        try
+                        if (isService)
                         {
-                            runner.Run();
-
-                            if (isService)
-                            {
-                                new Win32ServiceHost(new CrawlerService()).Run();
-                            }
+                            new Win32ServiceHost(new CrawlerService()).Run();
                         }
-                        finally
-                        {
-                            container.Release(runner);
-                            container.Release(container.GetInstance<ZadolbaliClient>());
-                        }
+                    }
+                    finally
+                    {
+                        container.Release(runner);
                     }
                 }
             }

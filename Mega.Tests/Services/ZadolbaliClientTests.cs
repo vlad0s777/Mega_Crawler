@@ -1,9 +1,10 @@
 ﻿namespace Mega.Tests.Services
 {
     using System;
-    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
 
+    using Mega.Services;
     using Mega.Services.WebClient;
 
     using NUnit.Framework;
@@ -12,57 +13,45 @@
     internal class ZadolbaliClientTest
     {
         [Test]
-        public async Task EmptyTagsTest()
+        public void EmptyTagsTest()
         {
-            var articles = new Dictionary<string, ArticleInfo>();
             var body = $"<div class='story'><h2><a href='123'>Нужны сильные программисты</a></h2><div class='meta'><div class='date-time'>"
                        + $"3 декабря 2015, 08:00</div></div><div class='text'><p>1999 год</p></div></div>";
 
-            await new ZadolbaliClient(articles, uri => Task.FromResult(body)).Handle(new Uri("https://someurlu"));
+            var article = new ZadolbaliClient(new Settings("https://someurl")).GetArticle(body).First();
 
-            foreach (var i in articles)
-            {
-                Assert.AreEqual(DateTime.Parse("3 декабря 2015, 08:00"), i.Value.DateCreate);
-                Assert.AreEqual("Нужны сильные программисты", i.Value.Head);
-                Assert.AreEqual("<p>1999 год</p>", i.Value.Text);
-                Assert.IsEmpty(i.Value.Tags);
-            }
+            Assert.AreEqual(DateTime.Parse("3 декабря 2015, 08:00"), article.DateCreate);
+            Assert.AreEqual("Нужны сильные программисты", article.Head);
+            Assert.AreEqual("<p>1999 год</p>", article.Text);
+            Assert.IsEmpty(article.Tags);
         }
 
         [Test]
-        public async Task EmptyTextTest()
+        public void EmptyTextTest()
         {
-            var articles = new Dictionary<string, ArticleInfo>();
             var body = $"<h2><a href='123'>Нужны сильные программисты</a></h2> "
                 + $"<div class='meta'><div class='date-time'> 3 декабря 2015, 08:00</div><div class='tags'><i class='icon-tags'></i>"
                 + $"<ul><li><a href = '/tag/longago' > давным - давно </ a >"
                 + $"</li><li><a href='/tag/only-in-russia'>только в России</a></li></ul></div></div>";
 
-            await new ZadolbaliClient(articles, uri => Task.FromResult(body)).Handle(new Uri("https://someurlu"));
-
-            Assert.IsEmpty(articles);
+            Assert.IsEmpty(new ZadolbaliClient(new Settings("https://someurl")).GetArticle(body));
         }
 
         [Test]
-        public async Task TrueParceTest()
+        public void TrueParceTest()
         {
-            var articles = new Dictionary<string, ArticleInfo>();
+            var body = $"<div class='story'><h2><a href='123'>Нужны сильные программисты</a></h2>"
+                       + $"<div class='meta'><div class='date-time'>3 декабря 2015, 08:00</div><div class='tags'><i class='icon-tags'></i>"
+                       + $"<ul><li><a href = '/tag/longago'>давным - давно</a>"
+                       + $"</li><li><a href='/tag/only-in-russia'>только в России</a></li></ul></div></div><div class='text'><p>1999 год</p></div></div>";
 
-            var body = $"<h1>Нужны сильные программисты</h1> "
-                + $"<div class='meta'><div class='date-time'> 3 декабря 2015, 08:00</div><div class='tags'><i class='icon-tags'></i>"
-                + $"<ul><li><a href = '/tag/longago' > давным - давно </ a >"
-                + $"</li><li><a href='/tag/only-in-russia'>только в России</a></li></ul></div></div><div class='text'><p>1999 год</p> </div>";
+            var article = new ZadolbaliClient(new Settings("https://someurl")).GetArticle(body).First();
 
-            await new ZadolbaliClient(articles, uri => Task.FromResult(body)).Handle(new Uri("https://someurlu"));
-
-            foreach (var i in articles)
-            {
-                Assert.AreEqual(DateTime.Parse("3 декабря 2015, 08:00"), i.Value.DateCreate);
-                Assert.AreEqual("Нужны сильные программисты", i.Value.Head);
-                Assert.AreEqual("<p>1999 год</p>", i.Value.Text);
-                Assert.AreEqual("давным - давно", i.Value.Tags["/tag/longago"]);
-                Assert.AreEqual("только в России", i.Value.Tags["/tag/only-in-russia"]);
-            }
+            Assert.AreEqual(DateTime.Parse("3 декабря 2015, 08:00"), article.DateCreate);
+            Assert.AreEqual("Нужны сильные программисты", article.Head);
+            Assert.AreEqual("<p>1999 год</p>", article.Text);
+            Assert.AreEqual("давным - давно", article.Tags["/tag/longago"]);
+            Assert.AreEqual("только в России", article.Tags["/tag/only-in-russia"]);
         }
 
         [Test]
@@ -70,7 +59,7 @@
         {
             var body = $"<li class='prev'><a href='https://prevurl'></a></li>";
 
-            var prevUri = await new ZadolbaliClient(new Dictionary<string, ArticleInfo>(), url => Task.FromResult(body)).Handle(new Uri("https://someurlu"));
+            var prevUri = await new ZadolbaliClient(new Settings("https://someurl")).GetPrevPage(body);
 
             Assert.AreEqual("https://prevurl/", prevUri.AbsoluteUri);        
         }

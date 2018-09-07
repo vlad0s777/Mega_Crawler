@@ -1,4 +1,4 @@
-﻿namespace Mega.Services.BrokerHandler
+﻿namespace Mega.Services.UriRequest
 {
     using System;
 

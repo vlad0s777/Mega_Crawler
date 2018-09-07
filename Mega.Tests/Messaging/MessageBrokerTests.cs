@@ -1,7 +1,7 @@
 ﻿namespace Mega.Tests.Messaging
 {
     using Mega.Messaging;
-    using Mega.Services.BrokerHandler;
+    using Mega.Services.UriRequest;
 
     using NUnit.Framework;
 
