@@ -3,8 +3,6 @@
     using System;
     using System.Collections.Generic;
 
-    using AngleSharp;
-
     public class ArticleInfo
     {
         public readonly DateTime DateCreate;

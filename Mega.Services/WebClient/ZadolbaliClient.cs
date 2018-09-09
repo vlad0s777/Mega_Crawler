@@ -41,13 +41,14 @@
 
         public async Task<string> DownloadUrl(Uri uri) => await this.clientDelegate.Invoke(uri);
 
-        public IEnumerable<ArticleInfo> GetArticle(string body)
+        public async Task<HashSet<ArticleInfo>> GetArticle(string body)
         {
+            var articles = new HashSet<ArticleInfo>();
             var parser = new HtmlParser();
-            var articleBody = parser.Parse(body).QuerySelectorAll("div.story");
+            var articleBody = (await parser.ParseAsync(body)).QuerySelectorAll("div.story");
             foreach (var article in articleBody)
             {
-                var articleDoc = parser.Parse(article.InnerHtml);
+                var articleDoc = await parser.ParseAsync(article.InnerHtml);
                 var head = articleDoc.QuerySelector("h2").TextContent;
                 var urlArticle = articleDoc.QuerySelector("h2>a").Attributes["href"];
                 var date = GetDate(articleDoc.QuerySelector("div.meta>div.date-time").InnerHtml);
@@ -63,11 +64,11 @@
                     tagsDictionary.Add(href, text);
                 }
 
-                var artInfo = new ArticleInfo(date, tagsDictionary, content, head, urlArticle.Value);
-                Logger.LogInformation($"Add '{head}' document!");
-
-                yield return artInfo;               
+                articles.Add(new ArticleInfo(date, tagsDictionary, content, head, urlArticle.Value));
+                Logger.LogInformation($"Add '{head}' document!");                             
             }
+
+            return articles;
         }
 
         public async Task<Uri> GetPrevPage(string body)

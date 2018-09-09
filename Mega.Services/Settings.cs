@@ -6,7 +6,7 @@
 
     public class Settings
     {
-        public int Timeout { get;}
+        public int Timeout { get; }
 
         public int[] Delay { get; }
 
@@ -21,7 +21,7 @@
             this.AttemptLimit = attemptLimit;
             this.RootUriString = rootUriString;
             this.ProxyServer = proxyServer;
-            this.Delay = new int[] { delayBegin, delayEnd };
+            this.Delay = new[] { delayBegin, delayEnd };
             this.Timeout = timeout;
         }
 
@@ -35,6 +35,7 @@
             {
                 this.RootUriString = string.Empty;
             }
+
             try
             {
                 this.ProxyServer = new Uri(settings["proxyServer"]);
@@ -46,7 +47,7 @@
 
             try
             {
-                this.Delay = new int[] { Convert.ToInt32(settings["delayBegin"]), Convert.ToInt32(settings["delayEnd"]) };
+                this.Delay = new[] { Convert.ToInt32(settings["delayBegin"]), Convert.ToInt32(settings["delayEnd"]) };
             }
             catch
             {
@@ -70,8 +71,6 @@
             {
                 this.AttemptLimit = 0;
             }
-
-
         }
     }
 }

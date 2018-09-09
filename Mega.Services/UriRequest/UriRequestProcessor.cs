@@ -57,7 +57,7 @@
                 this.requests.Send(new UriRequest(new Uri(this.RootUri, prevPage)));
                 Logger.LogInformation($"OK {message.Uri}");
 
-                foreach (var _ in this.client.GetArticle(body))
+                foreach (var _ in await this.client.GetArticle(body))
                 {
                     //что-то делаем со статьями
                 }
