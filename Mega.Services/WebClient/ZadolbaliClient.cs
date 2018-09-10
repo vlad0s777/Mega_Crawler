@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
 
@@ -12,6 +13,8 @@
     public class ZadolbaliClient : IDisposable
     {
         private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ZadolbaliClient>();
+
+        private static readonly Stopwatch Watch = new Stopwatch();
 
         public static DateTime GetDate(string specificDate)
         {
@@ -41,8 +44,11 @@
 
         public async Task<ClientPair> GetArticles(string idPage)
         {
+            Watch.Start();
             var body = await this.clientDelegate.Invoke(idPage);
 
+            Logger.LogDebug($"Downloading: {Watch.Elapsed.Milliseconds}");
+            Watch.Restart();
             var articles = new HashSet<ArticleInfo>();
             string idPrevPage = null;
 
@@ -96,6 +102,7 @@
                 Logger.LogError($"Previous page in error: {e.Message}");
             }
 
+            Logger.LogDebug($"Parcing: {Watch.Elapsed.Milliseconds}");
             return new ClientPair(idPrevPage, articles);
         }
 
