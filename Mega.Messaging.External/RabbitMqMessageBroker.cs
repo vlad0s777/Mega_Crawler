@@ -45,7 +45,6 @@
             this.properties = this.model.CreateBasicProperties();
             this.properties.Persistent = true;
             this.consumer = new EventingBasicConsumer(this.model);
-
         }
 
         public bool IsEmpty() => this.model.MessageCount(this.queueName) == 0;

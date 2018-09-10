@@ -1,6 +1,5 @@
 ﻿namespace Mega.Tests.Services
 {
-    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
@@ -19,35 +18,35 @@
         {
             var requests = new MessageBroker<UriRequest>();
 
-            var rootUri = "https://docs.microsoft.com/ru-ru";
+            var someUri = "/123";
 
             await new UriRequestProcessor(
                 requests,
-                visitedUrls: new HashSet<Uri>(),
-                client: new ZadolbaliClient(url => Task.FromResult("<li class='prev'><a href='" + url.AbsoluteUri + "'></a></li>")),
-                settings: new Settings(rootUri)).Handle(new UriRequest(new Uri(rootUri)));
+                visitedUrls: new HashSet<string>(),
+                client: new ZadolbaliClient(url => Task.FromResult("<li class='prev'><a href='" + url + "'></a></li>")),
+                settings: new Settings("https://someurl")).Handle(new UriRequest(someUri));
 
             Assert.IsFalse(requests.IsEmpty());
             Assert.IsTrue(requests.TryReceive(out var uri));
-            Assert.AreEqual(rootUri, uri.Uri.AbsoluteUri);
+            Assert.AreEqual("123", uri.Id);
         }
 
         [Test]
-        public async Task ValideUrlTest()
+        public async Task SameUrlTest()
         {
-            var rootUri = "https://docs.microsoft.com/ru-ru";
+            var someUri = "/123";
 
             var requests = new MessageBroker<UriRequest>();
             var contentCollector = new UriRequestProcessor(
                 requests,
-                visitedUrls: new HashSet<Uri>(),
-                client: new ZadolbaliClient(url => Task.FromResult("<li class='prev'><a href='" + url.AbsoluteUri + "'></a></li>")),
-                settings: new Settings(rootUri));
+                visitedUrls: new HashSet<string>(),
+                client: new ZadolbaliClient(url => Task.FromResult("<li class='prev'><a href='" + url + "'></a></li>")),
+                settings: new Settings("https://someurl"));
 
-            await contentCollector.Handle(new UriRequest("http://someurl"));
-            Assert.IsFalse(requests.TryReceive(out var _));
-            await contentCollector.Handle(new UriRequest("https://docs.microsoft.com/ru-ru/tra"));
+            await contentCollector.Handle(new UriRequest(someUri));
             Assert.IsTrue(requests.TryReceive(out var _));
+            await contentCollector.Handle(new UriRequest(someUri));
+            Assert.IsFalse(requests.TryReceive(out var _));
         }
     }
 }

@@ -19,7 +19,7 @@
 
         public UriRequestProcessor(
             IMessageBroker<UriRequest> requests,
-            HashSet<Uri> visitedUrls,
+            HashSet<string> visitedUrls,
             ZadolbaliClient client,
             Settings settings)
         {
@@ -34,7 +34,7 @@
             this.countAttempt = settings.AttemptLimit;
         }
 
-        private HashSet<Uri> VisitedUrls { get; }
+        private HashSet<string> VisitedUrls { get; }
 
         private Uri RootUri { get; }
 
@@ -42,38 +42,37 @@
 
         public async Task Handle(UriRequest message)
         {
-            Logger.LogInformation($"Processing {message.Uri}");
+            Logger.LogInformation($"Processing {this.RootUri + message.Id}");
 
-            if (!this.RootUri.IsBaseOf(message.Uri) || !this.VisitedUrls.Add(message.Uri))
+            if (!this.VisitedUrls.Add(message.Id))
             {
                 return;
             }
 
             try
             {
-                var body = await this.client.DownloadUrl(message.Uri);
+                var clientPair = await this.client.GetArticles(message.Id);
                      
-                var prevPage = await this.client.GetPrevPage(body); 
-                this.requests.Send(new UriRequest(new Uri(this.RootUri, prevPage)));
-                Logger.LogInformation($"OK {message.Uri}");
+                this.requests.Send(new UriRequest(clientPair.IdPrev));
+                Logger.LogInformation($"OK {this.RootUri + clientPair.IdPrev}");
 
-                foreach (var _ in await this.client.GetArticle(body))
+                foreach (var _ in clientPair.Articles)
                 {
                     //что-то делаем со статьями
                 }
             }
             catch (Exception e)
             {
-                this.VisitedUrls.Remove(message.Uri);
+                this.VisitedUrls.Remove(message.Id);
                 var att = message.Attempt + 1;
                 if (att < this.countAttempt)
                 {
-                    this.requests.Send(new UriRequest(message.Uri, att, message.Depth));
-                    Logger.LogWarning($"{e.Message} in {message.Uri}. There are still attempts: {this.countAttempt - message.Attempt}");
+                    this.requests.Send(new UriRequest(message.Id, att, message.Depth));
+                    Logger.LogWarning($"{e.Message} in {message.Id}. There are still attempts: {this.countAttempt - message.Attempt}");
                 }
                 else
                 {
-                    Logger.LogWarning($"{e.Message} in {message.Uri}. Attempts are no more!");
+                    Logger.LogWarning($"{e.Message} in {message.Id}. Attempts are no more!");
                 }
             }
         }

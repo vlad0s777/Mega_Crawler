@@ -36,8 +36,7 @@
 
             if (this.brokers.All(broker => broker.IsEmpty()))
             {
-                var rootUri = new Uri(this.settings.RootUriString, UriKind.Absolute);
-                this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(rootUri));                        
+                this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(string.Empty));                        
             }
 
             foreach (var messageProcessor in this.processors)

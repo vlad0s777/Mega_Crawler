@@ -1,13 +1,11 @@
 ﻿namespace Mega.Crawler.Infrastructure.IoC
 {
-    using System;
     using System.Collections.Generic;
 
     using Mega.Messaging;
     using Mega.Messaging.External;
     using Mega.Services;
     using Mega.Services.UriRequest;
-    using Mega.Services.WebClient;
 
     using StructureMap;
 
@@ -15,8 +13,7 @@
     {
         public ServicesInstaller()
         {
-            ForSingletonOf<HashSet<Uri>>().Use(new HashSet<Uri>());
-            ForSingletonOf<Dictionary<string, ArticleInfo>>().Use(new Dictionary<string, ArticleInfo>());
+            ForSingletonOf<HashSet<string>>().Use(new HashSet<string>());
 
             ForSingletonOf(typeof(IMessageBroker<>)).Use(typeof(RabbitMqMessageBroker<>));
 
