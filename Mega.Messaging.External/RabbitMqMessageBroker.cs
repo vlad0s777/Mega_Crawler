@@ -21,7 +21,7 @@
 
         private readonly IBasicProperties properties;
 
-        private readonly EventingBasicConsumer consumer;
+        private readonly AsyncEventingBasicConsumer consumer;
 
         public RabbitMqMessageBroker()
         {
@@ -29,7 +29,7 @@
 
             this.encoding = Encoding.UTF8;
 
-            var factory = new ConnectionFactory();
+            var factory = new ConnectionFactory { DispatchConsumersAsync = true };
 
             this.connection = factory.CreateConnection();
 
@@ -44,7 +44,7 @@
 
             this.properties = this.model.CreateBasicProperties();
             this.properties.Persistent = true;
-            this.consumer = new EventingBasicConsumer(this.model);
+            this.consumer = new AsyncEventingBasicConsumer(this.model);
         }
 
         public bool IsEmpty() => this.model.MessageCount(this.queueName) == 0;
