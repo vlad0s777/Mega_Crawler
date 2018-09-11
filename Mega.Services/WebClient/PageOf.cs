@@ -2,8 +2,9 @@
 {
     using System;
     using System.Collections;
+    using System.Collections.Generic;
 
-    public class PageOf<T> : IEnumerable, IDisposable
+    public class PageOf<T> : IEnumerable<T>, IDisposable
     {
         private T[] items;
 
@@ -11,7 +12,7 @@
 
         public PageOf(string id)
         {
-            this.items = new T[] { };
+            this.items = Array.Empty<T>();
             this.Id = id;
             this.Count = 0;
         }
@@ -25,6 +26,11 @@
 
             this.items[this.Count] = item;
             this.Count++;
+        }
+
+        public IEnumerator<T> GetEnumerator()
+        {
+            return ((IEnumerable<T>)this.items).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()

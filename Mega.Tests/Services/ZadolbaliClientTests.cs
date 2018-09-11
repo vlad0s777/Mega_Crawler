@@ -4,7 +4,6 @@
     using System.Linq;
     using System.Threading.Tasks;
 
-    using Mega.Services;
     using Mega.Services.WebClient;
 
     using NUnit.Framework;
@@ -18,7 +17,7 @@
             var body = $"<div class='story'><h2><a href='1123'>Нужны сильные программисты</a></h2><div class='meta'><div class='date-time'>"
                        + $"3 декабря 2015, 08:00</div></div><div class='text'><p>1999 год</p></div></div>";
 
-            var article = (await new ZadolbaliClient(Task.FromResult).GetArticles(body)).Articles.First();
+            var article = (await new ZadolbaliClient(Task.FromResult).GetArticles(body)).First();
 
             Assert.AreEqual(DateTime.Parse("3 декабря 2015, 08:00"), article.DateCreate);
             Assert.AreEqual("Нужны сильные программисты", article.Head);
@@ -34,7 +33,7 @@
                 + $"<ul><li><a href = '/tag/longago' > давным - давно </ a >"
                 + $"</li><li><a href='/tag/only-in-russia'>только в России</a></li></ul></div></div>";
 
-            Assert.AreEqual(0, (await new ZadolbaliClient(Task.FromResult).GetArticles(body)).Articles.Count);
+            Assert.AreEqual(0, (await new ZadolbaliClient(Task.FromResult).GetArticles(body)).Count);
         }
 
         [Test]
@@ -45,7 +44,7 @@
                        + $"<ul><li><a href = '/tag/longago'>давным - давно</a>"
                        + $"</li><li><a href='/tag/only-in-russia'>только в России</a></li></ul></div></div><div class='text'><p>1999 год</p></div></div>";
 
-            var article = (await new ZadolbaliClient(Task.FromResult).GetArticles(body)).Articles.First();
+            var article = (await new ZadolbaliClient(Task.FromResult).GetArticles(body)).First();
 
             Assert.AreEqual(DateTime.Parse("3 декабря 2015, 08:00"), article.DateCreate);
             Assert.AreEqual("Нужны сильные программисты", article.Head);
@@ -59,7 +58,7 @@
         {
             var body = $"<li class='prev'><a href='/123'></a></li>";
 
-            var prevUri = (await new ZadolbaliClient(Task.FromResult).GetArticles(body)).IdPrev;
+            var prevUri = (await new ZadolbaliClient(Task.FromResult).GetArticles(body)).PrevPage.Id;
 
             Assert.AreEqual("123", prevUri);        
         }
