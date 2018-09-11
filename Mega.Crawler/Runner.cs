@@ -28,12 +28,6 @@
 
         public void Run()
         {
-            while (string.IsNullOrWhiteSpace(this.settings.RootUriString))
-            {
-                Console.WriteLine("Please enter absolute root url to crawl: ");
-                this.settings.RootUriString = Console.ReadLine();
-            }
-
             if (this.brokers.All(broker => broker.IsEmpty()))
             {
                 this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(string.Empty));                        
@@ -43,8 +37,6 @@
             {
                 messageProcessor.Run();
             }
-
-            Console.ReadLine();
         }
     }
 }

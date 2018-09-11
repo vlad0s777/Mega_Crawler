@@ -42,15 +42,14 @@
 
         public ZadolbaliClient(Func<string, Task<string>> clientDelegate) => this.clientDelegate = clientDelegate;
 
-        public async Task<ClientPair> GetArticles(string idPage)
+        public async Task<PageOf<ArticleInfo>> GetArticles(string idPage)
         {
             Watch.Start();
             var body = await this.clientDelegate.Invoke(idPage);
 
             Logger.LogDebug($"Downloading: {Watch.Elapsed.Milliseconds}");
             Watch.Restart();
-            var articles = new HashSet<ArticleInfo>();
-            string idPrevPage = null;
+            var articles = new PageOf<ArticleInfo>(idPage);
 
             var parser = new HtmlParser();
             var document = await parser.ParseAsync(body);
@@ -95,7 +94,8 @@
             try
             {
                 var hrefPrevPage = document.QuerySelector("li.prev>a").Attributes["href"].Value;
-                idPrevPage = hrefPrevPage.Substring(1);         
+                articles.PrevPage = new PageOf<ArticleInfo>(hrefPrevPage.Substring(1));
+                Logger.LogInformation($"Previous page: {articles.PrevPage.Id}");
             }
             catch (Exception e)
             {
@@ -103,7 +103,7 @@
             }
 
             Logger.LogDebug($"Parcing: {Watch.Elapsed.Milliseconds}");
-            return new ClientPair(idPrevPage, articles);
+            return articles;
         }
 
         public void Dispose()

@@ -51,15 +51,16 @@
 
             try
             {
-                var clientPair = await this.client.GetArticles(message.Id);
-                     
-                this.requests.Send(new UriRequest(clientPair.IdPrev));
-                Logger.LogInformation($"OK {this.RootUri + clientPair.IdPrev}");
+                var page = await this.client.GetArticles(message.Id);
+                var t = page.PrevPage.Id;
+                Logger.LogInformation($"OK {this.RootUri + t}");
+                this.requests.Send(new UriRequest(t));
+                
 
-                foreach (var _ in clientPair.Articles)
-                {
-                    //что-то делаем со статьями
-                }
+//                foreach (var _ in page)
+//                {
+//                    //что-то делаем со статьями
+//                }
             }
             catch (Exception e)
             {

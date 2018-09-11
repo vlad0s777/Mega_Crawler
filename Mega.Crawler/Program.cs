@@ -65,6 +65,7 @@
                 Logger.LogError(e.Message);
             }
 
+            Console.ReadLine();
             Logger.LogDebug("Exit Application");
         }
     }
