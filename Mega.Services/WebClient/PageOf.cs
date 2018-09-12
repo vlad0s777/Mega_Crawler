@@ -4,7 +4,7 @@
     using System.Collections;
     using System.Collections.Generic;
 
-    public class PageOf<T> : IEnumerable<T>, IDisposable
+    public class PageOf<T> : IEnumerable<T>
     {
         private T[] items;
 
@@ -15,6 +15,7 @@
             this.items = Array.Empty<T>();
             this.Id = id;
             this.Count = 0;
+            this.RelatedPageIds = new List<string>();
         }
 
         public void Add(T item)
@@ -63,11 +64,6 @@
             }
         }
 
-        public PageOf<T> PrevPage { get; set; }
-
-        public void Dispose()
-        {
-            this.PrevPage?.Dispose();
-        }
+        public List<string> RelatedPageIds { get; set; }
     }
 }

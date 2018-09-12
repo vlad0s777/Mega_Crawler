@@ -95,7 +95,7 @@
             {
                 var prevSelector = document.QuerySelector("li.prev>a");
                 var hrefPrevPage = prevSelector.Attributes["href"].Value;
-                articles.PrevPage = new PageOf<ArticleInfo>(hrefPrevPage.Substring(1));
+                articles.RelatedPageIds.Add(hrefPrevPage.Substring(1));
 
                 try
                 {
@@ -103,12 +103,11 @@
 
                     if (onePrevSelector.ClassName == "secondary")
                     {
-                        articles.PrevPage.PrevPage = new PageOf<ArticleInfo>(onePrevSelector.Children.First().Attributes["href"].Value.Substring(1));
+                        articles.RelatedPageIds.Add(onePrevSelector.Children.First().Attributes["href"].Value.Substring(1));
                         var twoPrevSelector = onePrevSelector.PreviousElementSibling;
                         if (twoPrevSelector.ClassName == "secondary")
                         {
-                            articles.PrevPage.PrevPage.PrevPage =
-                                new PageOf<ArticleInfo>(twoPrevSelector.Children.First().Attributes["href"].Value.Substring(1));
+                            articles.RelatedPageIds.Add(twoPrevSelector.Children.First().Attributes["href"].Value.Substring(1));
                         }
                     }
                 }

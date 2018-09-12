@@ -58,7 +58,7 @@
         {
             var body = $"<li class='prev'><a href='/123'></a></li>";
 
-            var prevUri = (await new ZadolbaliClient(Task.FromResult).GetArticles(body)).PrevPage.Id;
+            var prevUri = (await new ZadolbaliClient(Task.FromResult).GetArticles(body)).RelatedPageIds.First();
 
             Assert.AreEqual("123", prevUri);        
         }
