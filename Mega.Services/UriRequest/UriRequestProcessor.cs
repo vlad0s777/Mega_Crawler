@@ -53,20 +53,20 @@
 
             try
             {
-                var page = await this.client.GetArticles(message.Id);
+                var articles = await this.client.GetArticles(message.Id);
 
-                var prevPageId = page.RelatedPageIds.First();
+                var prevPageId = articles.RelatedPageIds.First();
 
                 this.requests.Send(new UriRequest(prevPageId));
                 
                 Logger.LogInformation($"OK {this.RootUri + prevPageId}");
 
-                for (var i=0; i < page.RelatedPageIds.Count; i++)
+                for (var i = 0; i < articles.RelatedPageIds.Count; i++)
                 {
-                    Logger.LogDebug($"{message.Id} {i}Prev: {page.RelatedPageIds[i]}");
+                    Logger.LogDebug($"{message.Id} {i}Prev: {articles.RelatedPageIds[i]}");
                 }            
 
-                foreach (var _ in page)
+                foreach (var article in articles)
                 {
                     //что-то делаем со статьями
                 }
