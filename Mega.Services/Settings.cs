@@ -6,32 +6,27 @@
 
     public class Settings
     {
-        public int DepthLimit { get; }
+        public int Timeout { get; }
 
-        public int CountLimit { get; }
+        public int[] Delay { get; }
+
+        public Uri ProxyServer { get; }
 
         public int AttemptLimit { get; }
 
-        public string RootUriString { get; set; }
+        public string RootUriString { get; }
 
-        public Settings(Settings settings)
+        public Settings(string rootUriString, int attemptLimit = 0, Uri proxyServer = null, int delayBegin = 0, int delayEnd = 0, int timeout = 0)
         {
-            this.DepthLimit = settings.DepthLimit;
-            this.CountLimit = settings.CountLimit;
-            this.AttemptLimit = settings.AttemptLimit;
-            this.RootUriString = settings.RootUriString;
-        }
-
-        public Settings(string rootUriString, int depthLimit = -1, int countLimit = -1, int attemptLimit = 0)
-        {
-            this.DepthLimit = depthLimit;
-            this.CountLimit = countLimit;
             this.AttemptLimit = attemptLimit;
             this.RootUriString = rootUriString;
+            this.ProxyServer = proxyServer;
+            this.Delay = new[] { delayBegin, delayEnd };
+            this.Timeout = timeout;
         }
 
         public Settings(IConfiguration settings)
-        {   
+        {
             try
             {
                 this.RootUriString = settings["rootUrl"];
@@ -43,20 +38,29 @@
 
             try
             {
-                this.DepthLimit = Convert.ToInt32(settings["depthLimit"]);
+                this.ProxyServer = new Uri(settings["proxyServer"]);
             }
             catch
             {
-                this.DepthLimit = -1;
+                this.ProxyServer = null;
             }
 
             try
             {
-                this.CountLimit = Convert.ToInt32(settings["countLimit"]);
+                this.Delay = new[] { Convert.ToInt32(settings["delayBegin"]), Convert.ToInt32(settings["delayEnd"]) };
             }
             catch
             {
-                this.CountLimit = -1;
+                this.Delay = null;
+            }
+
+            try
+            {
+                this.Timeout = Convert.ToInt32(settings["timeout"]);
+            }
+            catch
+            {
+                this.Timeout = 0;
             }
 
             try

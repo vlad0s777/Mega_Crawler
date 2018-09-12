@@ -4,14 +4,11 @@
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
-    using System.Net;
     using System.Reflection;
-    using System.Threading;
 
     using DasMulli.Win32.ServiceUtils;
 
     using Mega.Crawler.Infrastructure.IoC;
-    using Mega.Crawler.Services;
     using Mega.Services;
 
     using Microsoft.Extensions.Logging;
@@ -45,35 +42,25 @@
                 registry.IncludeRegistry<SettingsInstaller>();
                 registry.IncludeRegistry<ServicesInstaller>();
 
-                var random = new Random();
-
                 using (var container = new Container(registry))
                 {
-                    using (var client = new WebClient())
+                    var runner = container.GetInstance<Runner>();
+                    try
                     {
-                        container.Configure(
-                            r => r.For<Func<Uri, string>>().Use(
-                                (Func<Uri, string>)(uri =>
-                                                           {
-                                                               Thread.Sleep(random.Next(5000, 15000));
-                                                               return client.DownloadString(uri);
-                                                           })));
+                        runner.Run();
 
-
-                        var runner = container.GetInstance<Runner>();
-                        try
+                        if (isService)
                         {
-                            runner.Run();
-
-                            if (isService)
-                            {
-                                new Win32ServiceHost(new CrawlerService()).Run();
-                            }
+                            new Win32ServiceHost(new CrawlerService()).Run();
                         }
-                        finally
+                        else
                         {
-                            container.Release(runner);
+                            Console.ReadLine();
                         }
+                    }
+                    finally
+                    {
+                        container.Release(runner);
                     }
                 }
             }

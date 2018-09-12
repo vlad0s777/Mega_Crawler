@@ -2,6 +2,7 @@
 {
     using System;
     using System.Text;
+    using System.Threading.Tasks;
 
     using Newtonsoft.Json;
 
@@ -20,7 +21,7 @@
 
         private readonly IBasicProperties properties;
 
-        private readonly EventingBasicConsumer consumer;
+        private readonly AsyncEventingBasicConsumer consumer;
 
         public RabbitMqMessageBroker()
         {
@@ -28,7 +29,7 @@
 
             this.encoding = Encoding.UTF8;
 
-            var factory = new ConnectionFactory();
+            var factory = new ConnectionFactory { DispatchConsumersAsync = true };
 
             this.connection = factory.CreateConnection();
 
@@ -41,10 +42,10 @@
                 autoDelete: false,
                 arguments: null);
 
+            this.model.BasicQos(0u, 1, false);
             this.properties = this.model.CreateBasicProperties();
             this.properties.Persistent = true;
-            this.consumer = new EventingBasicConsumer(this.model);
-
+            this.consumer = new AsyncEventingBasicConsumer(this.model);
         }
 
         public bool IsEmpty() => this.model.MessageCount(this.queueName) == 0;
@@ -76,13 +77,13 @@
             }
         }
 
-        public void ConsumeWith(Action<TMessage> onReceive)
+        public void ConsumeWith(Func<TMessage, Task> onReceive)
         { 
-            this.consumer.Received += (_, ea) =>
+            this.consumer.Received += async (_, ea) =>
                 {
                     var body = this.encoding.GetString(ea.Body);
                     var message = JsonConvert.DeserializeObject<TMessage>(body);
-                    onReceive(message);
+                    await onReceive(message);
                     this.model.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                 };
             this.model.BasicConsume(queue: this.queueName, autoAck: false, consumer: this.consumer);

@@ -1,4 +1,4 @@
-﻿namespace Mega.Services.InfoParser
+﻿namespace Mega.Services.WebClient
 {
     using System;
     using System.Collections.Generic;
@@ -13,12 +13,15 @@
 
         public readonly string Head;
 
-        public ArticleInfo(DateTime dateCreate, Dictionary<string, string> tags, string text, string head)
+        public readonly string Url;
+
+        public ArticleInfo(DateTime dateCreate, Dictionary<string, string> tags, string text, string head, string url)
         {
             this.DateCreate = dateCreate;
             this.Tags = tags;
             this.Text = text;
             this.Head = head;
+            this.Url = url;
         }
     }
 }
