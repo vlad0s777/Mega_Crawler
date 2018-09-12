@@ -97,17 +97,24 @@
                 var hrefPrevPage = prevSelector.Attributes["href"].Value;
                 articles.PrevPage = new PageOf<ArticleInfo>(hrefPrevPage.Substring(1));
 
-                var onePrevSelector = prevSelector.ParentElement.PreviousElementSibling;
-                
-                if (onePrevSelector.ClassName == "secondary")
+                try
                 {
-                    articles.PrevPage.PrevPage = new PageOf<ArticleInfo>(onePrevSelector.Children.First().Attributes["href"].Value.Substring(1));
-                    var twoPrevSelector = onePrevSelector.PreviousElementSibling;
-                    if (twoPrevSelector.ClassName == "secondary")
+                    var onePrevSelector = prevSelector.ParentElement.PreviousElementSibling;
+
+                    if (onePrevSelector.ClassName == "secondary")
                     {
-                        articles.PrevPage.PrevPage.PrevPage =
-                            new PageOf<ArticleInfo>(twoPrevSelector.Children.First().Attributes["href"].Value.Substring(1));
+                        articles.PrevPage.PrevPage = new PageOf<ArticleInfo>(onePrevSelector.Children.First().Attributes["href"].Value.Substring(1));
+                        var twoPrevSelector = onePrevSelector.PreviousElementSibling;
+                        if (twoPrevSelector.ClassName == "secondary")
+                        {
+                            articles.PrevPage.PrevPage.PrevPage =
+                                new PageOf<ArticleInfo>(twoPrevSelector.Children.First().Attributes["href"].Value.Substring(1));
+                        }
                     }
+                }
+                catch
+                {
+                    Logger.LogDebug("No previous pages");
                 }
             }
             catch (Exception e)

@@ -46,6 +46,7 @@
 
             if (!this.VisitedUrls.Add(message.Id))
             {
+                Logger.LogInformation($"{this.RootUri + message.Id} alreydy visited");
                 return;
             }
 
@@ -72,6 +73,7 @@
                 this.requests.Send(new UriRequest(prevPageId));
                 
                 Logger.LogInformation($"OK {this.RootUri + prevPageId}");
+
                 Logger.LogDebug($"{message.Id} onePrev: {page.PrevPage.PrevPage.Id}");
                 Logger.LogDebug($"{message.Id} twoPrev: {page.PrevPage.PrevPage.PrevPage.Id}");
 

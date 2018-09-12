@@ -42,6 +42,7 @@
                 autoDelete: false,
                 arguments: null);
 
+            this.model.BasicQos(0u, 1, false);
             this.properties = this.model.CreateBasicProperties();
             this.properties.Persistent = true;
             this.consumer = new AsyncEventingBasicConsumer(this.model);
