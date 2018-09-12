@@ -52,8 +52,6 @@
                 {
                     messageProcessor.Run();
                 }
-
-            Console.ReadLine();
         }
     }
 }
