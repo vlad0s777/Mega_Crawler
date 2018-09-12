@@ -52,9 +52,28 @@
             try
             {
                 var page = await this.client.GetArticles(message.Id);
+
                 var prevPageId = page.PrevPage.Id;
+
+                void SendAllPages(PageOf<ArticleInfo> prevpage)
+                {
+                    try
+                    {
+                        this.requests.Send(new UriRequest(prevpage.PrevPage.Id));
+                        SendAllPages(prevpage.PrevPage);
+                    }
+                    catch
+                    {
+                        // ignored
+                    }
+                }
+
+                //SendAllPages(page);
                 this.requests.Send(new UriRequest(prevPageId));
+                
                 Logger.LogInformation($"OK {this.RootUri + prevPageId}");
+                Logger.LogDebug($"{message.Id} onePrev: {page.PrevPage.PrevPage.Id}");
+                Logger.LogDebug($"{message.Id} twoPrev: {page.PrevPage.PrevPage.PrevPage.Id}");
 
                 foreach (var _ in page)
                 {

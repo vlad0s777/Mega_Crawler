@@ -53,8 +53,10 @@
                         {
                             new Win32ServiceHost(new CrawlerService()).Run();
                         }
-
-                        Console.ReadLine();
+                        else
+                        {
+                            Console.ReadLine();
+                        }
                     }
                     finally
                     {
