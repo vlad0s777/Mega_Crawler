@@ -38,7 +38,7 @@
             var webRequest = WebRequest.Create(address);
             webRequest.Timeout = this.timeout;
 
-            webRequest.Proxy = this.proxyServer;
+            //webRequest.Proxy = this.proxyServer;
             webRequest.Headers.Add(HttpRequestHeader.Accept, "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8");
             webRequest.Headers.Add(HttpRequestHeader.AcceptLanguage, "ru-RU,ru;q=0.9,en-US;q=0.8,en;q=0.7");
             webRequest.Headers.Add(HttpRequestHeader.Connection, "keep-alive");
