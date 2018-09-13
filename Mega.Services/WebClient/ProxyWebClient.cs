@@ -1,6 +1,7 @@
 ﻿namespace Mega.Services.WebClient
 {
     using System;
+    using System.Diagnostics;
     using System.Linq;
     using System.Net;
     using System.Threading.Tasks;
@@ -10,6 +11,8 @@
     public class ProxyWebClient : WebClient
     {
         private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ProxyWebClient>();
+
+        private static readonly Stopwatch Watch = new Stopwatch();
 
         private readonly int timeout;
 
@@ -47,11 +50,18 @@
 
         public async Task<string> GetStringAsync(string id)
         {
+            Watch.Start();
             if (this.delay != null)
             {
+
                 await Task.Delay(this.random.Next(this.delay.First(), this.delay.Last()));
             }
-            return await DownloadStringTaskAsync(new Uri(this.rootUriString + id, UriKind.Absolute));
+            var watchDelay = Watch.Elapsed.TotalMilliseconds;
+            Watch.Restart();
+            var completeDownloadString = await DownloadStringTaskAsync(new Uri(this.rootUriString + id, UriKind.Absolute));
+            Logger.LogDebug($"Delay: {watchDelay} ms. Downloading: { Watch.Elapsed.TotalMilliseconds} ms.");
+            Watch.Reset();
+            return completeDownloadString;
         }
     }
 }

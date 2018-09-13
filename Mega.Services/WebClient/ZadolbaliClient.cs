@@ -44,11 +44,9 @@
 
         public async Task<PageOf<ArticleInfo>> GetArticles(string idPage)
         {
-            Watch.Start();
             var body = await this.clientDelegate.Invoke(idPage);
 
-            Logger.LogDebug($"Downloading: {Watch.Elapsed.Milliseconds}");
-            Watch.Restart();
+            Watch.Start();
             var articles = new PageOf<ArticleInfo>(idPage);
 
             var parser = new HtmlParser();
@@ -121,7 +119,8 @@
                 Logger.LogError($"Previous page in error: {e.Message}");
             }
 
-            Logger.LogDebug($"Parcing: {Watch.Elapsed.Milliseconds}");
+            Logger.LogDebug($"Parsing: {Watch.Elapsed.TotalMilliseconds} ms.");
+            Watch.Reset();
             return articles;
         }
 

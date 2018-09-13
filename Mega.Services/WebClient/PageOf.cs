@@ -10,6 +10,8 @@
 
         public string Id { get; }
 
+        public List<string> RelatedPageIds { get; set; }
+
         public PageOf(string id)
         {
             this.items = Array.Empty<T>();
@@ -27,16 +29,6 @@
 
             this.items[this.Count] = item;
             this.Count++;
-        }
-
-        public IEnumerator<T> GetEnumerator()
-        {
-            return ((IEnumerable<T>)this.items).GetEnumerator();
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return this.items.GetEnumerator();
         }
 
         public int Count { get; private set; }
@@ -64,6 +56,14 @@
             }
         }
 
-        public List<string> RelatedPageIds { get; set; }
+        public IEnumerator<T> GetEnumerator()
+        {
+            return ((IEnumerable<T>)this.items).GetEnumerator();
+        }
+
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return this.items.GetEnumerator();
+        }
     }
 }
