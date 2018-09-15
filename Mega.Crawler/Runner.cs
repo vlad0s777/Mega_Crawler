@@ -1,6 +1,7 @@
 ﻿namespace Mega.Crawler
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
 
     using Mega.Messaging;
@@ -11,31 +12,41 @@
 
     public class Runner
     {
-        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<Runner>();
-
         private readonly IMessageBroker[] brokers;
 
-        private readonly IMessageProcessor[] processors;
+        private readonly IProcessorFabric processorFabric;
 
-        private readonly Settings settings;
-
-        public Runner(IMessageBroker[] brokers, IMessageProcessor[] processors, Settings settings)
+        public Runner(IMessageBroker[] brokers, IProcessorFabric processorFabric)
         {
-            this.settings = settings;
             this.brokers = brokers;
-            this.processors = processors;     
+            this.processorFabric = processorFabric;
+        }
+
+        private static IEnumerable<string> GenerateIDs(DateTime start)
+        {
+            var current = DateTime.Now;
+            while (current >= start)
+            {
+                yield return current.Date.ToString("yyyyMMdd");
+                current = current.AddDays(-1);
+            }
         }
 
         public void Run()
         {
             if (this.brokers.All(broker => broker.IsEmpty()))
             {
-                this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(string.Empty));                        
-            }
+                foreach (var id in GenerateIDs(new DateTime(2009, 9, 8)))
+                {
+                    this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(id));
+                }
 
-            foreach (var messageProcessor in this.processors)
+                this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(string.Empty));
+            }
+     
+            foreach (var processor in this.processorFabric.Create())
             {
-                messageProcessor.Run();
+                processor.Run();
             }
         }
     }

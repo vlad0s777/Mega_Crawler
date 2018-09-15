@@ -44,15 +44,17 @@
 
         public async Task<PageOf<ArticleInfo>> GetArticles(string idPage)
         {
-            var body = await this.clientDelegate.Invoke(idPage);
-
-            Watch.Start();
             var articles = new PageOf<ArticleInfo>(idPage);
-
-            var parser = new HtmlParser();
-            var document = await parser.ParseAsync(body);
             try
             {
+                var body = await this.clientDelegate.Invoke(idPage);
+
+                Watch.Start();
+
+
+                var parser = new HtmlParser();
+                var document = await parser.ParseAsync(body);
+
                 var articleBody = document.QuerySelectorAll("div.story");
 
                 foreach (var article in articleBody)
@@ -76,7 +78,7 @@
                         }
 
                         articles.Add(new ArticleInfo(date, tagsDictionary, content, head, urlArticle.Value));
-                        Logger.LogInformation($"Add '{head}' document!");
+                        Logger.LogInformation($"Add '{head}' document! Speed: {DownloadStatistic.Speed()}");
                     }
                     catch (Exception e)
                     {
@@ -86,37 +88,7 @@
             }
             catch (Exception e)
             {
-                Logger.LogError($"Article information in error: {e.Message}");
-            }
-
-            try
-            {
-                var prevSelector = document.QuerySelector("li.prev>a");
-                var hrefPrevPage = prevSelector.Attributes["href"].Value;
-                articles.RelatedPageIds.Add(hrefPrevPage.Substring(1));
-
-                try
-                {
-                    var onePrevSelector = prevSelector.ParentElement.PreviousElementSibling;
-
-                    if (onePrevSelector.ClassName == "secondary")
-                    {
-                        articles.RelatedPageIds.Add(onePrevSelector.Children.First().Attributes["href"].Value.Substring(1));
-                        var twoPrevSelector = onePrevSelector.PreviousElementSibling;
-                        if (twoPrevSelector.ClassName == "secondary")
-                        {
-                            articles.RelatedPageIds.Add(twoPrevSelector.Children.First().Attributes["href"].Value.Substring(1));
-                        }
-                    }
-                }
-                catch
-                {
-                    Logger.LogDebug("No previous pages");
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError($"Previous page in error: {e.Message}");
+                throw new Exception(e.Message);
             }
 
             Logger.LogDebug($"Parsing: {Watch.Elapsed.TotalMilliseconds} ms.");

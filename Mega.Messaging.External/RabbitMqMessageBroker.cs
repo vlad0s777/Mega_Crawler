@@ -21,8 +21,6 @@
 
         private readonly IBasicProperties properties;
 
-        private readonly AsyncEventingBasicConsumer consumer;
-
         public RabbitMqMessageBroker()
         {
             this.queueName = typeof(TMessage).FullName;
@@ -45,7 +43,6 @@
             this.model.BasicQos(0u, 1, false);
             this.properties = this.model.CreateBasicProperties();
             this.properties.Persistent = true;
-            this.consumer = new AsyncEventingBasicConsumer(this.model);
         }
 
         public bool IsEmpty() => this.model.MessageCount(this.queueName) == 0;
@@ -78,15 +75,28 @@
         }
 
         public void ConsumeWith(Func<TMessage, Task> onReceive)
-        { 
-            this.consumer.Received += async (_, ea) =>
+        {
+            var modelConsumer = this.connection.CreateModel();
+
+            modelConsumer.QueueDeclare(
+                queue: this.queueName,
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null);
+
+            modelConsumer.BasicQos(0u, 1, false);
+            var properties2 = modelConsumer.CreateBasicProperties();
+            properties2.Persistent = true;
+            var consumer = new AsyncEventingBasicConsumer(modelConsumer);
+            consumer.Received += async (_, ea) =>
                 {
                     var body = this.encoding.GetString(ea.Body);
                     var message = JsonConvert.DeserializeObject<TMessage>(body);
                     await onReceive(message);
-                    this.model.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                    modelConsumer.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                 };
-            this.model.BasicConsume(queue: this.queueName, autoAck: false, consumer: this.consumer);
+            modelConsumer.BasicConsume(queue: this.queueName, autoAck: false, consumer: consumer);
         }
 
         public void Dispose()

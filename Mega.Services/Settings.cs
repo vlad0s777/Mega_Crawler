@@ -10,17 +10,25 @@
 
         public int[] Delay { get; }
 
-        public Uri ProxyServer { get; }
+        public string[] ProxyServers { get; }
+
+        public string CurrentProxyServer { get; set; }
 
         public int AttemptLimit { get; }
 
         public string RootUriString { get; }
 
-        public Settings(string rootUriString, int attemptLimit = 0, Uri proxyServer = null, int delayBegin = 0, int delayEnd = 0, int timeout = 0)
+        public Settings(
+            string rootUriString,
+            string[] proxyServers = null,
+            int attemptLimit = 0,
+            int delayBegin = 0,
+            int delayEnd = 0,
+            int timeout = 0)
         {
             this.AttemptLimit = attemptLimit;
             this.RootUriString = rootUriString;
-            this.ProxyServer = proxyServer;
+            this.ProxyServers = proxyServers;
             this.Delay = new[] { delayBegin, delayEnd };
             this.Timeout = timeout;
         }
@@ -38,11 +46,11 @@
 
             try
             {
-                this.ProxyServer = new Uri(settings["proxyServer"]);
+                this.ProxyServers = settings.GetSection("proxyServers").Get<string[]>();
             }
             catch
             {
-                this.ProxyServer = null;
+                this.ProxyServers = null;
             }
 
             try

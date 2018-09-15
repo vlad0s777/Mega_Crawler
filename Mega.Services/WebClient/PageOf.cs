@@ -10,14 +10,11 @@
 
         public string Id { get; }
 
-        public List<string> RelatedPageIds { get; set; }
-
         public PageOf(string id)
         {
             this.items = Array.Empty<T>();
             this.Id = id;
             this.Count = 0;
-            this.RelatedPageIds = new List<string>();
         }
 
         public void Add(T item)
