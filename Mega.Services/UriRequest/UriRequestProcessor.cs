@@ -1,6 +1,7 @@
 ﻿namespace Mega.Services.UriRequest
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Mega.Messaging;
@@ -61,8 +62,18 @@
             }
         }
 
-        public void Run() => this.requests.ConsumeWith(Handle);
-       
+        public void Run(CancellationToken token)
+        {
+            try
+            {
+                this.requests.ConsumeWith(Handle, token);
+            }
+            catch (Exception e)
+            {
+                Logger.LogWarning(e.Message);
+            }
+        }
+
 
         public void Dispose()
         {

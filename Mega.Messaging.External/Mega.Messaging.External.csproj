@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Mega.Messaging\Mega.Messaging.csproj" />
+    <ProjectReference Include="..\Mega.Services\Mega.Services.csproj" />
   </ItemGroup>
 
 </Project>

@@ -1,8 +1,14 @@
 ﻿namespace Mega.Messaging.External
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
+
+    using Mega.Services;
+
+    using Microsoft.Extensions.Logging;
 
     using Newtonsoft.Json;
 
@@ -11,9 +17,13 @@
 
     public class RabbitMqMessageBroker<TMessage> : IMessageBroker<TMessage>, IDisposable
     {
+        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<RabbitMqMessageBroker<TMessage>>();
+
         private readonly IConnection connection;
 
         private readonly IModel model;
+
+        private readonly ConcurrentBag<IModel> consumerModels = new ConcurrentBag<IModel>();
 
         private readonly string queueName;
 
@@ -40,7 +50,6 @@
                 autoDelete: false,
                 arguments: null);
 
-            this.model.BasicQos(0u, 1, false);
             this.properties = this.model.CreateBasicProperties();
             this.properties.Persistent = true;
         }
@@ -74,35 +83,47 @@
             }
         }
 
-        public void ConsumeWith(Func<TMessage, Task> onReceive)
+        public void ConsumeWith(Func<TMessage, Task> onReceive, CancellationToken token)
         {
-            var modelConsumer = this.connection.CreateModel();
-
-            modelConsumer.QueueDeclare(
+            var consumerModel = this.connection.CreateModel();
+            this.consumerModels.Add(consumerModel);
+            consumerModel.QueueDeclare(
                 queue: this.queueName,
                 durable: true,
                 exclusive: false,
                 autoDelete: false,
                 arguments: null);
 
-            modelConsumer.BasicQos(0u, 1, false);
-            var properties2 = modelConsumer.CreateBasicProperties();
-            properties2.Persistent = true;
-            var consumer = new AsyncEventingBasicConsumer(modelConsumer);
+            consumerModel.BasicQos(0u, 1, false);
+            var consumer = new AsyncEventingBasicConsumer(consumerModel);    
+            
             consumer.Received += async (_, ea) =>
                 {
-                    var body = this.encoding.GetString(ea.Body);
-                    var message = JsonConvert.DeserializeObject<TMessage>(body);
-                    await onReceive(message);
-                    modelConsumer.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                        var body = this.encoding.GetString(ea.Body);
+                        var message = JsonConvert.DeserializeObject<TMessage>(body);
+                        await onReceive(message);                   
+                        consumerModel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                 };
-            modelConsumer.BasicConsume(queue: this.queueName, autoAck: false, consumer: consumer);
+            var tag = consumerModel.BasicConsume(queue: this.queueName, autoAck: false, consumer: consumer);
+
+            token.Register(() =>
+                {
+                    consumerModel.BasicCancel(tag);
+                    Logger.LogError("cancel");
+                });
         }
 
         public void Dispose()
         {
-                this.model?.Dispose();
-                this.connection?.Dispose();
+            this.model?.Close();
+            foreach (var consumerModel in this.consumerModels)
+            {
+                consumerModel?.Close();
+            }
+
+            this.consumerModels?.Clear();
+    
+            this.connection?.Close();
         }
     }
 }

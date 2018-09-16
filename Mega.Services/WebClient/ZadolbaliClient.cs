@@ -88,6 +88,7 @@
             }
             catch (Exception e)
             {
+                Watch.Reset();
                 throw new Exception(e.Message);
             }
 

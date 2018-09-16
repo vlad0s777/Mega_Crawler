@@ -73,7 +73,8 @@
                 return completeDownloadString;
             }
             catch (Exception e)
-            {              
+            {             
+                Watch.Reset();
                 throw new Exception($"This proxy {this.proxyServer.Address} in id: {id} error: {e.Message}");
             }
         }

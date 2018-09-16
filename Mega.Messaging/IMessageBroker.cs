@@ -1,6 +1,7 @@
 ﻿namespace Mega.Messaging
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public interface IMessageBroker
@@ -14,6 +15,6 @@
 
         bool TryReceive(out TMessage message);
 
-        void ConsumeWith(Func<TMessage, Task> onReceive);
+        void ConsumeWith(Func<TMessage, Task> onReceive, CancellationToken token);
     }
 }
