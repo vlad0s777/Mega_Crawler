@@ -6,10 +6,6 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    using Mega.Services;
-
-    using Microsoft.Extensions.Logging;
-
     using Newtonsoft.Json;
 
     using RabbitMQ.Client;
@@ -17,8 +13,6 @@
 
     public class RabbitMqMessageBroker<TMessage> : IMessageBroker<TMessage>, IDisposable
     {
-        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<RabbitMqMessageBroker<TMessage>>();
-
         private readonly IConnection connection;
 
         private readonly IModel model;
@@ -109,16 +103,16 @@
             token.Register(() =>
                 {
                     consumerModel.BasicCancel(tag);
-                    Logger.LogError("cancel");
                 });
         }
 
         public void Dispose()
         {
-            this.model?.Close();
+            this.model?.Dispose();
+
             foreach (var consumerModel in this.consumerModels)
             {
-                consumerModel?.Close();
+                consumerModel?.Dispose();
             }
 
             this.consumerModels?.Clear();
