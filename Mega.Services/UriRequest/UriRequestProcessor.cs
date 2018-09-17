@@ -1,6 +1,7 @@
 ﻿namespace Mega.Services.UriRequest
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Mega.Messaging;
@@ -41,9 +42,9 @@
             {
                 var articles = await this.client.GetArticles(message.Id);
 
-                foreach (var _ in articles)
+                foreach (var article in articles)
                 {
-                    // что-то делаем со статьями
+                    //что-то делаем со статьями
                 }
             }
             catch (Exception e)
@@ -61,17 +62,18 @@
             }
         }
 
-        public void Run()
+        public void Run(CancellationToken token)
         {
             try
             {
-                this.requests.ConsumeWith(Handle);
+                this.requests.ConsumeWith(Handle, token);
             }
             catch (Exception e)
             {
                 Logger.LogWarning(e.Message);
             }
         }
+
 
         public void Dispose()
         {

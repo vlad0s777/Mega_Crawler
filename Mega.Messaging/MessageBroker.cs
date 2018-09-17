@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Concurrent;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public class MessageBroker<T> : IMessageBroker<T>
@@ -10,7 +11,7 @@
 
         public bool TryReceive(out T message) => this.queue.TryDequeue(out message);
 
-        public void ConsumeWith(Func<T, Task> onReceive)
+        public void ConsumeWith(Func<T, Task> onReceive, CancellationToken token)
         {           
             while (TryReceive(out T message))
             {
