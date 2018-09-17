@@ -1,14 +1,8 @@
 ﻿namespace Mega.Messaging.External
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Text;
-    using System.Threading;
     using System.Threading.Tasks;
-
-    using Mega.Services;
-
-    using Microsoft.Extensions.Logging;
 
     using Newtonsoft.Json;
 
@@ -17,13 +11,9 @@
 
     public class RabbitMqMessageBroker<TMessage> : IMessageBroker<TMessage>, IDisposable
     {
-        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<RabbitMqMessageBroker<TMessage>>();
-
         private readonly IConnection connection;
 
         private readonly IModel model;
-
-        private readonly ConcurrentBag<IModel> consumerModels = new ConcurrentBag<IModel>();
 
         private readonly string queueName;
 
@@ -83,10 +73,10 @@
             }
         }
 
-        public void ConsumeWith(Func<TMessage, Task> onReceive, CancellationToken token)
+        public void ConsumeWith(Func<TMessage, Task> onReceive)
         {
             var consumerModel = this.connection.CreateModel();
-            this.consumerModels.Add(consumerModel);
+
             consumerModel.QueueDeclare(
                 queue: this.queueName,
                 durable: true,
@@ -104,25 +94,12 @@
                         await onReceive(message);                   
                         consumerModel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                 };
-            var tag = consumerModel.BasicConsume(queue: this.queueName, autoAck: false, consumer: consumer);
-
-            token.Register(() =>
-                {
-                    consumerModel.BasicCancel(tag);
-                    Logger.LogError("cancel");
-                });
+            consumerModel.BasicConsume(queue: this.queueName, autoAck: false, consumer: consumer);
         }
 
         public void Dispose()
         {
-            this.model?.Close();
-            foreach (var consumerModel in this.consumerModels)
-            {
-                consumerModel?.Close();
-            }
-
-            this.consumerModels?.Clear();
-    
+            this.model?.Dispose();    
             this.connection?.Close();
         }
     }

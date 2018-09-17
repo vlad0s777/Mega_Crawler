@@ -1,8 +1,12 @@
 ﻿namespace Mega.Crawler
 {
     using System;
+    using System.Diagnostics;
     using System.IO;
+    using System.Linq;
     using System.Reflection;
+
+    using DasMulli.Win32.ServiceUtils;
 
     using Mega.Crawler.Infrastructure.IoC;
     using Mega.Services;
@@ -42,6 +46,14 @@
                     try
                     {
                         runner.Run();
+                        if (!(Debugger.IsAttached || args.Contains("--console")))
+                        {
+                            new Win32ServiceHost(new CrawlerService()).Run();
+                        }
+                        else
+                        {
+                            Console.ReadLine();
+                        }
                     }
                     finally
                     {
