@@ -1,5 +1,7 @@
 ﻿namespace Mega.Tests.Messaging
 {
+    using System.Threading;
+
     using Mega.Messaging;
     using Mega.Services.UriRequest;
 
@@ -51,7 +53,7 @@
                 requests.Send(new UriRequest(rootUri + i));
             }
 
-            requests.ConsumeWith(async uri => testRequests.Send(uri));
+            requests.ConsumeWith(async uri => testRequests.Send(uri), new CancellationToken());
 
             Assert.IsFalse(requests.TryReceive(out var _));
             for (var i = 0; i < 10; i++)

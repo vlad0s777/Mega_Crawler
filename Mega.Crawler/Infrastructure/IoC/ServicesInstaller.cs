@@ -10,7 +10,6 @@
     {
         public ServicesInstaller()
         {
-
             ForSingletonOf(typeof(IMessageBroker<>)).Use(typeof(RabbitMqMessageBroker<>));
 
             Forward<IMessageBroker<UriRequest>, IMessageBroker>();

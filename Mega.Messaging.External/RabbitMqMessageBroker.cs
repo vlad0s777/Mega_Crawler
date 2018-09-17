@@ -1,14 +1,10 @@
 ﻿namespace Mega.Messaging.External
 {
     using System;
-    using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-
-    using Mega.Services;
-
-    using Microsoft.Extensions.Logging;
 
     using Newtonsoft.Json;
 
@@ -17,13 +13,11 @@
 
     public class RabbitMqMessageBroker<TMessage> : IMessageBroker<TMessage>, IDisposable
     {
-        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<RabbitMqMessageBroker<TMessage>>();
-
         private readonly IConnection connection;
 
         private readonly IModel model;
 
-        private readonly ConcurrentBag<IModel> consumerModels = new ConcurrentBag<IModel>();
+        private readonly List<IModel> consumerModels = new List<IModel>();
 
         private readonly string queueName;
 
@@ -109,16 +103,15 @@
             token.Register(() =>
                 {
                     consumerModel.BasicCancel(tag);
-                    Logger.LogError("cancel");
                 });
         }
 
         public void Dispose()
         {
-            this.model?.Close();
+            this.model?.Dispose();
             foreach (var consumerModel in this.consumerModels)
             {
-                consumerModel?.Close();
+                consumerModel?.Dispose();
             }
 
             this.consumerModels?.Clear();

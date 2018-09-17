@@ -51,7 +51,6 @@
 
                 Watch.Start();
 
-
                 var parser = new HtmlParser();
                 var document = await parser.ParseAsync(body);
 

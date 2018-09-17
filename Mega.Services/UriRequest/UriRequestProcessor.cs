@@ -42,7 +42,7 @@
             {
                 var articles = await this.client.GetArticles(message.Id);
 
-                foreach (var article in articles)
+                foreach (var _ in articles)
                 {
                     //что-то делаем со статьями
                 }
@@ -73,7 +73,6 @@
                 Logger.LogWarning(e.Message);
             }
         }
-
 
         public void Dispose()
         {

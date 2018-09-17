@@ -11,11 +11,13 @@
     using Mega.Messaging;
     using Mega.Services.UriRequest;
 
-    public class Runner
+    public class Runner : IDisposable
     {
         private readonly IMessageBroker[] brokers;
 
         private readonly IProcessorFabric processorFabric;
+
+        private readonly CancellationTokenSource cts = new CancellationTokenSource();
 
         public Runner(IMessageBroker[] brokers, IProcessorFabric processorFabric)
         {
@@ -35,8 +37,7 @@
 
         public void Run()
         {
-            var cts = new CancellationTokenSource();
-            var token = cts.Token;
+            var token = this.cts.Token;
 
             if (this.brokers.All(broker => broker.IsEmpty()))
             {
@@ -58,9 +59,13 @@
             else
             {
                 Console.ReadLine();
-                cts.Cancel();
+                this.cts.Cancel();
             }
-            //cts.Dispose();
+        }
+
+        public void Dispose()
+        {
+            this.cts?.Dispose();
         }
     }
 }
