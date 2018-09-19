@@ -20,21 +20,23 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="DasMulli.Win32.ServiceUtils" Version="1.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.EventLog" Version="2.1.1" />
-    <PackageReference Include="Microsoft.Extensions.Logging.EventSource" Version="2.1.1" />
+    <PackageReference Include="DasMulli.Win32.ServiceUtils" Version="1.2.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="2.1.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0-preview2-35157" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.2.0-preview2-35157" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.2.0-preview2-35157" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="2.2.0-preview2-35157" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.2.0-preview2-35157" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.2.0-preview2-35157" />
+    <PackageReference Include="Microsoft.Extensions.Logging.EventLog" Version="2.2.0-preview2-35157" />
+    <PackageReference Include="Microsoft.Extensions.Logging.EventSource" Version="2.2.0-preview2-35157" />
     <PackageReference Include="Microsoft.Extensions.Logging.Filter" Version="1.1.2" />
-    <PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="2.1.1" />
+    <PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="2.2.0-preview2-35157" />
     <PackageReference Include="StructureMap" Version="4.7.0" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Mega.Data\Mega.Data.csproj" />
     <ProjectReference Include="..\Mega.Messaging.External\Mega.Messaging.External.csproj" />
     <ProjectReference Include="..\Mega.Messaging\Mega.Messaging.csproj" />
     <ProjectReference Include="..\Mega.Services\Mega.Services.csproj" />

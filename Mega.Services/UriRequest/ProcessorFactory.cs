@@ -4,18 +4,18 @@ namespace Mega.Services.UriRequest
 
     using Mega.Messaging;
 
-    public interface IProcessorFabric
+    public interface IProcessorFactory
     {
         IEnumerable<IMessageProcessor> Create();
     }
 
-    public class UriRequestProcessorFabric : IProcessorFabric
+    public class UriRequestProcessorFactory : IProcessorFactory
     {
         private readonly IMessageBroker<UriRequest> requests;
 
         private readonly Settings settings;
 
-        public UriRequestProcessorFabric(IMessageBroker<UriRequest> requests, Settings settings)
+        public UriRequestProcessorFactory(IMessageBroker<UriRequest> requests, Settings settings)
         {
             this.requests = requests;
             this.settings = settings;

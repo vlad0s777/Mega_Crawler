@@ -2,6 +2,8 @@
 {
     using System.IO;
 
+//    using Mega.Data;
+
     using Microsoft.Extensions.Configuration;
 
     using StructureMap;
@@ -18,6 +20,9 @@
             
             var settings = new Settings(config);
             var servicesSettings = new Services.Settings(config);
+            //var dataContextFactory = new DataContextFactory(config.GetConnectionString("DefaultConnection"));
+
+            //For<DataContextFactory>().Use(dataContextFactory);
 
             ForSingletonOf<Settings>().Use(settings);
             ForSingletonOf<Services.Settings>().Use(servicesSettings);
