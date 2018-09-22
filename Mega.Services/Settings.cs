@@ -1,7 +1,5 @@
 ﻿namespace Mega.Services
 {
-    using System;
-
     using Microsoft.Extensions.Configuration;
 
     public class Settings
@@ -53,32 +51,13 @@
                 this.ProxyServers = null;
             }
 
-            try
-            {
-                this.Delay = new[] { Convert.ToInt32(settings["delayBegin"]), Convert.ToInt32(settings["delayEnd"]) };
-            }
-            catch
-            {
-                this.Delay = null;
-            }
+            this.Delay = int.TryParse(settings["delayBegin"], out var delayBegin) && int.TryParse(settings["delayEnd"], out var delayEnd)
+                             ? new[] { delayBegin, delayEnd }
+                             : null;
 
-            try
-            {
-                this.Timeout = Convert.ToInt32(settings["timeout"]);
-            }
-            catch
-            {
-                this.Timeout = 0;
-            }
+            this.Timeout = int.TryParse(settings["timeout"], out var val) ? val : 0;
 
-            try
-            {
-                this.AttemptLimit = Convert.ToInt32(settings["attemptLimit"]);
-            }
-            catch
-            {
-                this.AttemptLimit = 0;
-            }
+            this.AttemptLimit = int.TryParse(settings["attemptLimit"], out val) ? val : 0;
         }
     }
 }
