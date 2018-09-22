@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations.Schema;
 
     public class Article
     {
@@ -15,6 +16,9 @@
 
         public string Url { get; set; }
 
-        public ICollection<ArticleTag> ArticleTags { get; } = new List<ArticleTag>();
+        public ICollection<ArticleTag> ArticleTags { get; set; } = new List<ArticleTag>();
+
+        [NotMapped]
+        public int CountTags => this.ArticleTags.Count;
     }
 }

@@ -98,7 +98,7 @@
                         await onReceive(message);                   
                         consumerModel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                 };
-            var tag = consumerModel.BasicConsume(queue: this.queueName, autoAck: false, consumer: consumer);
+            var tag = model.BasicConsume(queue: this.queueName, autoAck: false, consumer: consumer);
 
             token.Register(() => consumerModel.BasicCancel(tag));
         }

@@ -1,5 +1,7 @@
 ﻿namespace Mega.Crawler.Infrastructure.IoC
 {
+    using Mega.Data;
+    using Mega.Domain;
     using Mega.Messaging;
     using Mega.Messaging.External;
     using Mega.Services.UriRequest;
@@ -13,6 +15,8 @@
             ForSingletonOf(typeof(IMessageBroker<>)).Use(typeof(RabbitMqMessageBroker<>));
 
             Forward<IMessageBroker<UriRequest>, IMessageBroker>();
+
+            For<IDataContext>().Use<DataContext>();
 
             Scan(
                 s =>

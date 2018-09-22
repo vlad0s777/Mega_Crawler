@@ -1,6 +1,7 @@
 ﻿namespace Mega.Domain
 {
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations.Schema;
 
     public class Tag
     {
@@ -10,6 +11,9 @@
 
         public string Name { get; set; }
 
-        public ICollection<ArticleTag> ArticleTags { get; } = new List<ArticleTag>();
+        public ICollection<ArticleTag> ArticleTags { get; set; } = new List<ArticleTag>();
+
+        [NotMapped]
+        public int CountArticles => this.ArticleTags.Count;
     }
 }

@@ -1,9 +1,11 @@
 ﻿namespace Mega.Services.UriRequest
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
 
+    using Mega.Domain;
     using Mega.Messaging;
     using Mega.Services.WebClient;
 
@@ -17,11 +19,16 @@
 
         private readonly IMessageBroker<UriRequest> requests;
 
+        private readonly IDataContext dataContext; 
+
         public UriRequestProcessor(
             IMessageBroker<UriRequest> requests,
-            Settings settings)
+            Settings settings,
+            IDataContext dataContext)
         {
             this.requests = requests;
+
+            this.dataContext = dataContext;
 
             this.RootUri = new Uri(settings.RootUriString, UriKind.Absolute);
 
@@ -42,10 +49,22 @@
             {
                 var articles = await this.client.GetArticles(message.Id);
 
-                foreach (var _ in articles)
+                foreach (var article in articles)
                 {
-                    //что-то делаем со статьями
+                    var domainArticle = new Article() { DateCreate = article.DateCreate, Head = article.Head, Text = article.Text };
+
+                    //this.dataContext.Articles.Add(domainArticle);
+
+                    foreach (var tag in article.Tags)
+                    {
+                        var domainTag = new Tag() { Name = tag.Value, Uri = tag.Key };             
+                        //this.dataContext.Tags.Add(domainTag);
+
+                        await this.dataContext.AddAsync(new ArticleTag { Article = domainArticle, Tag = domainTag });
+                    }
                 }
+                
+                Logger.LogInformation($"{await this.dataContext.SaveChangesAsync()}");
             }
             catch (Exception e)
             {
@@ -77,6 +96,7 @@
         public void Dispose()
         {
             this.client?.Dispose();
+            this.dataContext?.Dispose();
         }
     }
 }
