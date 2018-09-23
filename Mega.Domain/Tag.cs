@@ -8,7 +8,7 @@
     {
         public int TagId { get; set; }
 
-        public string Uri { get; set; }
+        public string TagKey { get; set; }
 
         public string Name { get; set; }
 
