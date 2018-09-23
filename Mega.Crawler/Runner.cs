@@ -1,42 +1,71 @@
 ﻿namespace Mega.Crawler
 {
     using System;
+    using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Linq;
+    using System.Threading;
+
+    using DasMulli.Win32.ServiceUtils;
 
     using Mega.Messaging;
-    using Mega.Services;
     using Mega.Services.UriRequest;
 
-    using Microsoft.Extensions.Logging;
-
-    public class Runner
+    public class Runner : IDisposable
     {
-        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<Runner>();
-
         private readonly IMessageBroker[] brokers;
 
-        private readonly IMessageProcessor[] processors;
+        private readonly IProcessorFabric processorFabric;
 
-        private readonly Settings settings;
+        private readonly CancellationTokenSource cts = new CancellationTokenSource();
 
-        public Runner(IMessageBroker[] brokers, IMessageProcessor[] processors, Settings settings)
+        public Runner(IMessageBroker[] brokers, IProcessorFabric processorFabric)
         {
-            this.settings = settings;
             this.brokers = brokers;
-            this.processors = processors;     
+            this.processorFabric = processorFabric;
+        }
+
+        public static IEnumerable<string> GenerateIDs(DateTime start)
+        {
+            var current = DateTime.Now;
+            while (current >= start)
+            {
+                yield return current.Date.ToString("yyyyMMdd");
+                current = current.AddDays(-1);
+            }
         }
 
         public void Run()
         {
+            var token = this.cts.Token;
+
             if (this.brokers.All(broker => broker.IsEmpty()))
             {
-                this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(string.Empty));                        
+                foreach (var id in GenerateIDs(new DateTime(2009, 9, 8)))
+                {
+                    this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(id));
+                }
             }
 
-            foreach (var messageProcessor in this.processors)
+            foreach (var processor in this.processorFabric.Create())
             {
-                messageProcessor.Run();
+                processor.Run(token);
             }
+
+            if (!(Debugger.IsAttached || Environment.GetCommandLineArgs().Contains("--console")))
+            {
+                new Win32ServiceHost(new CrawlerService()).Run();
+            }
+            else
+            {
+                Console.ReadLine();
+                this.cts.Cancel();
+            }
+        }
+
+        public void Dispose()
+        {
+            this.cts?.Dispose();
         }
     }
 }

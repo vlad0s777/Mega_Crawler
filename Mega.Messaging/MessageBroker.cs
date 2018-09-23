@@ -1,16 +1,17 @@
 ﻿namespace Mega.Messaging
 {
     using System;
-    using System.Collections.Generic;
+    using System.Collections.Concurrent;
+    using System.Threading;
     using System.Threading.Tasks;
 
     public class MessageBroker<T> : IMessageBroker<T>
     {
-        private readonly Queue<T> queue = new Queue<T>();
+        private readonly ConcurrentQueue<T> queue = new ConcurrentQueue<T>();
 
         public bool TryReceive(out T message) => this.queue.TryDequeue(out message);
 
-        public void ConsumeWith(Func<T, Task> onReceive)
+        public void ConsumeWith(Func<T, Task> onReceive, CancellationToken token)
         {           
             while (TryReceive(out T message))
             {

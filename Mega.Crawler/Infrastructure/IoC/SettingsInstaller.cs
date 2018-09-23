@@ -15,7 +15,7 @@
                 .AddJsonFile($"Mega.Crawler.appsettings.development.json", true); // переменную окружения служба почему то не видит, пришлось написать так
 
             var config = builder.Build();
-
+            
             var settings = new Settings(config);
             var servicesSettings = new Services.Settings(config);
 

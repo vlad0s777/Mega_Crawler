@@ -1,8 +1,7 @@
 ﻿namespace Mega.Services.UriRequest
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Mega.Messaging;
@@ -20,22 +19,16 @@
 
         public UriRequestProcessor(
             IMessageBroker<UriRequest> requests,
-            HashSet<string> visitedUrls,
-            ZadolbaliClient client,
             Settings settings)
         {
             this.requests = requests;
 
-            this.VisitedUrls = visitedUrls;
-
             this.RootUri = new Uri(settings.RootUriString, UriKind.Absolute);
 
-            this.client = client;
+            this.client = new ZadolbaliClient(settings);
 
             this.countAttempt = settings.AttemptLimit;
         }
-
-        private HashSet<string> VisitedUrls { get; }
 
         private Uri RootUri { get; }
 
@@ -43,51 +36,43 @@
 
         public async Task Handle(UriRequest message)
         {
-            Logger.LogInformation($"Processing {this.RootUri + message.Id}");
-
-            if (!this.VisitedUrls.Add(message.Id))
-            {
-                Logger.LogInformation($"{this.RootUri + message.Id} alreydy visited");
-                return;
-            }
+            Logger.LogInformation($"Processing {this.RootUri + message.Id}.");
 
             try
             {
                 var articles = await this.client.GetArticles(message.Id);
 
-                var prevPageId = articles.RelatedPageIds.First();
-
-                this.requests.Send(new UriRequest(prevPageId));
-                
-                Logger.LogInformation($"OK {this.RootUri + prevPageId}");
-
-                for (var i = 0; i < articles.RelatedPageIds.Count; i++)
-                {
-                    Logger.LogDebug($"{message.Id} {i}Prev: {articles.RelatedPageIds[i]}");
-                }            
-
-                foreach (var article in articles)
+                foreach (var _ in articles)
                 {
                     //что-то делаем со статьями
                 }
             }
             catch (Exception e)
             {
-                this.VisitedUrls.Remove(message.Id);
                 var att = message.Attempt + 1;
                 if (att < this.countAttempt)
                 {
                     this.requests.Send(new UriRequest(message.Id, att, message.Depth));
-                    Logger.LogWarning($"{e.Message} in {message.Id}. There are still attempts: {this.countAttempt - message.Attempt}");
+                    Logger.LogWarning($"{e.Message}. There are still attempts: {this.countAttempt - message.Attempt}");
                 }
                 else
                 {
-                    Logger.LogWarning($"{e.Message} in {message.Id}. Attempts are no more!");
+                    Logger.LogWarning($"{e.Message}. Attempts are no more!");
                 }
             }
         }
 
-        public void Run() => this.requests.ConsumeWith(Handle);
+        public void Run(CancellationToken token)
+        {
+            try
+            {
+                this.requests.ConsumeWith(Handle, token);
+            }
+            catch (Exception e)
+            {
+                Logger.LogWarning(e.Message);
+            }
+        }
 
         public void Dispose()
         {

@@ -1,7 +1,9 @@
 ﻿namespace Mega.Messaging.External
 {
     using System;
+    using System.Collections.Generic;
     using System.Text;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Newtonsoft.Json;
@@ -15,13 +17,13 @@
 
         private readonly IModel model;
 
+        private readonly List<IModel> consumerModels = new List<IModel>();
+
         private readonly string queueName;
 
         private readonly Encoding encoding;
 
         private readonly IBasicProperties properties;
-
-        private readonly AsyncEventingBasicConsumer consumer;
 
         public RabbitMqMessageBroker()
         {
@@ -42,10 +44,8 @@
                 autoDelete: false,
                 arguments: null);
 
-            this.model.BasicQos(0u, 1, false);
             this.properties = this.model.CreateBasicProperties();
             this.properties.Persistent = true;
-            this.consumer = new AsyncEventingBasicConsumer(this.model);
         }
 
         public bool IsEmpty() => this.model.MessageCount(this.queueName) == 0;
@@ -77,22 +77,43 @@
             }
         }
 
-        public void ConsumeWith(Func<TMessage, Task> onReceive)
-        { 
-            this.consumer.Received += async (_, ea) =>
+        public void ConsumeWith(Func<TMessage, Task> onReceive, CancellationToken token)
+        {
+            var consumerModel = this.connection.CreateModel();
+            this.consumerModels.Add(consumerModel);
+            consumerModel.QueueDeclare(
+                queue: this.queueName,
+                durable: true,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null);
+
+            consumerModel.BasicQos(0u, 1, false);
+            var consumer = new AsyncEventingBasicConsumer(consumerModel);    
+            
+            consumer.Received += async (_, ea) =>
                 {
-                    var body = this.encoding.GetString(ea.Body);
-                    var message = JsonConvert.DeserializeObject<TMessage>(body);
-                    await onReceive(message);
-                    this.model.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
+                        var body = this.encoding.GetString(ea.Body);
+                        var message = JsonConvert.DeserializeObject<TMessage>(body);
+                        await onReceive(message);                   
+                        consumerModel.BasicAck(deliveryTag: ea.DeliveryTag, multiple: false);
                 };
-            this.model.BasicConsume(queue: this.queueName, autoAck: false, consumer: this.consumer);
+            var tag = consumerModel.BasicConsume(queue: this.queueName, autoAck: false, consumer: consumer);
+
+            token.Register(() => consumerModel.BasicCancel(tag));
         }
 
         public void Dispose()
         {
-                this.model?.Dispose();
-                this.connection?.Dispose();
+            this.model?.Dispose();
+            foreach (var consumerModel in this.consumerModels)
+            {
+                consumerModel?.Dispose();
+            }
+
+            this.consumerModels?.Clear();
+    
+            this.connection?.Close();
         }
     }
 }

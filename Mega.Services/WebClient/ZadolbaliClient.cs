@@ -44,79 +44,52 @@
 
         public async Task<PageOf<ArticleInfo>> GetArticles(string idPage)
         {
-            var body = await this.clientDelegate.Invoke(idPage);
-
-            Watch.Start();
             var articles = new PageOf<ArticleInfo>(idPage);
-
-            var parser = new HtmlParser();
-            var document = await parser.ParseAsync(body);
             try
             {
-                var articleBody = document.QuerySelectorAll("div.story");
+                var body = await this.clientDelegate.Invoke(idPage);
 
-                foreach (var article in articleBody)
+                Watch.Start();
+
+                var parser = new HtmlParser();
+                using (var document = await parser.ParseAsync(body))
                 {
-                    try
-                    {
-                        var articleDoc = await parser.ParseAsync(article.InnerHtml);
+                    var articleBody = document.QuerySelectorAll("div.story");
 
-                        var head = articleDoc.QuerySelector("h2").TextContent;
-                        var urlArticle = articleDoc.QuerySelector("h2>a").Attributes["href"];
-                        var date = GetDate(articleDoc.QuerySelector("div.meta>div.date-time").InnerHtml);
-                        var content = articleDoc.QuerySelector("div.text").InnerHtml;
-                        var tagsSelector = articleDoc.QuerySelectorAll("div.meta>div.tags>ul>li>a");
-                        var tagsDictionary = new Dictionary<string, string>();
-                        foreach (var selector in tagsSelector)
+                    foreach (var article in articleBody)
+                    {
+                        try
                         {
-                            var href = selector.Attributes["href"].Value;
-                            var text = selector.InnerHtml;
+                            var articleDoc = await parser.ParseAsync(article.InnerHtml);
 
-                            tagsDictionary.Add(href, text);
+                            var head = articleDoc.QuerySelector("h2").TextContent;
+                            var urlArticle = articleDoc.QuerySelector("h2>a").Attributes["href"];
+                            var date = GetDate(articleDoc.QuerySelector("div.meta>div.date-time").InnerHtml);
+                            var content = articleDoc.QuerySelector("div.text").InnerHtml;
+                            var tagsSelector = articleDoc.QuerySelectorAll("div.meta>div.tags>ul>li>a");
+                            var tagsDictionary = new Dictionary<string, string>();
+                            foreach (var selector in tagsSelector)
+                            {
+                                var href = selector.Attributes["href"].Value;
+                                var text = selector.InnerHtml;
+
+                                tagsDictionary.Add(href, text);
+                            }
+
+                            articles.Add(new ArticleInfo(date, tagsDictionary, content, head, urlArticle.Value));
+                            Logger.LogInformation($"Add '{head}' document! Speed: {DownloadStatistic.Speed()}");
                         }
-
-                        articles.Add(new ArticleInfo(date, tagsDictionary, content, head, urlArticle.Value));
-                        Logger.LogInformation($"Add '{head}' document!");
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.LogWarning(e.Message);
+                        catch (Exception e)
+                        {
+                            Logger.LogWarning(e.Message);
+                        }
                     }
                 }
             }
             catch (Exception e)
             {
-                Logger.LogError($"Article information in error: {e.Message}");
-            }
-
-            try
-            {
-                var prevSelector = document.QuerySelector("li.prev>a");
-                var hrefPrevPage = prevSelector.Attributes["href"].Value;
-                articles.RelatedPageIds.Add(hrefPrevPage.Substring(1));
-
-                try
-                {
-                    var onePrevSelector = prevSelector.ParentElement.PreviousElementSibling;
-
-                    if (onePrevSelector.ClassName == "secondary")
-                    {
-                        articles.RelatedPageIds.Add(onePrevSelector.Children.First().Attributes["href"].Value.Substring(1));
-                        var twoPrevSelector = onePrevSelector.PreviousElementSibling;
-                        if (twoPrevSelector.ClassName == "secondary")
-                        {
-                            articles.RelatedPageIds.Add(twoPrevSelector.Children.First().Attributes["href"].Value.Substring(1));
-                        }
-                    }
-                }
-                catch
-                {
-                    Logger.LogDebug("No previous pages");
-                }
-            }
-            catch (Exception e)
-            {
-                Logger.LogError($"Previous page in error: {e.Message}");
+                Watch.Reset();
+                throw new Exception(e.Message);
             }
 
             Logger.LogDebug($"Parsing: {Watch.Elapsed.TotalMilliseconds} ms.");

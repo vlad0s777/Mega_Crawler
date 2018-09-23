@@ -28,7 +28,7 @@
         {
             this.timeout = settings.Timeout;
             this.delay = settings.Delay;
-            this.proxyServer = new WebProxy(settings.ProxyServer);
+            this.proxyServer = new WebProxy(settings.CurrentProxyServer);
             this.random = new Random();
             this.rootUriString = settings.RootUriString;
         }
@@ -50,18 +50,33 @@
 
         public async Task<string> GetStringAsync(string id)
         {
-            Watch.Start();
-            if (this.delay != null)
+            try
             {
+                Watch.Start();
+                DownloadStatistic.Start();
 
-                await Task.Delay(this.random.Next(this.delay.First(), this.delay.Last()));
+                if (this.delay != null)
+                {
+                    await Task.Delay(this.random.Next(this.delay.First(), this.delay.Last()));
+                }
+
+                var watchDelay = Watch.Elapsed.TotalMilliseconds;
+                Watch.Restart();
+
+                var completeDownloadString = await DownloadStringTaskAsync(new Uri(this.rootUriString + id, UriKind.Absolute));
+
+                DownloadStatistic.Inсrement();
+
+                Logger.LogDebug(
+                    $"Delay: {watchDelay} ms. Downloading: {Watch.Elapsed.TotalMilliseconds} ms. Speed: {DownloadStatistic.Speed()}");
+                Watch.Reset();
+                return completeDownloadString;
             }
-            var watchDelay = Watch.Elapsed.TotalMilliseconds;
-            Watch.Restart();
-            var completeDownloadString = await DownloadStringTaskAsync(new Uri(this.rootUriString + id, UriKind.Absolute));
-            Logger.LogDebug($"Delay: {watchDelay} ms. Downloading: { Watch.Elapsed.TotalMilliseconds} ms.");
-            Watch.Reset();
-            return completeDownloadString;
+            catch (Exception e)
+            {             
+                Watch.Reset();
+                throw new Exception($"This proxy {this.proxyServer.Address} in id: {id} error: {e.Message}");
+            }
         }
     }
 }
