@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -57,8 +58,18 @@
 
                     foreach (var tag in article.Tags)
                     {
-                        var domainTag = new Tag() { Name = tag.Value, Uri = tag.Key };             
+                        var domainTag = new Tag();
                         //this.dataContext.Tags.Add(domainTag);
+                        try
+                        {
+
+                            domainTag = this.dataContext.Tags.Where(t => t.Uri == tag.Key).First();
+                        }
+                        catch (Exception e)
+                        {
+                            domainTag = new Tag() { Name = tag.Value, Uri = tag.Key };
+
+                        }
 
                         await this.dataContext.AddAsync(new ArticleTag { Article = domainArticle, Tag = domainTag });
                     }
