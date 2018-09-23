@@ -2,6 +2,8 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.ComponentModel.DataAnnotations.Schema;
+    using System.Linq;
 
     public class Article
     {
@@ -15,6 +17,9 @@
 
         public string Url { get; set; }
 
-        public ICollection<ArticleTag> ArticleTags { get; } = new List<ArticleTag>();
+        public virtual ICollection<ArticleTag> ArticleTags { get; } = new List<ArticleTag>();
+
+        [NotMapped]
+        public IEnumerable<Tag> Tags => this.ArticleTags.Select(e => e.Tag);
     }
 }
