@@ -15,8 +15,6 @@
 
         public string Head { get; set; }
 
-        public string Url { get; set; }
-
         public virtual ICollection<ArticleTag> ArticleTags { get; } = new List<ArticleTag>();
 
         [NotMapped]
