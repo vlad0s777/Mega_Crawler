@@ -52,36 +52,37 @@
                 Watch.Start();
 
                 var parser = new HtmlParser();
-                var document = await parser.ParseAsync(body);
-
-                var articleBody = document.QuerySelectorAll("div.story");
-
-                foreach (var article in articleBody)
+                using (var document = await parser.ParseAsync(body))
                 {
-                    try
-                    {
-                        var articleDoc = await parser.ParseAsync(article.InnerHtml);
+                    var articleBody = document.QuerySelectorAll("div.story");
 
-                        var head = articleDoc.QuerySelector("h2").TextContent;
-                        var urlArticle = articleDoc.QuerySelector("h2>a").Attributes["href"];
-                        var date = GetDate(articleDoc.QuerySelector("div.meta>div.date-time").InnerHtml);
-                        var content = articleDoc.QuerySelector("div.text").InnerHtml;
-                        var tagsSelector = articleDoc.QuerySelectorAll("div.meta>div.tags>ul>li>a");
-                        var tagsDictionary = new Dictionary<string, string>();
-                        foreach (var selector in tagsSelector)
+                    foreach (var article in articleBody)
+                    {
+                        try
                         {
-                            var href = selector.Attributes["href"].Value;
-                            var text = selector.InnerHtml;
+                            var articleDoc = await parser.ParseAsync(article.InnerHtml);
 
-                            tagsDictionary.Add(href, text);
+                            var head = articleDoc.QuerySelector("h2").TextContent;
+                            var urlArticle = articleDoc.QuerySelector("h2>a").Attributes["href"];
+                            var date = GetDate(articleDoc.QuerySelector("div.meta>div.date-time").InnerHtml);
+                            var content = articleDoc.QuerySelector("div.text").InnerHtml;
+                            var tagsSelector = articleDoc.QuerySelectorAll("div.meta>div.tags>ul>li>a");
+                            var tagsDictionary = new Dictionary<string, string>();
+                            foreach (var selector in tagsSelector)
+                            {
+                                var href = selector.Attributes["href"].Value;
+                                var text = selector.InnerHtml;
+
+                                tagsDictionary.Add(href, text);
+                            }
+
+                            articles.Add(new ArticleInfo(date, tagsDictionary, content, head, urlArticle.Value));
+                            Logger.LogInformation($"Add '{head}' document! Speed: {DownloadStatistic.Speed()}");
                         }
-
-                        articles.Add(new ArticleInfo(date, tagsDictionary, content, head, urlArticle.Value));
-                        Logger.LogInformation($"Add '{head}' document! Speed: {DownloadStatistic.Speed()}");
-                    }
-                    catch (Exception e)
-                    {
-                        Logger.LogWarning(e.Message);
+                        catch (Exception e)
+                        {
+                            Logger.LogWarning(e.Message);
+                        }
                     }
                 }
             }

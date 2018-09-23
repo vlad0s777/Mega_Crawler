@@ -1,7 +1,5 @@
 ﻿namespace Mega.Crawler
 {
-    using System;
-
     using Microsoft.Extensions.Configuration;
 
     public class Settings
@@ -20,7 +18,7 @@
         }
 
         public Settings(IConfiguration settings)
-        {   
+        {
             try
             {
                 this.RootUriString = settings["rootUrl"];
@@ -30,23 +28,9 @@
                 this.RootUriString = string.Empty;
             }
 
-            try
-            {
-                this.DepthLimit = Convert.ToInt32(settings["depthLimit"]);
-            }
-            catch
-            {
-                this.DepthLimit = -1;
-            }
+            this.DepthLimit = int.TryParse(settings["depthLimit"], out var val) ? val : -1;
 
-            try
-            {
-                this.CountLimit = Convert.ToInt32(settings["countLimit"]);
-            }
-            catch
-            {
-                this.CountLimit = -1;
-            }
+            this.CountLimit = int.TryParse(settings["countLimit"], out val) ? val : -1;
         }
     }
 }
