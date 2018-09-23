@@ -6,14 +6,14 @@
 
     public class DataContext : DbContext, IDataContext
     {
-//        public DataContext()
-//        {          
-//        }
-//
-//        public DataContext(DbContextOptions options)
-//            : base(options)
-//        {
-//        }
+        public DataContext()
+        {          
+        }
+
+        public DataContext(DbContextOptions options)
+            : base(options)
+        {
+        }
 
         public DbSet<Article> Articles { get; set; }
 
@@ -21,7 +21,7 @@
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=11111");
+            //optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=11111");
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

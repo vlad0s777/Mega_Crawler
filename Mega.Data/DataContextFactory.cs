@@ -6,9 +6,8 @@
     using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.Design;
     using Microsoft.Extensions.Configuration;
-    using Microsoft.Extensions.DependencyInjection;
 
-/*    public class DataContextFactory : IDesignTimeDbContextFactory<DataContext>
+    public class DataContextFactory : IDesignTimeDbContextFactory<DataContext>
     {
         private static string connectionString;
 
@@ -24,7 +23,7 @@
             var builder = new DbContextOptionsBuilder<DataContext>();
             builder.UseNpgsql(connectionString);
 
-            return new DataContext();
+            return new DataContext(builder.Options);
         }
 
         private static void LoadConnectionString()
@@ -36,5 +35,5 @@
             var config = builder.Build();
             connectionString = config.GetConnectionString("DefaultConnection");
         }
-    }*/
+    }
 }
