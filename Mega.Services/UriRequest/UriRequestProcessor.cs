@@ -1,8 +1,6 @@
 ﻿namespace Mega.Services.UriRequest
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -10,6 +8,7 @@
     using Mega.Messaging;
     using Mega.Services.WebClient;
 
+    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
 
     public class UriRequestProcessor : IMessageProcessor<UriRequest>, IDisposable
@@ -52,30 +51,41 @@
 
                 foreach (var article in articles)
                 {
-                    var domainArticle = new Article() { DateCreate = article.DateCreate, Head = article.Head, Text = article.Text };
-
-                    //this.dataContext.Articles.Add(domainArticle);
+                    Article domainArticle;
+                    try
+                    {
+                        await this.dataContext.Articles.FirstAsync(t => t.ArticleId == Convert.ToInt32(article.Url));
+                        continue;
+                    }
+                    catch (Exception)
+                    {
+                        domainArticle = new Article()
+                                            {
+                                                ArticleId = Convert.ToInt32(article.Url),
+                                                DateCreate = article.DateCreate,
+                                                Head = article.Head,
+                                                Text = article.Text
+                                            };
+                    }
 
                     foreach (var tag in article.Tags)
                     {
-                        var domainTag = new Tag();
-                        //this.dataContext.Tags.Add(domainTag);
+                        Tag domainTag;
                         try
                         {
-
-                            domainTag = this.dataContext.Tags.Where(t => t.Uri == tag.Key).First();
+                            domainTag = await this.dataContext.Tags.FirstAsync(t => t.TagKey == tag.Key);
                         }
-                        catch (Exception e)
+                        catch (Exception)
                         {
-                            domainTag = new Tag() { Name = tag.Value, Uri = tag.Key };
-
+                            domainTag = new Tag() { Name = tag.Value, TagKey = tag.Key };
                         }
 
                         await this.dataContext.AddAsync(new ArticleTag { Article = domainArticle, Tag = domainTag });
+                        Logger.LogInformation($"{await this.dataContext.SaveChangesAsync()}. Speed: {DownloadStatistic.Speed()}");
                     }
                 }
+
                 
-                Logger.LogInformation($"{await this.dataContext.SaveChangesAsync()}");
             }
             catch (Exception e)
             {
@@ -83,11 +93,11 @@
                 if (att < this.countAttempt)
                 {
                     this.requests.Send(new UriRequest(message.Id, att, message.Depth));
-                    Logger.LogWarning($"{e.Message}. There are still attempts: {this.countAttempt - message.Attempt}");
+                    Logger.LogWarning($"{e.Message}. There are still attempts: {this.countAttempt - message.Attempt} Speed: {DownloadStatistic.Speed()}");
                 }
                 else
                 {
-                    Logger.LogWarning($"{e.Message}. Attempts are no more!");
+                    Logger.LogWarning($"{e.Message}. Attempts are no more! Speed: {DownloadStatistic.Speed()}");
                 }
             }
         }

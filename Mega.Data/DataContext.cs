@@ -6,42 +6,28 @@
 
     public class DataContext : DbContext, IDataContext
     {
-        public DataContext()
-        {          
-        }
+        private readonly string connectionString;
 
-        public DataContext(DbContextOptions options)
-            : base(options)
+        public DataContext(string connectionString)
+            : base(new DbContextOptionsBuilder<DataContext>().UseNpgsql(connectionString).Options)
         {
+            this.connectionString = connectionString;
         }
 
         public DbSet<Article> Articles { get; set; }
 
         public DbSet<Tag> Tags { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public IDataContext CreateNewContext()
         {
-            //optionsBuilder.UseNpgsql("Host=localhost;Port=5432;Database=postgres;Username=postgres;Password=11111");
+            return new DataContext(this.connectionString);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            
-
-            modelBuilder.Entity<ArticleTag>()
-                .HasKey(pc => new { pc.ArticleId, pc.TagId });
-
-            modelBuilder.Entity<ArticleTag>()
-                .HasOne(pc => pc.Article)
-                .WithMany(p => p.ArticleTags)
-                .HasForeignKey(pc => pc.ArticleId);
-
-            modelBuilder.Entity<ArticleTag>()
-                .HasOne(pc => pc.Tag)
-                .WithMany(c => c.ArticleTags)
-                .HasForeignKey(pc => pc.TagId);
-
-           // base.OnModelCreating(modelBuilder);
+            modelBuilder.Entity<ArticleTag>().HasKey(pc => new { pc.ArticleId, pc.TagId });
+            modelBuilder.Entity<ArticleTag>().HasOne(pc => pc.Article).WithMany(p => p.ArticleTags).HasForeignKey(pc => pc.ArticleId);
+            modelBuilder.Entity<ArticleTag>().HasOne(pc => pc.Tag).WithMany(c => c.ArticleTags);
         }
     }
 }

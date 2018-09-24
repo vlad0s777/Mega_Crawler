@@ -20,10 +20,7 @@
                 LoadConnectionString();
             }
 
-            var builder = new DbContextOptionsBuilder<DataContext>();
-            builder.UseNpgsql(connectionString);
-
-            return new DataContext(builder.Options);
+            return new DataContext(connectionString);
         }
 
         private static void LoadConnectionString()

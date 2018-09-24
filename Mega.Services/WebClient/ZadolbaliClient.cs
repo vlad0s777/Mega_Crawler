@@ -70,13 +70,13 @@
                             var tagsDictionary = new Dictionary<string, string>();
                             foreach (var selector in tagsSelector)
                             {
-                                var href = selector.Attributes["href"].Value;
+                                var href = selector.Attributes["href"].Value.Split("/").Last();
                                 var text = selector.InnerHtml;
 
                                 tagsDictionary.Add(href, text);
                             }
 
-                            articles.Add(new ArticleInfo(date, tagsDictionary, content, head, urlArticle.Value));
+                            articles.Add(new ArticleInfo(date, tagsDictionary, content, head, urlArticle.Value.Split("/").Last()));
                             Logger.LogInformation($"Add '{head}' document! Speed: {DownloadStatistic.Speed()}");
                         }
                         catch (Exception e)

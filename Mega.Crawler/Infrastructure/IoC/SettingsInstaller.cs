@@ -2,9 +2,13 @@
 {
     using System.IO;
 
+    using Mega.Data;
+    using Mega.Domain;
+
     using Microsoft.Extensions.Configuration;
 
     using StructureMap;
+    using StructureMap.Pipeline;
 
     public class SettingsInstaller : Registry
     {
@@ -15,9 +19,13 @@
                 .AddJsonFile($"Mega.Crawler.appsettings.development.json", true);
 
             var config = builder.Build();
-            
+
+            var connectionString = config.GetConnectionString("DefaultConnection");
+
             var settings = new Settings(config);
             var servicesSettings = new Services.Settings(config);
+
+            For<IDataContext>().Use(new DataContext(connectionString));
 
             ForSingletonOf<Settings>().Use(settings);
             ForSingletonOf<Services.Settings>().Use(servicesSettings);

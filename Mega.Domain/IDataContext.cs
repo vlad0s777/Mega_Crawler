@@ -1,7 +1,6 @@
 ﻿namespace Mega.Domain
 {
     using System;
-    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -17,5 +16,7 @@
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         Task<EntityEntry> AddAsync(object entity, CancellationToken cancellationToken = default(CancellationToken));
+
+        IDataContext CreateNewContext();
     }
 }

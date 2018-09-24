@@ -15,15 +15,13 @@
             ForSingletonOf(typeof(IMessageBroker<>)).Use(typeof(RabbitMqMessageBroker<>));
 
             Forward<IMessageBroker<UriRequest>, IMessageBroker>();
-
-            For<IDataContext>().Use<DataContext>();
-
-            Scan(
-                s =>
-                    {
-                        s.AssembliesFromPath(".");
-                        s.AddAllTypesOf<IProcessorFactory>();
-                    });
+            ForSingletonOf<IProcessorFactory>().Use<UriRequestProcessorFactory>();
+                        Scan(
+                            s =>
+                                {
+                                    s.AssembliesFromPath(".");
+                                    s.AddAllTypesOf<IProcessorFactory>();
+                                });
         }
     }
 }
