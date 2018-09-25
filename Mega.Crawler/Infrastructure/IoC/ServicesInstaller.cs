@@ -1,9 +1,8 @@
 ﻿namespace Mega.Crawler.Infrastructure.IoC
 {
-    using Mega.Data;
-    using Mega.Domain;
     using Mega.Messaging;
     using Mega.Messaging.External;
+    using Mega.Services;
     using Mega.Services.UriRequest;
 
     using StructureMap;
@@ -15,6 +14,7 @@
             ForSingletonOf(typeof(IMessageBroker<>)).Use(typeof(RabbitMqMessageBroker<>));
 
             Forward<IMessageBroker<UriRequest>, IMessageBroker>();
+
             ForSingletonOf<IProcessorFactory>().Use<UriRequestProcessorFactory>();
                         Scan(
                             s =>
@@ -22,6 +22,8 @@
                                     s.AssembliesFromPath(".");
                                     s.AddAllTypesOf<IProcessorFactory>();
                                 });
+
+            ForConcreteType<Initial>();
         }
     }
 }

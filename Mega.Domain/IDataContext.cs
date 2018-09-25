@@ -13,10 +13,16 @@
 
         DbSet<Tag> Tags { get; set; }
 
+        IDataContext CreateNewContext();
+
+        void Migrate();
+
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         Task<EntityEntry> AddAsync(object entity, CancellationToken cancellationToken = default(CancellationToken));
 
-        IDataContext CreateNewContext();
+        int SaveChanges();
+
+        EntityEntry Add(object entity); 
     }
 }

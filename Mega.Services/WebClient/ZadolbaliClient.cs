@@ -18,7 +18,7 @@
 
         public static DateTime GetDate(string specificDate)
         {
-            var parts = specificDate.Split(new char[] { ',', ':' });
+            var parts = specificDate.Split(',', ':');
             switch (parts.First().ToLower())
             {
                 case "сегодня":
@@ -65,18 +65,18 @@
                             var head = articleDoc.QuerySelector("h2").TextContent;
                             var urlArticle = articleDoc.QuerySelector("h2>a").Attributes["href"];
                             var date = GetDate(articleDoc.QuerySelector("div.meta>div.date-time").InnerHtml);
-                            var content = articleDoc.QuerySelector("div.text").InnerHtml;
+                            var content = articleDoc.QuerySelector("div.text").TextContent;
                             var tagsSelector = articleDoc.QuerySelectorAll("div.meta>div.tags>ul>li>a");
-                            var tagsDictionary = new Dictionary<string, string>();
+                            var tags = new List<TagInfo>();
                             foreach (var selector in tagsSelector)
                             {
-                                var href = selector.Attributes["href"].Value.Split("/").Last();
+                                var key = selector.Attributes["href"].Value.Split("/").Last();
                                 var text = selector.InnerHtml;
 
-                                tagsDictionary.Add(href, text);
+                                tags.Add(new TagInfo(key, text));
                             }
 
-                            articles.Add(new ArticleInfo(date, tagsDictionary, content, head, urlArticle.Value.Split("/").Last()));
+                            articles.Add(new ArticleInfo(date, tags, content, head, Convert.ToInt32(urlArticle.Value.Split("/").Last())));
                             Logger.LogInformation($"Add '{head}' document! Speed: {DownloadStatistic.Speed()}");
                         }
                         catch (Exception e)
@@ -92,7 +92,7 @@
                 throw new Exception(e.Message);
             }
 
-            Logger.LogDebug($"Parsing: {Watch.Elapsed.TotalMilliseconds} ms.");
+            Logger.LogDebug($"Parsing pages: {Watch.Elapsed.TotalMilliseconds} ms.");
             Watch.Reset();
             return articles;
         }

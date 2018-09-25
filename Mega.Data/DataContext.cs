@@ -23,6 +23,11 @@
             return new DataContext(this.connectionString);
         }
 
+        public void Migrate()
+        {
+            this.Database.Migrate();
+        }
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<ArticleTag>().HasKey(pc => new { pc.ArticleId, pc.TagId });

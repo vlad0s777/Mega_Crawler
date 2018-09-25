@@ -9,7 +9,7 @@
     using NUnit.Framework;
 
     [TestFixture]
-    internal class ZadolbaliClientTest
+    internal class ZadolbaliClientTests
     {
         [Test]
         public async Task EmptyTagsTest()
@@ -21,7 +21,7 @@
 
             Assert.AreEqual(DateTime.Parse("3 декабря 2015, 08:00"), article.DateCreate);
             Assert.AreEqual("Нужны сильные программисты", article.Head);
-            Assert.AreEqual("<p>1999 год</p>", article.Text);
+            Assert.AreEqual("1999 год", article.Text);
             Assert.IsEmpty(article.Tags);
         }
 
@@ -48,9 +48,9 @@
 
             Assert.AreEqual(DateTime.Parse("3 декабря 2015, 08:00"), article.DateCreate);
             Assert.AreEqual("Нужны сильные программисты", article.Head);
-            Assert.AreEqual("<p>1999 год</p>", article.Text);
-            Assert.AreEqual("давным - давно", article.Tags["/tag/longago"]);
-            Assert.AreEqual("только в России", article.Tags["/tag/only-in-russia"]);
+            Assert.AreEqual("1999 год", article.Text);
+            Assert.AreEqual("давным - давно", article.Tags[0].Name);
+            Assert.AreEqual("только в России", article.Tags[1].Name);
         }
 
         [Test]

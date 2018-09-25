@@ -51,41 +51,29 @@
 
                 foreach (var article in articles)
                 {
-                    Article domainArticle;
-                    try
-                    {
-                        await this.dataContext.Articles.FirstAsync(t => t.ArticleId == Convert.ToInt32(article.Url));
-                        continue;
-                    }
-                    catch (Exception)
-                    {
-                        domainArticle = new Article()
+                    var domainArticle = new Article()
                                             {
-                                                ArticleId = Convert.ToInt32(article.Url),
+                                                ArticleId = article.Id,
                                                 DateCreate = article.DateCreate,
                                                 Head = article.Head,
                                                 Text = article.Text
                                             };
-                    }
-
-                    foreach (var tag in article.Tags)
+                    try
                     {
-                        Tag domainTag;
-                        try
+                        foreach (var tag in article.Tags)
                         {
-                            domainTag = await this.dataContext.Tags.FirstAsync(t => t.TagKey == tag.Key);
-                        }
-                        catch (Exception)
-                        {
-                            domainTag = new Tag() { Name = tag.Value, TagKey = tag.Key };
+                            var domainTag = await this.dataContext.Tags.FirstAsync(t => t.TagKey == tag.TagKey);
+                            await this.dataContext.AddAsync(new ArticleTag { Article = domainArticle, Tag = domainTag });
                         }
 
-                        await this.dataContext.AddAsync(new ArticleTag { Article = domainArticle, Tag = domainTag });
-                        Logger.LogInformation($"{await this.dataContext.SaveChangesAsync()}. Speed: {DownloadStatistic.Speed()}");
+                        await this.dataContext.SaveChangesAsync();
+                        Logger.LogInformation($"Added from the page {message.Id} to the database {domainArticle.Head}.");
+                    }
+                    catch (DbUpdateException)
+                    {
+                        Logger.LogWarning($"Article id {domainArticle.ArticleId} alreydy exists!");
                     }
                 }
-
-                
             }
             catch (Exception e)
             {
@@ -93,11 +81,12 @@
                 if (att < this.countAttempt)
                 {
                     this.requests.Send(new UriRequest(message.Id, att, message.Depth));
-                    Logger.LogWarning($"{e.Message}. There are still attempts: {this.countAttempt - message.Attempt} Speed: {DownloadStatistic.Speed()}");
+                    Logger.LogWarning(
+                        $"{e.Message}. There are still attempts: {this.countAttempt - message.Attempt}");
                 }
                 else
                 {
-                    Logger.LogWarning($"{e.Message}. Attempts are no more! Speed: {DownloadStatistic.Speed()}");
+                    Logger.LogWarning($"{e.Message}. Attempts are no more!");
                 }
             }
         }

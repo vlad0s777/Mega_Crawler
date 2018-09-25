@@ -1,14 +1,15 @@
 ﻿namespace Mega.Crawler
 {
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
 
     using DasMulli.Win32.ServiceUtils;
 
+    using Mega.Domain;
     using Mega.Messaging;
+    using Mega.Services;
     using Mega.Services.UriRequest;
 
     public class Runner : IDisposable
@@ -17,31 +18,34 @@
 
         private readonly IProcessorFactory processorFabric;
 
+        private readonly IDataContext dataContext;
+
         private readonly CancellationTokenSource cts = new CancellationTokenSource();
 
-        public Runner(IMessageBroker[] brokers, IProcessorFactory processorFabric)
+        private readonly Initial initial;
+
+        public Runner(IMessageBroker[] brokers, IProcessorFactory processorFabric, Initial initial, IDataContext dataContext)
         {
             this.brokers = brokers;
             this.processorFabric = processorFabric;
+            this.initial = initial;
+            this.dataContext = dataContext;
         }
-
-        public static IEnumerable<string> GenerateIDs(DateTime start)
-        {
-            var current = DateTime.Now;
-            while (current >= start)
-            {
-                yield return current.Date.ToString("yyyyMMdd");
-                current = current.AddDays(-1);
-            }
-        }
-
+        
         public void Run()
         {
             var token = this.cts.Token;
 
-            if (this.brokers.All(broker => broker.IsEmpty()))
+            if (Environment.GetCommandLineArgs().Contains("--migrate"))
             {
-                foreach (var id in GenerateIDs(new DateTime(2009, 9, 8)))
+                this.dataContext.Migrate();
+            }
+
+            this.initial.AddTagInBase();
+
+            if (this.brokers.All(broker => broker.IsEmpty()))
+            {               
+                foreach (var id in this.initial.GenerateIDs(new DateTime(2009, 9, 8)))
                 {
                     this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(id));
                 }
@@ -66,6 +70,7 @@
         public void Dispose()
         {
             this.cts?.Dispose();
+            this.dataContext?.Dispose();
         }
     }
 }
