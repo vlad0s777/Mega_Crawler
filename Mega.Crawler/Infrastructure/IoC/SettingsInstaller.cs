@@ -8,7 +8,6 @@
     using Microsoft.Extensions.Configuration;
 
     using StructureMap;
-    using StructureMap.Pipeline;
 
     public class SettingsInstaller : Registry
     {

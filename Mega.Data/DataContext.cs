@@ -1,5 +1,8 @@
 ﻿namespace Mega.Data
 {
+    using System.Collections.Generic;
+    using System.Linq;
+
     using Mega.Domain;
 
     using Microsoft.EntityFrameworkCore;
@@ -16,7 +19,19 @@
 
         public DbSet<Article> Articles { get; set; }
 
+        public IEnumerable<Article> GetArticles(int limit = 0, int offset = 0)
+        {
+            return this.Articles.Skip(offset).Take(limit);
+        }
+
         public DbSet<Tag> Tags { get; set; }
+
+        public IEnumerable<Tag> GetTags(int limit = 0, int offset = 0)
+        {
+            return this.Tags.Skip(offset).Take(limit);
+        }
+
+        public DbSet<ArticleTag> ArticlesTags { get; set; }
 
         public IDataContext CreateNewContext()
         {
