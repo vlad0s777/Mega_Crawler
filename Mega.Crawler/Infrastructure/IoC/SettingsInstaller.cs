@@ -2,9 +2,6 @@
 {
     using System.IO;
 
-    using Mega.Data;
-    using Mega.Domain;
-
     using Microsoft.Extensions.Configuration;
 
     using StructureMap;
@@ -16,7 +13,7 @@
         {
             var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory() + "\\Properties")
                 .AddJsonFile("Mega.Crawler.appsettings.json", false, true)
-                .AddJsonFile($"Mega.Crawler.appsettings.development.json", true);
+                .AddJsonFile($"Mega.Crawler.appsettings.development.json", true); 
 
             var config = builder.Build();
 

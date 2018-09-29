@@ -1,6 +1,5 @@
 ﻿namespace Mega.Data
 {
-    using System;
     using System.IO;
 
     using Microsoft.EntityFrameworkCore.Design;
@@ -9,8 +8,6 @@
     public class DataContextFactory : IDesignTimeDbContextFactory<DataContext>
     {
         private static string connectionString;
-
-        public DataContext CreateDbContext() => CreateDbContext(Array.Empty<string>());
 
         public DataContext CreateDbContext(string[] args)
         {
