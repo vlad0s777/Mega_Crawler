@@ -15,7 +15,7 @@
         {
             var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory() + "\\Properties")
                 .AddJsonFile("Mega.Crawler.appsettings.json", false, true)
-                .AddJsonFile($"Mega.Crawler.appsettings.development.json", true);
+                .AddJsonFile($"Mega.Crawler.appsettings.development.json", true); 
 
             var config = builder.Build();
 
