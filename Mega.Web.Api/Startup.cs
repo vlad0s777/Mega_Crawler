@@ -25,7 +25,6 @@
 
         public IConfiguration Configuration { get; }
 
-        // This method gets called by the runtime. Use this method to add services to the container.
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
@@ -34,17 +33,17 @@
 
             container.Configure(config =>
                 {
-                    config.AddRegistry(new ServicesInstaller(this.Configuration));
+                    config.AddRegistry(new SettingsInstaller(this.Configuration));
                     config.Populate(services);
                 });
 
             return container.GetInstance<IServiceProvider>();
         }
 
-        // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
             loggerFactory.AddEventLog(LogLevel.Debug);
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

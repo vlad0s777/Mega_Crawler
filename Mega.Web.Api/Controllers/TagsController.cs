@@ -44,7 +44,9 @@
         {
             try
             {
-                return this.context.Tags.Find(id);
+                var tag = this.context.Tags.Find(id);
+                var _ = tag.TagId;
+                return tag;
             }
             catch
             {

@@ -46,9 +46,9 @@
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Article>().HasIndex(pc => pc.OuterArticleId).IsUnique();
-            modelBuilder.Entity<ArticlesTag>().HasKey(pc => new { pc.ArticleId, pc.TagId });
-            modelBuilder.Entity<ArticlesTag>().HasOne(pc => pc.Article).WithMany(p => p.ArticlesTags).HasForeignKey(pc => pc.ArticleId);
-            modelBuilder.Entity<ArticlesTag>().HasOne(pc => pc.Tag).WithMany(c => c.ArticleTags).HasForeignKey(pc => pc.TagId);
+            modelBuilder.Entity<ArticlesTags>().HasKey(pc => new { pc.ArticleId, pc.TagId });
+            modelBuilder.Entity<ArticlesTags>().HasOne(pc => pc.Article).WithMany(p => p.ArticlesTags).HasForeignKey(pc => pc.ArticleId);
+            modelBuilder.Entity<ArticlesTags>().HasOne(pc => pc.Tag).WithMany(c => c.ArticlesTags).HasForeignKey(pc => pc.TagId);
         }
     }
 }

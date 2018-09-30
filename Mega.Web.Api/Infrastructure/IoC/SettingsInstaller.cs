@@ -6,9 +6,9 @@
 
     using StructureMap;
 
-    public class ServicesInstaller : Registry
+    public class SettingsInstaller : Registry
     {
-        public ServicesInstaller(IConfiguration config)
+        public SettingsInstaller(IConfiguration config)
         {
             var connectionString = config.GetConnectionString("DefaultConnection");
 

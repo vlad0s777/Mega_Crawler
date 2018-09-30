@@ -44,7 +44,9 @@
         {
             try
             {
-                return this.context.Articles.Find(id);
+                var article = this.context.Articles.Find(id);
+                var _ = article.ArticleId;
+                return article;
             }
             catch
             {
