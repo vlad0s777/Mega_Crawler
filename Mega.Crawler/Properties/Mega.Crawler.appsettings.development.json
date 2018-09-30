@@ -76,5 +76,8 @@
   ],
   "delayBegin": 5000,
   "delayEnd": 15000,
-  "timeout": 20000
+  "timeout": 20000,
+  "ConnectionStrings": {
+    "DefaultConnection": "Host=localhost;Port=5432;Database=crawlerdb;Username=postgres;Password=11111"
+  }
 }

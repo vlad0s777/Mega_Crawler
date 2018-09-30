@@ -18,7 +18,7 @@
                 s =>
                     {
                         s.AssembliesFromPath(".");
-                        s.AddAllTypesOf<IProcessorFabric>();
+                        s.AddAllTypesOf<IProcessorFactory>();
                     });
         }
     }

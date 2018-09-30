@@ -12,7 +12,7 @@
         {
             var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory() + "\\Properties")
                 .AddJsonFile("Mega.Crawler.appsettings.json", false, true)
-                .AddJsonFile($"Mega.Crawler.appsettings.development.json", true); // переменную окружения служба почему то не видит, пришлось написать так
+                .AddJsonFile($"Mega.Crawler.appsettings.development.json", true); 
 
             var config = builder.Build();
             

@@ -15,11 +15,11 @@
     {
         private readonly IMessageBroker[] brokers;
 
-        private readonly IProcessorFabric processorFabric;
+        private readonly IProcessorFactory processorFabric;
 
         private readonly CancellationTokenSource cts = new CancellationTokenSource();
 
-        public Runner(IMessageBroker[] brokers, IProcessorFabric processorFabric)
+        public Runner(IMessageBroker[] brokers, IProcessorFactory processorFabric)
         {
             this.brokers = brokers;
             this.processorFabric = processorFabric;
