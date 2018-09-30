@@ -53,7 +53,7 @@
                 {
                     var domainArticle = new Article()
                                             {
-                                                ArticleId = article.Id,
+                                                OuterArticleId = article.Id,
                                                 DateCreate = article.DateCreate,
                                                 Head = article.Head,
                                                 Text = article.Text

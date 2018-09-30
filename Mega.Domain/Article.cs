@@ -15,7 +15,9 @@
 
         public string Head { get; set; }
 
-        public virtual ICollection<ArticlesTags> ArticlesTags { get; set; } = new List<ArticlesTags>();
+        public int OuterArticleId { get; set; }
+
+        public virtual ICollection<ArticlesTags> ArticlesTags { get; } = new List<ArticlesTags>();
 
         [NotMapped]
         public IEnumerable<Tag> Tags => this.ArticlesTags.Select(e => e.Tag);

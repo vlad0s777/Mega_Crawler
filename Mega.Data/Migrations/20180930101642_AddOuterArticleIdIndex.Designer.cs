@@ -3,15 +3,17 @@ using System;
 using Mega.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Mega.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20180930101642_AddOuterArticleIdIndex")]
+    partial class AddOuterArticleIdIndex
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -40,7 +42,7 @@ namespace Mega.Data.Migrations
                     b.ToTable("Articles");
                 });
 
-            modelBuilder.Entity("Mega.Domain.ArticlesTags", b =>
+            modelBuilder.Entity("Mega.Domain.ArticleTag", b =>
                 {
                     b.Property<int>("ArticleId");
 
@@ -50,7 +52,7 @@ namespace Mega.Data.Migrations
 
                     b.HasIndex("TagId");
 
-                    b.ToTable("ArticlesTags");
+                    b.ToTable("ArticleTag");
                 });
 
             modelBuilder.Entity("Mega.Domain.Tag", b =>
@@ -67,15 +69,15 @@ namespace Mega.Data.Migrations
                     b.ToTable("Tags");
                 });
 
-            modelBuilder.Entity("Mega.Domain.ArticlesTags", b =>
+            modelBuilder.Entity("Mega.Domain.ArticleTag", b =>
                 {
                     b.HasOne("Mega.Domain.Article", "Article")
-                        .WithMany("ArticlesTags")
+                        .WithMany("ArticleTags")
                         .HasForeignKey("ArticleId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Mega.Domain.Tag", "Tag")
-                        .WithMany("ArticlesTags")
+                        .WithMany("ArticleTags")
                         .HasForeignKey("TagId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });
