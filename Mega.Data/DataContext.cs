@@ -31,7 +31,7 @@
             return this.Tags.Skip(offset).Take(limit);
         }
 
-        public DbSet<ArticleTag> ArticlesTags { get; set; }
+        public DbSet<ArticlesTags> ArticlesTags { get; set; }
 
         public IDataContext CreateNewContext()
         {
@@ -45,9 +45,9 @@
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<ArticleTag>().HasKey(pc => new { pc.ArticleId, pc.TagId });
-            modelBuilder.Entity<ArticleTag>().HasOne(pc => pc.Article).WithMany(p => p.ArticleTags).HasForeignKey(pc => pc.ArticleId);
-            modelBuilder.Entity<ArticleTag>().HasOne(pc => pc.Tag).WithMany(c => c.ArticleTags).HasForeignKey(pc => pc.TagId);
+            modelBuilder.Entity<ArticlesTags>().HasKey(pc => new { pc.ArticleId, pc.TagId });
+            modelBuilder.Entity<ArticlesTags>().HasOne(pc => pc.Article).WithMany(p => p.ArticlesTags).HasForeignKey(pc => pc.ArticleId);
+            modelBuilder.Entity<ArticlesTags>().HasOne(pc => pc.Tag).WithMany(c => c.ArticlesTags).HasForeignKey(pc => pc.TagId);
         }
     }
 }

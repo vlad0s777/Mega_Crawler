@@ -5,19 +5,18 @@
 
     using Mega.Web.Api.Exceptions;
 
-    using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.Logging;
 
-    public class HttpStatusCodeExceptionMiddleware
+    public class UnhandledExceptionMiddleware
     {
         private readonly RequestDelegate next;
-        private readonly ILogger<HttpStatusCodeExceptionMiddleware> logger;
+        private readonly ILogger<UnhandledExceptionMiddleware> logger;
 
-        public HttpStatusCodeExceptionMiddleware(RequestDelegate next, ILoggerFactory loggerFactory)
+        public UnhandledExceptionMiddleware(RequestDelegate next, ILoggerFactory loggerFactory)
         {
             this.next = next ?? throw new ArgumentNullException(nameof(next));
-            this.logger = loggerFactory?.CreateLogger<HttpStatusCodeExceptionMiddleware>() ?? throw new ArgumentNullException(nameof(loggerFactory));
+            this.logger = loggerFactory?.CreateLogger<UnhandledExceptionMiddleware>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         public async Task Invoke(HttpContext context)
@@ -26,7 +25,7 @@
             {
                 await this.next(context);
             }
-            catch (HttpStatusCodeException ex)
+            catch (HttpResponseException ex)
             {
                 if (context.Response.HasStarted)
                 {
@@ -34,23 +33,17 @@
                     throw;
                 }
 
+                this.logger.LogError($"Message: {ex.Message}. Code: {ex.StatusCode}");
                 context.Response.Clear();
                 context.Response.StatusCode = ex.StatusCode;
                 context.Response.ContentType = ex.ContentType;
 
                 await context.Response.WriteAsync(ex.Message);
-
-                return;
             }
-        }
-    }
-
-    // Extension method used to add the middleware to the HTTP request pipeline.
-    public static class HttpStatusCodeExceptionMiddlewareExtensions
-    {
-        public static IApplicationBuilder UseHttpStatusCodeExceptionMiddleware(this IApplicationBuilder builder)
-        {
-            return builder.UseMiddleware<HttpStatusCodeExceptionMiddleware>();
+            catch (Exception e)
+            {
+                this.logger.LogError(e.Message);
+            }
         }
     }
 }

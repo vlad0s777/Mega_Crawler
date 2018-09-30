@@ -13,7 +13,6 @@
             var connectionString = config.GetConnectionString("DefaultConnection");
 
             For<DataContext>().Use(new DataContext(connectionString));
-            
         }
     }
 }

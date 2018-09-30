@@ -63,7 +63,7 @@
                         foreach (var tag in article.Tags)
                         {
                             var domainTag = await this.dataContext.Tags.FirstAsync(t => t.TagKey == tag.TagKey);
-                            await this.dataContext.AddAsync(new ArticleTag { Article = domainArticle, Tag = domainTag });
+                            await this.dataContext.AddAsync(new ArticlesTags { Article = domainArticle, Tag = domainTag });
                         }
 
                         await this.dataContext.SaveChangesAsync();

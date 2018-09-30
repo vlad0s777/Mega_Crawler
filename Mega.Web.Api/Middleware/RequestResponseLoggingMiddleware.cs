@@ -11,16 +11,14 @@
 
     public class RequestResponseLoggingMiddleware
     {
-        private readonly ILogger logger;
+        private readonly ILogger<RequestResponseLoggingMiddleware> logger;
 
         private readonly RequestDelegate next;
 
         public RequestResponseLoggingMiddleware(RequestDelegate next, ILoggerFactory loggerFactory)
         {
-            this.next = next;
-            this.logger = loggerFactory.CreateLogger<RequestResponseLoggingMiddleware>();
-            //AppDomain.CurrentDomain.UnhandledException += (sender, e) => this.logger.LogCritical(e.ExceptionObject.ToString());
-            loggerFactory.AddEventLog(LogLevel.Debug);
+            this.next = next ?? throw new ArgumentNullException(nameof(next));
+            this.logger = loggerFactory?.CreateLogger<RequestResponseLoggingMiddleware>() ?? throw new ArgumentNullException(nameof(loggerFactory));
         }
 
         public async Task Invoke(HttpContext context)

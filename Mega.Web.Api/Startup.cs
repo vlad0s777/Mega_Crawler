@@ -42,8 +42,9 @@
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
         {
+            loggerFactory.AddEventLog(LogLevel.Debug);
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -55,6 +56,8 @@
 
             app.UseHttpsRedirection();
             app.UseMiddleware<RequestResponseLoggingMiddleware>();
+            app.UseMiddleware<UnhandledExceptionMiddleware>();
+            
             app.UseMvc();
         }
     }

@@ -5,7 +5,9 @@
 
     using Mega.Data;
     using Mega.Domain;
+    using Mega.Web.Api.Exceptions;
 
+    using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
 
     [Route("api/[controller]")]
@@ -28,13 +30,26 @@
         [HttpGet("{numPage}")]
         public ActionResult<IEnumerable<Tag>> GetPage(int numPage)
         {
-            return new ActionResult<IEnumerable<Tag>>(this.context.GetTags(10, 10 * (numPage - 1)));
+            var tags = this.context.GetTags(10, 10 * (numPage - 1));
+            if (tags.Count() != 0)
+            {
+                return new ActionResult<IEnumerable<Tag>>(this.context.GetTags(10, 10 * (numPage - 1)));
+            }
+
+            throw new HttpResponseException(StatusCodes.Status404NotFound, "Page not found!");
         }
 
         [HttpGet("tag/{id}")]
         public ActionResult<Tag> Get(int id)
         {
-            return this.context.Tags.Find(id);
+            try
+            {
+                return this.context.Tags.Find(id);
+            }
+            catch
+            {
+                throw new HttpResponseException(StatusCodes.Status404NotFound, "Tag not found!");
+            }
         }
 
         [HttpGet("tag/{id}/articles")]

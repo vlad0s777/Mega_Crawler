@@ -15,12 +15,12 @@
 
         public string Head { get; set; }
 
-        public virtual ICollection<ArticleTag> ArticleTags { get; set; } = new List<ArticleTag>();
+        public virtual ICollection<ArticlesTags> ArticlesTags { get; set; } = new List<ArticlesTags>();
 
         [NotMapped]
-        public IEnumerable<Tag> Tags => this.ArticleTags.Select(e => e.Tag);
+        public IEnumerable<Tag> Tags => this.ArticlesTags.Select(e => e.Tag);
 
         [NotMapped]
-        public int CountTags => this.ArticleTags.Count;
+        public int CountTags => this.ArticlesTags.Count;
     }
 }

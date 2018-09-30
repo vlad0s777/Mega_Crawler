@@ -13,7 +13,7 @@
 
         DbSet<Tag> Tags { get; set; }
 
-        DbSet<ArticleTag> ArticlesTags { get; set; }
+        DbSet<ArticlesTags> ArticlesTags { get; set; }
 
         IDataContext CreateNewContext();
 

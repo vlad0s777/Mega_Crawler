@@ -12,13 +12,13 @@
 
         public string Name { get; set; }
 
-        public virtual ICollection<ArticleTag> ArticleTags { get; } = new List<ArticleTag>();
+        public virtual ICollection<ArticlesTags> ArticlesTags { get; } = new List<ArticlesTags>();
 
         [NotMapped]
-        public IEnumerable<Article> Articles => this.ArticleTags.Select(e => e.Article);
+        public IEnumerable<Article> Articles => this.ArticlesTags.Select(e => e.Article);
 
 
         [NotMapped]
-        public int CountArticles => this.ArticleTags.Count;
+        public int CountArticles => this.ArticlesTags.Count;
     }
 }
