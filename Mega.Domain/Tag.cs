@@ -17,7 +17,6 @@
         [NotMapped]
         public IEnumerable<Article> Articles => this.ArticleTags.Select(e => e.Article);
 
-
         [NotMapped]
         public int CountArticles => this.ArticleTags.Count;
     }
