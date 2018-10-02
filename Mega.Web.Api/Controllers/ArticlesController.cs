@@ -22,18 +22,39 @@
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Article>> Get()
+        public IQueryable<Models.Article> Get()
         {
-            return this.context.Articles;
+            var articles = from b in this.context.Articles
+                        select new Models.Article()
+                                   {
+                                       ArticleId = b.ArticleId,
+                                       DateCreate = b.DateCreate,
+                                       Head = b.Head,
+                                       OuterArticleId = b.OuterArticleId,
+                                       Text = b.Text,
+                                       Tags = this.context.ArticlesTags.Where(x => x.ArticleId == b.ArticleId).Select(y => y.Tag.Name)
+                        };
+
+            return articles;
         }
 
         [HttpGet("{numPage}")]
-        public ActionResult<IEnumerable<Article>> GetPage(int numPage)
+        public IEnumerable<Models.Article> GetPage(int numPage)
         {
-            var articles = this.context.GetArticles(10, 10 * (numPage - 1));
-            if (articles.Count() != 0)
+            var articles = from b in this.context.GetArticles(10, 10 * (numPage - 1))
+                           select new Models.Article()
+                                      {
+                                          ArticleId = b.ArticleId,
+                                          DateCreate = b.DateCreate,
+                                          Head = b.Head,
+                                          OuterArticleId = b.OuterArticleId,
+                                          Text = b.Text,
+                                          Tags = this.context.ArticlesTags.Where(x => x.ArticleId == b.ArticleId).Select(y => y.Tag.Name)
+                                      };
+            var enumerable = articles.ToList();
+            if (enumerable.ToArray().Count() != 0)
             {
-                return new ActionResult<IEnumerable<Article>>(this.context.GetArticles(10, 10 * (numPage - 1)));
+                return enumerable;
             }
 
             throw new HttpResponseException(StatusCodes.Status404NotFound, "Page not found!"); 
