@@ -1,6 +1,7 @@
 ﻿namespace Mega.Domain
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -12,6 +13,10 @@
         DbSet<Article> Articles { get; set; }
 
         DbSet<Tag> Tags { get; set; }
+
+        IEnumerable<Article> GetArticles(int limit = 0, int offset = 0);
+
+        IEnumerable<Tag> GetTags(int limit = 0, int offset = 0);
 
         DbSet<ArticlesTags> ArticlesTags { get; set; }
 

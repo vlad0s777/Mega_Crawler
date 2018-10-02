@@ -33,7 +33,7 @@
 
             container.Configure(config =>
                 {
-                    config.AddRegistry(new SettingsInstaller(this.Configuration));
+                    config.AddRegistry(new DataInstaller(this.Configuration));
                     config.Populate(services);
                 });
 

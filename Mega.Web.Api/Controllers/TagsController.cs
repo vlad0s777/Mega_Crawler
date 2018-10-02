@@ -3,9 +3,9 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    using Mega.Data;
     using Mega.Domain;
     using Mega.Web.Api.Exceptions;
+    using Mega.Web.Api.Mappers;
 
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
@@ -14,50 +14,48 @@
     [ApiController]
     public class TagsController : ControllerBase
     {
-        private readonly DataContext context;
+        private readonly IDataContext context;
 
-        public TagsController(DataContext context)
+        private readonly IMapper<Tag, Models.Tag> tagMapper;
+
+        public TagsController(IDataContext context, IMapper<Tag, Models.Tag> tagMapper)
         {
             this.context = context;
+            this.tagMapper = tagMapper;
         }
 
         [HttpGet]
-        public ActionResult<IEnumerable<Tag>> Get()
+        public IEnumerable<Models.Tag> Get()
         {
-            return this.context.Tags;
+            return this.tagMapper.Map(this.context.Tags);
         }
 
         [HttpGet("{numPage}")]
-        public ActionResult<IEnumerable<Tag>> GetPage(int numPage)
+        public IEnumerable<Models.Tag> GetPage(int numPage)
         {
             var tags = this.context.GetTags(10, 10 * (numPage - 1));
-            if (tags.Count() != 0)
+            var enumerable = tags as Tag[] ?? tags.ToArray();
+            if (enumerable.Count() != 0)
             {
-                return new ActionResult<IEnumerable<Tag>>(this.context.GetTags(10, 10 * (numPage - 1)));
+                return this.tagMapper.Map(enumerable);
             }
 
             throw new HttpResponseException(StatusCodes.Status404NotFound, "Page not found!");
         }
 
         [HttpGet("tag/{id}")]
-        public ActionResult<Tag> Get(int id)
+        public ActionResult<Models.Tag> Get(int id)
         {
             try
             {
                 var tag = this.context.Tags.Find(id);
                 var _ = tag.TagId;
-                return tag;
+                return this.tagMapper.Map(tag);
             }
             catch
             {
                 throw new HttpResponseException(StatusCodes.Status404NotFound, "Tag not found!");
             }
-        }
-
-        [HttpGet("tag/{id}/articles")]
-        public ActionResult<IEnumerable<Article>> GetArticles(int id)
-        {
-            return new ActionResult<IEnumerable<Article>>(this.context.ArticlesTags.Where(x => x.TagId == id).Select(y => y.Article));
         }
     }
 }

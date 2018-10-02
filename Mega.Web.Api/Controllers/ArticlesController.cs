@@ -3,9 +3,9 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    using Mega.Data;
     using Mega.Domain;
     using Mega.Web.Api.Exceptions;
+    using Mega.Web.Api.Mappers;
 
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
@@ -14,45 +14,29 @@
     [ApiController]
     public class ArticlesController : ControllerBase
     {
-        private readonly DataContext context;
+        private readonly IDataContext context;
 
-        public ArticlesController(DataContext context)
+        private readonly IMapper <Article, Models.Article> articleMapper;
+
+        public ArticlesController(IDataContext context, IMapper<Article, Models.Article> articleMapper)
         {
             this.context = context;
+            this.articleMapper = articleMapper;
         }
 
         [HttpGet]
-        public IQueryable<Models.Article> Get()
+        public IEnumerable<Models.Article> Get()
         {
-            var articles = from b in this.context.Articles
-                        select new Models.Article()
-                                   {
-                                       ArticleId = b.ArticleId,
-                                       DateCreate = b.DateCreate,
-                                       Head = b.Head,
-                                       OuterArticleId = b.OuterArticleId,
-                                       Text = b.Text,
-                                       Tags = this.context.ArticlesTags.Where(x => x.ArticleId == b.ArticleId).Select(y => y.Tag.Name)
-                        };
-
-            return articles;
+            return this.articleMapper.Map(this.context.Articles);
         }
 
         [HttpGet("{numPage}")]
         public IEnumerable<Models.Article> GetPage(int numPage)
         {
-            var articles = from b in this.context.GetArticles(10, 10 * (numPage - 1))
-                           select new Models.Article()
-                                      {
-                                          ArticleId = b.ArticleId,
-                                          DateCreate = b.DateCreate,
-                                          Head = b.Head,
-                                          OuterArticleId = b.OuterArticleId,
-                                          Text = b.Text,
-                                          Tags = this.context.ArticlesTags.Where(x => x.ArticleId == b.ArticleId).Select(y => y.Tag.Name)
-                                      };
-            var enumerable = articles.ToList();
-            if (enumerable.ToArray().Count() != 0)
+            var articles = this.articleMapper.Map(this.context.GetArticles(10, 10 * (numPage - 1)));
+
+            var enumerable = articles as Models.Article[] ?? articles.ToArray();
+            if (enumerable.Count() != 0)
             {
                 return enumerable;
             }
@@ -61,24 +45,18 @@
         }
 
         [HttpGet("article/{id}")]
-        public ActionResult<Article> Get(int id)
+        public ActionResult<Models.Article> Get(int id)
         {
             try
             {
                 var article = this.context.Articles.Find(id);
                 var _ = article.ArticleId;
-                return article;
+                return this.articleMapper.Map(article);
             }
             catch
             {
                 throw new HttpResponseException(StatusCodes.Status404NotFound, "Article not found!");
             }
-        }
-
-        [HttpGet("article/{id}/tags")]
-        public ActionResult<IEnumerable<Tag>> GetTags(int id)
-        {
-            return new ActionResult<IEnumerable<Tag>>(this.context.ArticlesTags.Where(x => x.ArticleId == id).Select(y => y.Tag));
         }
     }
 }
