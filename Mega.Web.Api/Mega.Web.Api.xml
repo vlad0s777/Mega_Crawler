@@ -1,0 +1,78 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Mega.Web.Api</name>
+    </assembly>
+    <members>
+        <member name="T:Mega.Web.Api.Models.Article">
+            <summary>
+            Модель статьи
+            </summary>
+        </member>
+        <member name="P:Mega.Web.Api.Models.Article.ArticleId">
+            <value>
+            ID статьи
+            </value>
+        </member>
+        <member name="P:Mega.Web.Api.Models.Article.DateCreate">
+            <value>
+            Дата создания статьи
+            </value>
+        </member>
+        <member name="P:Mega.Web.Api.Models.Article.Text">
+            <value>
+            Текст статьи
+            </value>
+        </member>
+        <member name="P:Mega.Web.Api.Models.Article.Head">
+            <value>
+            Заголовок статьи
+            </value>
+        </member>
+        <member name="P:Mega.Web.Api.Models.Article.OuterArticleId">
+            <value>
+            Идентификатор статьи с сайта
+            </value>
+        </member>
+        <member name="P:Mega.Web.Api.Models.Article.Tags">
+            <value>
+            Теги статьи
+            </value>
+        </member>
+        <member name="P:Mega.Web.Api.Models.Article.CountTags">
+            <value>
+            Идентификатор статьи с сайта
+            </value>
+        </member>
+        <member name="T:Mega.Web.Api.Models.Tag">
+            <summary>
+            Модель тега
+            </summary>
+        </member>
+        <member name="P:Mega.Web.Api.Models.Tag.TagId">
+            <value>
+            ID тега
+            </value>
+        </member>
+        <member name="P:Mega.Web.Api.Models.Tag.TagKey">
+            <value>
+            строковый ключ статьи с сайта
+            </value>
+        </member>
+        <member name="P:Mega.Web.Api.Models.Tag.Name">
+            <value>
+            имя тега
+            </value>
+        </member>
+        <member name="P:Mega.Web.Api.Models.Tag.Articles">
+            <value>
+            статьи с данным тегом
+            </value>
+        </member>
+        <member name="P:Mega.Web.Api.Models.Tag.CountArticles">
+            <value>
+            количество статей с данным тегом
+            </value>
+        </member>
+    </members>
+</doc>
