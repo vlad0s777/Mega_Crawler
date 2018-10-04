@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
 
     using AngleSharp.Parser.Html;
 
@@ -57,9 +58,9 @@
             return tags;
         }
 
-        public void AddTagInBase()
+        public async Task AddTagInBase()
         {
-            if (this.dataContext.Tags.Any())
+            if (await this.dataContext.CountTags() != 0)
             {
                 return;
             }
@@ -68,16 +69,15 @@
             {
                 foreach (var tag in GetTags(client.DownloadString))
                 {
-                    this.dataContext.Add(new Tag { Name = tag.Name, TagKey = tag.TagKey });
+                    await this.dataContext.AddAsync(new Tag { Name = tag.Name, TagKey = tag.TagKey });
                 }
             }
 
-            this.dataContext.SaveChanges();
+            await this.dataContext.SaveChangesAsync();
         }
 
         public void Dispose()
         {
-            this.dataContext?.Dispose();
         }
     }
 }

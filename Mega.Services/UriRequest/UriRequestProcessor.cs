@@ -62,7 +62,7 @@
                     {
                         foreach (var tag in article.Tags)
                         {
-                            var domainTag = await this.dataContext.Tags.FirstAsync(t => t.TagKey == tag.TagKey);
+                            var domainTag = await this.dataContext.GetTag(tag.TagKey);
                             await this.dataContext.AddAsync(new ArticleTag { Article = domainArticle, Tag = domainTag });
                         }
 
@@ -71,7 +71,7 @@
                     }
                     catch (DbUpdateException)
                     {
-                        Logger.LogWarning($"Article id {domainArticle.ArticleId} alreydy exists!");
+                        Logger.LogWarning($"Article id {article.Id} alreydy exists!");
                     }
                 }
             }
@@ -106,7 +106,6 @@
         public void Dispose()
         {
             this.client?.Dispose();
-            this.dataContext?.Dispose();
         }
     }
 }

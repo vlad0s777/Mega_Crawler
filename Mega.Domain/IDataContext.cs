@@ -4,14 +4,19 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    using Microsoft.EntityFrameworkCore;
     using Microsoft.EntityFrameworkCore.ChangeTracking;
 
-    public interface IDataContext : IDisposable
+    public interface IDataContext
     {
-        DbSet<Article> Articles { get; set; }
+        Task<Article> GetArticle(int outerKey);
 
-        DbSet<Tag> Tags { get; set; }
+        Task<Tag> GetTag(string outerKey);
+
+        Task<int> CountArticles(int tagId = 0, DateTime? startDate = null, DateTime? endDate = null);
+
+        Task<int> CountTags(int articleId = 0);
+
+        Task<Tag> PopularTag();
 
         IDataContext CreateNewContext();
 
@@ -20,9 +25,5 @@
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken));
 
         Task<EntityEntry> AddAsync(object entity, CancellationToken cancellationToken = default(CancellationToken));
-
-        int SaveChanges();
-
-        EntityEntry Add(object entity); 
     }
 }

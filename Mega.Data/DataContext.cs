@@ -1,5 +1,10 @@
 ﻿namespace Mega.Data
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
+    using System.Threading.Tasks;
+
     using Mega.Domain;
 
     using Microsoft.EntityFrameworkCore;
@@ -18,15 +23,40 @@
 
         public DbSet<Tag> Tags { get; set; }
 
-        public IDataContext CreateNewContext()
+        public DbSet<ArticleTag> ArticleTag { get; set; }
+
+        public async Task<Article> GetArticle(int outerKey) => await this.Articles.FirstAsync(t => t.OuterArticleId == outerKey);
+
+        public async Task<Tag> GetTag(string outerKey) => await this.Tags.FirstAsync(t => t.TagKey == outerKey);
+
+        public async Task<int> CountArticles(int tagId = 0, DateTime? startDate = null, DateTime? endDate = null)
         {
-            return new DataContext(this.connectionString);
+            var start = startDate ?? DateTime.MinValue;
+            var end = endDate ?? DateTime.Now;
+            return tagId == 0
+                       ? await this.Articles.CountAsync(x => x.DateCreate >= start && x.DateCreate <= end)
+                       : await this.ArticleTag.CountAsync(x => x.TagId == tagId && x.Article.DateCreate >= start && x.Article.DateCreate <= end);
         }
 
-        public void Migrate()
+        public async Task<int> CountTags(int articleId = 0)
         {
-            this.Database.Migrate();
+            return articleId == 0 ? await this.Tags.CountAsync() : await this.ArticleTag.CountAsync(t => t.ArticleId == articleId);
         }
+
+        public async Task<Tag> PopularTag()
+        {
+            var counts = new Dictionary<int, int>();
+            foreach (var tag in this.Tags)
+            {
+                counts.Add(tag.TagId, await CountArticles(tag.TagId));
+            }
+
+            return this.Tags.Find(counts.Aggregate((l, r) => l.Value > r.Value ? l : r).Key);
+        }
+
+        public IDataContext CreateNewContext() => new DataContext(this.connectionString);
+
+        public void Migrate() => this.Database.Migrate();
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

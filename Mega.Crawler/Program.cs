@@ -42,7 +42,7 @@
                     var runner = container.GetInstance<Runner>();
                     try
                     {
-                        runner.Run();
+                        runner.Run().Wait();
                     }
                     finally
                     {

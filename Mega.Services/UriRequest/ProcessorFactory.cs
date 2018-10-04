@@ -1,6 +1,5 @@
 namespace Mega.Services.UriRequest
 {
-    using System;
     using System.Collections.Generic;
 
     using Mega.Domain;
@@ -11,7 +10,7 @@ namespace Mega.Services.UriRequest
         IEnumerable<IMessageProcessor> Create();
     }
 
-    public class UriRequestProcessorFactory : IProcessorFactory, IDisposable
+    public class UriRequestProcessorFactory : IProcessorFactory
     {
         private readonly IMessageBroker<UriRequest> requests;
 
@@ -33,11 +32,6 @@ namespace Mega.Services.UriRequest
                 this.settings.CurrentProxyServer = proxy;
                 yield return new UriRequestProcessor(this.requests, this.settings, this.dataContext.CreateNewContext());
             }
-        }
-
-        public void Dispose()
-        {
-            this.dataContext?.Dispose();
         }
     }
 }

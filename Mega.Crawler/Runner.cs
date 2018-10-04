@@ -4,6 +4,7 @@
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
 
     using DasMulli.Win32.ServiceUtils;
 
@@ -12,8 +13,12 @@
     using Mega.Services;
     using Mega.Services.UriRequest;
 
+    using Microsoft.Extensions.Logging;
+
     public class Runner : IDisposable
     {
+        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<Runner>();
+
         private readonly IMessageBroker[] brokers;
 
         private readonly IProcessorFactory processorFabric;
@@ -32,16 +37,17 @@
             this.dataContext = dataContext;
         }
         
-        public void Run()
+        public async Task Run()
         {
             var token = this.cts.Token;
 
             if (Environment.GetCommandLineArgs().Contains("--migrate"))
             {
                 this.dataContext.Migrate();
+                return;
             }
 
-            this.initial.AddTagInBase();
+            await this.initial.AddTagInBase();
 
             if (this.brokers.All(broker => broker.IsEmpty()))
             {               
@@ -50,6 +56,8 @@
                     this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(id));
                 }
             }
+
+            Logger.LogInformation($"Popular tag: {(await this.dataContext.PopularTag()).TagKey}");
 
             foreach (var processor in this.processorFabric.Create())
             {
@@ -70,7 +78,6 @@
         public void Dispose()
         {
             this.cts?.Dispose();
-            this.dataContext?.Dispose();
         }
     }
 }
