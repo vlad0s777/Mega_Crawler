@@ -15,6 +15,8 @@
 
     using StructureMap;
 
+    using Swashbuckle.AspNetCore.Swagger;
+
     public class Startup
     {
         public Startup(IConfiguration configuration)
@@ -28,6 +30,12 @@
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
+
+            services.AddSwaggerGen(c =>
+                {
+                    c.SwaggerDoc("v1", new Info { Title = "Crawler API", Version = "v1" });
+                    c.IncludeXmlComments("Mega.Web.Api.xml");
+                });
 
             var container = new Container();
 
@@ -56,7 +64,14 @@
             app.UseHttpsRedirection();
             app.UseMiddleware<RequestResponseLoggingMiddleware>();
             app.UseMiddleware<UnhandledExceptionMiddleware>();
-            
+
+            app.UseSwagger();
+
+            app.UseSwaggerUI(c =>
+                {
+                    c.SwaggerEndpoint("/info/swagger.json", "Crawler API");
+                    c.RoutePrefix = "help";
+                });
             app.UseMvc();
         }
     }
