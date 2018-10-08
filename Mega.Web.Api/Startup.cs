@@ -1,6 +1,8 @@
 ﻿namespace Mega.Web.Api
 {
     using System;
+    using System.IO;
+    using System.Reflection;
 
     using Mega.Services;
     using Mega.Web.Api.Infrastructure.IoC;
@@ -31,12 +33,15 @@
         {
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
-            services.AddSwaggerGen(c =>
-                {
-                    c.SwaggerDoc("v1", new Info { Title = "Crawler API", Version = "v1" });
-                    c.IncludeXmlComments("Mega.Web.Api.xml");
-                });
-
+            services.AddSwaggerGen(
+                c =>
+                    {
+                        c.SwaggerDoc("v1", new Info { Title = "CRAWLER V1", Version = "v1" });
+                        var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                        var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                        c.IncludeXmlComments(xmlPath);
+                    });
+            
             var container = new Container();
 
             container.Configure(config =>
@@ -69,7 +74,7 @@
 
             app.UseSwaggerUI(c =>
                 {
-                    c.SwaggerEndpoint("/info/swagger.json", "Crawler API");
+                    c.SwaggerEndpoint("/swagger/v1/swagger.json", "CRAWLER V1");
                     c.RoutePrefix = "help";
                 });
             app.UseMvc();
