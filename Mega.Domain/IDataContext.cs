@@ -1,10 +1,10 @@
 ﻿namespace Mega.Domain
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
 
-    using Microsoft.EntityFrameworkCore.ChangeTracking;
 
     public interface IDataContext
     {
@@ -16,7 +16,7 @@
 
         Task<int> CountTags(int articleId = 0);
 
-        Task<Tag> PopularTag();
+        IEnumerable<Tag> GetPopularTags(int countTags = 1);
 
         IDataContext CreateNewContext();
 
@@ -24,6 +24,6 @@
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken));
 
-        Task<EntityEntry> AddAsync(object entity, CancellationToken cancellationToken = default(CancellationToken));
+        Task AddAsync(object entity, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

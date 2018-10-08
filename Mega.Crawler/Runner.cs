@@ -57,7 +57,7 @@
                 }
             }
 
-            Logger.LogInformation($"Popular tag: {(await this.dataContext.PopularTag()).TagKey}");
+            Logger.LogInformation($"Popular tags: {(this.dataContext.GetPopularTags(2).First()).TagKey}, {(this.dataContext.GetPopularTags(2).Last()).TagKey}");
 
             foreach (var processor in this.processorFabric.Create())
             {

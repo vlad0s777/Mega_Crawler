@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     using Mega.Domain;
@@ -38,25 +39,29 @@
                        : await this.ArticleTag.CountAsync(x => x.TagId == tagId && x.Article.DateCreate >= start && x.Article.DateCreate <= end);
         }
 
-        public async Task<int> CountTags(int articleId = 0)
-        {
-            return articleId == 0 ? await this.Tags.CountAsync() : await this.ArticleTag.CountAsync(t => t.ArticleId == articleId);
-        }
+        public async Task<int> CountTags(int articleId = 0) => articleId == 0 ? await this.Tags.CountAsync() : await this.ArticleTag.CountAsync(t => t.ArticleId == articleId);
 
-        public async Task<Tag> PopularTag()
+        public IEnumerable<Tag> GetPopularTags(int countTags = 1)
         {
             var counts = new Dictionary<int, int>();
             foreach (var tag in this.Tags)
             {
-                counts.Add(tag.TagId, await CountArticles(tag.TagId));
+                counts.Add(tag.TagId, CountArticles(tag.TagId).Result);
             }
 
-            return this.Tags.Find(counts.Aggregate((l, r) => l.Value > r.Value ? l : r).Key);
+            var countsList = counts.ToList();
+            countsList.Sort((pair1, pair2) => pair2.Value.CompareTo(pair1.Value));
+            for (var i = 0; i < countTags; i++)
+            {
+                yield return this.Tags.Find(countsList[i].Key);
+            }           
         }
 
         public IDataContext CreateNewContext() => new DataContext(this.connectionString);
 
         public void Migrate() => this.Database.Migrate();
+
+        public new async Task AddAsync(object entity, CancellationToken cancellationToken = default(CancellationToken)) => await base.AddAsync(entity, cancellationToken);
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
