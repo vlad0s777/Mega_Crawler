@@ -1,4 +1,4 @@
-﻿namespace Mega.Services.WebClient
+﻿namespace Mega.WebClient.ZadolbaliClient
 {
     using System;
     using System.Collections.Generic;
@@ -30,24 +30,88 @@
             }
         }
 
-        private readonly Func<string, Task<string>> clientDelegate;
+        private readonly Func<string, Task<string>> withProxyClientDelegate;
+
+        private readonly Func<string, Task<string>> withoutProxyClientDelegate;
 
         private readonly ProxyWebClient client;
 
-        public ZadolbaliClient(Settings settings)
+        public ZadolbaliClient(ProxySettings settings)
         {
             this.client = new ProxyWebClient(settings);
-            this.clientDelegate = id => this.client.GetStringAsync(id);
+            this.withProxyClientDelegate = id => this.client.GetStringAsync(id);
+            this.withoutProxyClientDelegate = id => this.client.DownloadStringTaskAsync(settings.RootUriString + id);
         }
 
-        public ZadolbaliClient(Func<string, Task<string>> clientDelegate) => this.clientDelegate = clientDelegate;
+        public ZadolbaliClient(Func<string, Task<string>> clientDelegate, Func<string, Task<string>> withoutProxyDelegate)
+        {
+            this.withProxyClientDelegate = clientDelegate;
+            this.withoutProxyClientDelegate = withoutProxyDelegate;
+        }
+
+        public async Task<List<string>> GenerateIDs()
+        {
+            DateTime start;
+            try
+            {
+                var body = await this.withoutProxyClientDelegate.Invoke(string.Empty);
+                var parser = new HtmlParser();
+                
+                using (var document = await parser.ParseAsync(body))
+                {
+                    var firsttagSelector = document.QuerySelector("ul>li.first>a");
+                    start = DateTime.ParseExact(firsttagSelector.Attributes["href"].Value.Split("/").Last(), "yyyyMMdd", null);
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message + e.Source);
+            }
+
+            Logger.LogError(start.Date.ToString("yyyyMMdd"));
+            var current = DateTime.Now;
+            var ids = new List<string>();
+            while (current >= start)
+            {
+                ids.Add(current.Date.ToString("yyyyMMdd"));
+                current = current.AddDays(-1);
+            }
+
+            return ids;
+        }
+
+        public async Task<List<TagInfo>> GetTags()
+        {
+            var tags = new List<TagInfo>();
+            try
+            {
+                var body = await this.withoutProxyClientDelegate.Invoke("tags");
+                var parser = new HtmlParser();
+                using (var document = await parser.ParseAsync(body))
+                {
+                    var tagsSelector = document.QuerySelectorAll("#cloud li>a");
+                    foreach (var selector in tagsSelector)
+                    {
+                        var key = selector.Attributes["href"].Value.Split("/").Last();
+                        var text = selector.InnerHtml;
+                        tags.Add(new TagInfo(key, text));
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                throw new Exception(e.Message);
+            }
+
+            return tags;
+        }
 
         public async Task<PageOf<ArticleInfo>> GetArticles(string idPage)
         {
             var articles = new PageOf<ArticleInfo>(idPage);
             try
             {
-                var body = await this.clientDelegate.Invoke(idPage);
+                var body = await this.withProxyClientDelegate.Invoke(idPage);
 
                 Watch.Start();
 

@@ -2,8 +2,9 @@
 {
     using Mega.Messaging;
     using Mega.Messaging.External;
-    using Mega.Services;
+
     using Mega.Services.UriRequest;
+    using Mega.WebClient.ZadolbaliClient;
 
     using StructureMap;
 
@@ -23,7 +24,7 @@
                                     s.AddAllTypesOf<IProcessorFactory>();
                                 });
 
-            ForConcreteType<Initial>();
+            ForConcreteType<ZadolbaliClient>().Configure.SelectConstructor(() => new ZadolbaliClient(null));
         }
     }
 }

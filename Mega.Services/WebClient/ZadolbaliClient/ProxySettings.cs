@@ -1,8 +1,8 @@
-﻿namespace Mega.Services
+﻿namespace Mega.WebClient.ZadolbaliClient
 {
     using Microsoft.Extensions.Configuration;
 
-    public class Settings
+    public class ProxySettings
     {
         public int Timeout { get; }
 
@@ -16,7 +16,7 @@
 
         public string RootUriString { get; }
 
-        public Settings(
+        public ProxySettings(
             string rootUriString,
             string[] proxyServers = null,
             int attemptLimit = 0,
@@ -31,7 +31,7 @@
             this.Timeout = timeout;
         }
 
-        public Settings(IConfiguration settings)
+        public ProxySettings(IConfiguration settings)
         {
             try
             {

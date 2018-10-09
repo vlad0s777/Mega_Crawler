@@ -1,4 +1,4 @@
-﻿namespace Mega.Services.WebClient
+﻿namespace Mega.WebClient.ZadolbaliClient
 {
     using System.Diagnostics;
     using System.Threading;

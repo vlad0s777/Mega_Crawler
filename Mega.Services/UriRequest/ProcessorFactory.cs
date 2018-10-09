@@ -4,6 +4,7 @@ namespace Mega.Services.UriRequest
 
     using Mega.Domain;
     using Mega.Messaging;
+    using Mega.WebClient.ZadolbaliClient;
 
     public interface IProcessorFactory
     {
@@ -14,11 +15,11 @@ namespace Mega.Services.UriRequest
     {
         private readonly IMessageBroker<UriRequest> requests;
 
-        private readonly Settings settings;
+        private readonly ProxySettings settings;
 
         private readonly IDataContext dataContext;
 
-        public UriRequestProcessorFactory(IMessageBroker<UriRequest> requests, Settings settings, IDataContext dataContext)
+        public UriRequestProcessorFactory(IMessageBroker<UriRequest> requests, ProxySettings settings, IDataContext dataContext)
         {
             this.requests = requests;
             this.settings = settings;

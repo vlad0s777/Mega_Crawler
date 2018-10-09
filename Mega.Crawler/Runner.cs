@@ -10,15 +10,11 @@
 
     using Mega.Domain;
     using Mega.Messaging;
-    using Mega.Services;
     using Mega.Services.UriRequest;
-
-    using Microsoft.Extensions.Logging;
+    using Mega.WebClient.ZadolbaliClient;
 
     public class Runner : IDisposable
     {
-        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<Runner>();
-
         private readonly IMessageBroker[] brokers;
 
         private readonly IProcessorFactory processorFabric;
@@ -27,14 +23,14 @@
 
         private readonly CancellationTokenSource cts = new CancellationTokenSource();
 
-        private readonly Initial initial;
+        private readonly ZadolbaliClient client;
 
-        public Runner(IMessageBroker[] brokers, IProcessorFactory processorFabric, Initial initial, IDataContext dataContext)
+        public Runner(IMessageBroker[] brokers, IProcessorFactory processorFabric, IDataContext dataContext, ZadolbaliClient client)
         {
             this.brokers = brokers;
             this.processorFabric = processorFabric;
-            this.initial = initial;
             this.dataContext = dataContext;
+            this.client = client;
         }
         
         public async Task Run()
@@ -47,17 +43,23 @@
                 return;
             }
 
-            await this.initial.AddTagInBase();
+            if (await this.dataContext.CountTags() == 0)
+            {
+                foreach (var tag in await this.client.GetTags())
+                {
+                    await this.dataContext.AddAsync(new Tag { Name = tag.Name, TagKey = tag.TagKey }, token);
+                }
+            }
+
+            await this.dataContext.SaveChangesAsync(token);
 
             if (this.brokers.All(broker => broker.IsEmpty()))
             {               
-                foreach (var id in this.initial.GenerateIDs(new DateTime(2009, 9, 8)))
+                foreach (var id in await this.client.GenerateIDs())
                 {
                     this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(id));
                 }
             }
-
-            Logger.LogInformation($"Popular tags: {(this.dataContext.GetPopularTags(2).First()).TagKey}, {(this.dataContext.GetPopularTags(2).Last()).TagKey}");
 
             foreach (var processor in this.processorFabric.Create())
             {
@@ -78,6 +80,7 @@
         public void Dispose()
         {
             this.cts?.Dispose();
+            this.client?.Dispose();
         }
     }
 }

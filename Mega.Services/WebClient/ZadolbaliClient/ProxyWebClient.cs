@@ -1,4 +1,4 @@
-﻿namespace Mega.Services.WebClient
+﻿namespace Mega.WebClient.ZadolbaliClient
 {
     using System;
     using System.Diagnostics;
@@ -10,7 +10,7 @@
 
     public class ProxyWebClient : WebClient
     {
-        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ProxyWebClient>();
+        private static readonly ILogger Logger = new LoggerFactory().CreateLogger<ProxyWebClient>();
 
         private static readonly Stopwatch Watch = new Stopwatch();
 
@@ -24,7 +24,7 @@
 
         private readonly string rootUriString;
 
-        public ProxyWebClient(Settings settings)
+        public ProxyWebClient(ProxySettings settings)
         {
             this.timeout = settings.Timeout;
             this.delay = settings.Delay;

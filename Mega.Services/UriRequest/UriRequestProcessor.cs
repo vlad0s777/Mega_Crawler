@@ -6,7 +6,7 @@
 
     using Mega.Domain;
     using Mega.Messaging;
-    using Mega.Services.WebClient;
+    using Mega.WebClient.ZadolbaliClient;
 
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
@@ -23,7 +23,7 @@
 
         public UriRequestProcessor(
             IMessageBroker<UriRequest> requests,
-            Settings settings,
+            ProxySettings settings,
             IDataContext dataContext)
         {
             this.requests = requests;
