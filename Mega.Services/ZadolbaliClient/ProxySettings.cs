@@ -1,4 +1,4 @@
-﻿namespace Mega.WebClient.ZadolbaliClient
+﻿namespace Mega.Services.ZadolbaliClient
 {
     using Microsoft.Extensions.Configuration;
 
@@ -9,8 +9,6 @@
         public int[] Delay { get; }
 
         public string[] ProxyServers { get; }
-
-        public string CurrentProxyServer { get; set; }
 
         public int AttemptLimit { get; }
 

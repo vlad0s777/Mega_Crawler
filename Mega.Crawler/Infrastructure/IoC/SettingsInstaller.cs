@@ -2,7 +2,7 @@
 {
     using System.IO;
 
-    using Mega.WebClient.ZadolbaliClient;
+    using Mega.Services.ZadolbaliClient;
 
     using Microsoft.Extensions.Configuration;
 
@@ -19,10 +19,10 @@
             var config = builder.Build();
 
             var settings = new Settings(config);
-            var servicesSettings = new ProxySettings(config);
+            var proxySettings = new ProxySettings(config);
 
             ForSingletonOf<Settings>().Use(settings);
-            ForSingletonOf<ProxySettings>().Use(servicesSettings);
+            ForSingletonOf<ProxySettings>().Use(proxySettings);
         }
     }
 }

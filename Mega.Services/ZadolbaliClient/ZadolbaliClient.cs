@@ -1,4 +1,4 @@
-﻿namespace Mega.WebClient.ZadolbaliClient
+﻿namespace Mega.Services.ZadolbaliClient
 {
     using System;
     using System.Collections.Generic;
@@ -30,23 +30,19 @@
             }
         }
 
-        private readonly Func<string, Task<string>> withProxyClientDelegate;
-
-        private readonly Func<string, Task<string>> withoutProxyClientDelegate;
+        private readonly Func<string, Task<string>> clientDelegate;
 
         private readonly ProxyWebClient client;
 
-        public ZadolbaliClient(ProxySettings settings)
+        public ZadolbaliClient(string rootUriString, int timeout = 0, int delay = 0, string proxy = "")
         {
-            this.client = new ProxyWebClient(settings);
-            this.withProxyClientDelegate = id => this.client.GetStringAsync(id);
-            this.withoutProxyClientDelegate = id => this.client.DownloadStringTaskAsync(settings.RootUriString + id);
+            this.client = new ProxyWebClient(rootUriString, timeout, delay, proxy);
+            this.clientDelegate = id => this.client.GetStringAsync(id);
         }
 
-        public ZadolbaliClient(Func<string, Task<string>> clientDelegate, Func<string, Task<string>> withoutProxyDelegate)
+        public ZadolbaliClient(Func<string, Task<string>> clientDelegate)
         {
-            this.withProxyClientDelegate = clientDelegate;
-            this.withoutProxyClientDelegate = withoutProxyDelegate;
+            this.clientDelegate = clientDelegate;
         }
 
         public async Task<List<string>> GenerateIDs()
@@ -54,7 +50,7 @@
             DateTime start;
             try
             {
-                var body = await this.withoutProxyClientDelegate.Invoke(string.Empty);
+                var body = await this.clientDelegate.Invoke(string.Empty);
                 var parser = new HtmlParser();
                 
                 using (var document = await parser.ParseAsync(body))
@@ -68,7 +64,6 @@
                 throw new Exception(e.Message + e.Source);
             }
 
-            Logger.LogError(start.Date.ToString("yyyyMMdd"));
             var current = DateTime.Now;
             var ids = new List<string>();
             while (current >= start)
@@ -85,7 +80,7 @@
             var tags = new List<TagInfo>();
             try
             {
-                var body = await this.withoutProxyClientDelegate.Invoke("tags");
+                var body = await this.clientDelegate.Invoke("tags");
                 var parser = new HtmlParser();
                 using (var document = await parser.ParseAsync(body))
                 {
@@ -111,7 +106,7 @@
             var articles = new PageOf<ArticleInfo>(idPage);
             try
             {
-                var body = await this.withProxyClientDelegate.Invoke(idPage);
+                var body = await this.clientDelegate.Invoke(idPage);
 
                 Watch.Start();
 

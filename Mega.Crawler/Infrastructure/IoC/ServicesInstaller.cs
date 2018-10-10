@@ -1,10 +1,14 @@
 ﻿namespace Mega.Crawler.Infrastructure.IoC
 {
+    using System.IO;
+
     using Mega.Messaging;
     using Mega.Messaging.External;
 
     using Mega.Services.UriRequest;
-    using Mega.WebClient.ZadolbaliClient;
+    using Mega.Services.ZadolbaliClient;
+
+    using Microsoft.Extensions.Configuration;
 
     using StructureMap;
 
@@ -23,8 +27,6 @@
                                     s.AssembliesFromPath(".");
                                     s.AddAllTypesOf<IProcessorFactory>();
                                 });
-
-            ForConcreteType<ZadolbaliClient>().Configure.SelectConstructor(() => new ZadolbaliClient(null));
         }
     }
 }

@@ -11,7 +11,7 @@
     using Mega.Domain;
     using Mega.Messaging;
     using Mega.Services.UriRequest;
-    using Mega.WebClient.ZadolbaliClient;
+    using Mega.Services.ZadolbaliClient;
 
     public class Runner : IDisposable
     {
@@ -23,14 +23,17 @@
 
         private readonly CancellationTokenSource cts = new CancellationTokenSource();
 
-        private readonly ZadolbaliClient client;
+        private readonly ProxySettings proxySettings;
 
-        public Runner(IMessageBroker[] brokers, IProcessorFactory processorFabric, IDataContext dataContext, ZadolbaliClient client)
+        private readonly Random random;
+
+        public Runner(IMessageBroker[] brokers, IProcessorFactory processorFabric, IDataContext dataContext, ProxySettings proxySettings)
         {
             this.brokers = brokers;
             this.processorFabric = processorFabric;
             this.dataContext = dataContext;
-            this.client = client;
+            this.proxySettings = proxySettings;
+            this.random = new Random();
         }
         
         public async Task Run()
@@ -43,22 +46,38 @@
                 return;
             }
 
-            if (await this.dataContext.CountTags() == 0)
+            foreach (var proxy in this.proxySettings.ProxyServers)
             {
-                foreach (var tag in await this.client.GetTags())
+                try
                 {
-                    await this.dataContext.AddAsync(new Tag { Name = tag.Name, TagKey = tag.TagKey }, token);
+                    var delay = this.random.Next(this.proxySettings.Delay.First(), this.proxySettings.Delay.Last());
+                    using (var client = new ZadolbaliClient(this.proxySettings.RootUriString, this.proxySettings.Timeout, delay, proxy))
+                    {
+                        if (await this.dataContext.CountTags() == 0)
+                        {
+                            foreach (var tag in await client.GetTags())
+                            {
+                                await this.dataContext.AddAsync(new Tag { Name = tag.Name, TagKey = tag.TagKey }, token);
+                            }
+                        }
+
+                        await this.dataContext.SaveChangesAsync(token);
+
+                        if (this.brokers.All(broker => broker.IsEmpty()))
+                        {
+                            foreach (var id in await client.GenerateIDs())
+                            {
+                                this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(id));
+                            }
+                        }
+                    }
                 }
-            }
-
-            await this.dataContext.SaveChangesAsync(token);
-
-            if (this.brokers.All(broker => broker.IsEmpty()))
-            {               
-                foreach (var id in await this.client.GenerateIDs())
+                catch (System.Net.WebException) 
                 {
-                    this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(id));
+                    continue;
                 }
+
+                break;
             }
 
             foreach (var processor in this.processorFabric.Create())
@@ -80,7 +99,6 @@
         public void Dispose()
         {
             this.cts?.Dispose();
-            this.client?.Dispose();
         }
     }
 }

@@ -6,7 +6,7 @@
 
     using Mega.Domain;
     using Mega.Messaging;
-    using Mega.WebClient.ZadolbaliClient;
+    using Mega.Services.ZadolbaliClient;
 
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
@@ -19,31 +19,35 @@
 
         private readonly IMessageBroker<UriRequest> requests;
 
-        private readonly IDataContext dataContext; 
+        private readonly IDataContext dataContext;
+
+        private readonly Uri rootUri;
+
+        private readonly ZadolbaliClient client;
 
         public UriRequestProcessor(
             IMessageBroker<UriRequest> requests,
-            ProxySettings settings,
-            IDataContext dataContext)
+            IDataContext dataContext,
+            string rootUriString,
+            int countAttempt = 0,
+            int timeout = 0,
+            int delay = 0,
+            string proxy = "")
         {
             this.requests = requests;
 
             this.dataContext = dataContext;
 
-            this.RootUri = new Uri(settings.RootUriString, UriKind.Absolute);
+            this.rootUri = new Uri(rootUriString, UriKind.Absolute);
 
-            this.client = new ZadolbaliClient(settings);
+            this.client = new ZadolbaliClient(rootUriString, timeout, delay, proxy);
 
-            this.countAttempt = settings.AttemptLimit;
+            this.countAttempt = countAttempt;
         }
-
-        private Uri RootUri { get; }
-
-        private readonly ZadolbaliClient client;
 
         public async Task Handle(UriRequest message)
         {
-            Logger.LogInformation($"Processing {this.RootUri + message.Id}.");
+            Logger.LogInformation($"Processing {this.rootUri + message.Id}.");
 
             try
             {

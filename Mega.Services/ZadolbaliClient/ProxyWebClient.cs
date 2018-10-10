@@ -1,8 +1,8 @@
-﻿namespace Mega.WebClient.ZadolbaliClient
+﻿namespace Mega.Services.ZadolbaliClient
 {
     using System;
     using System.Diagnostics;
-    using System.Linq;
+
     using System.Net;
     using System.Threading.Tasks;
 
@@ -10,27 +10,24 @@
 
     public class ProxyWebClient : WebClient
     {
-        private static readonly ILogger Logger = new LoggerFactory().CreateLogger<ProxyWebClient>();
+        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ProxyWebClient>();
 
         private static readonly Stopwatch Watch = new Stopwatch();
 
         private readonly int timeout;
 
-        private readonly int[] delay;
+        private readonly int delay;
 
         private readonly WebProxy proxyServer;
 
-        private readonly Random random;
-
         private readonly string rootUriString;
 
-        public ProxyWebClient(ProxySettings settings)
+        public ProxyWebClient(string rootUriString, int timeout = 0, int delay = 0, string proxy = "")
         {
-            this.timeout = settings.Timeout;
-            this.delay = settings.Delay;
-            this.proxyServer = new WebProxy(settings.CurrentProxyServer);
-            this.random = new Random();
-            this.rootUriString = settings.RootUriString;
+            this.timeout = timeout;
+            this.delay = delay;
+            this.proxyServer = proxy != string.Empty ? new WebProxy(proxy) : new WebProxy();
+            this.rootUriString = rootUriString;
         }
        
         protected override WebRequest GetWebRequest(Uri address)
@@ -54,12 +51,7 @@
             {
                 Watch.Start();
                 DownloadStatistic.Start();
-
-                if (this.delay != null)
-                {
-                    await Task.Delay(this.random.Next(this.delay.First(), this.delay.Last()));
-                }
-
+                await Task.Delay(this.delay);
                 var watchDelay = Watch.Elapsed.TotalMilliseconds;
                 Watch.Restart();
 
@@ -75,7 +67,7 @@
             catch (Exception e)
             {             
                 Watch.Reset();
-                throw new Exception($"This proxy {this.proxyServer.Address} in id: {id} error: {e.Message}");
+                throw new Exception($"This proxy {this.proxyServer.Address} in id: {id} error: {e.Message}. {e.GetType().FullName}");
             }
         }
     }

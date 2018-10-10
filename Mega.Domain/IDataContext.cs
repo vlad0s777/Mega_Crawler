@@ -5,7 +5,6 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-
     public interface IDataContext
     {
         Task<Article> GetArticle(int outerKey);
