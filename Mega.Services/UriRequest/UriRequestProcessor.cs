@@ -11,7 +11,7 @@
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
 
-    public class UriRequestProcessor : IMessageProcessor<UriRequest>, IDisposable
+    public class UriRequestProcessor : IMessageProcessor<UriRequest>
     {
         private static readonly ILogger Logger = ApplicationLogging.CreateLogger<UriRequestProcessor>();
 
@@ -28,21 +28,20 @@
         public UriRequestProcessor(
             IMessageBroker<UriRequest> requests,
             IDataContext dataContext,
-            string rootUriString,
-            int countAttempt = 0,
-            int timeout = 0,
-            int delay = 0,
+            ZadolbaliClient client,
             string proxy = "")
         {
             this.requests = requests;
 
             this.dataContext = dataContext;
 
-            this.rootUri = new Uri(rootUriString, UriKind.Absolute);
+            this.client = client;
 
-            this.client = new ZadolbaliClient(rootUriString, timeout, delay, proxy);
+            this.client.Proxy = proxy;
 
-            this.countAttempt = countAttempt;
+            this.rootUri = new Uri(ZadolbaliClient.RootUriString, UriKind.Absolute);
+
+            this.countAttempt = ZadolbaliClient.CountAttempt;
         }
 
         public async Task Handle(UriRequest message)
@@ -51,6 +50,31 @@
 
             try
             {
+                if (message.Id == string.Empty)
+                {
+                    foreach (var id in await this.client.GenerateIDs())
+                    {
+                        this.requests.Send(new UriRequest(id));
+                    }
+
+                    return;
+                }
+
+                if (message.Id == "tags")
+                {
+                    foreach (var tag in await this.client.GetTags())
+                    {
+                        await this.dataContext.AddAsync(new Tag { Name = tag.Name, TagKey = tag.TagKey });
+                        await this.dataContext.SaveChangesAsync();
+                    }
+
+                    Logger.LogInformation($"All tags added");
+
+                    this.requests.Send(new UriRequest(string.Empty));
+
+                    return;
+                }
+
                 var articles = await this.client.GetArticles(message.Id);
 
                 foreach (var article in articles)
@@ -105,11 +129,6 @@
             {
                 Logger.LogWarning(e.Message);
             }
-        }
-
-        public void Dispose()
-        {
-            this.client?.Dispose();
         }
     }
 }

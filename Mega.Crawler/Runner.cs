@@ -10,6 +10,8 @@
 
     using Mega.Domain;
     using Mega.Messaging;
+    using Mega.Services;
+    using Mega.Services.TagRequest;
     using Mega.Services.UriRequest;
     using Mega.Services.ZadolbaliClient;
 
@@ -17,7 +19,9 @@
     {
         private readonly IMessageBroker[] brokers;
 
-        private readonly IProcessorFactory processorFabric;
+        private readonly ITagRequestProcessorFactory tagRequestProcessorFactory;
+
+        private readonly IUriRequestProcessorFactory uriRequestProcessorFactory;
 
         private readonly IDataContext dataContext;
 
@@ -25,15 +29,13 @@
 
         private readonly ProxySettings proxySettings;
 
-        private readonly Random random;
-
-        public Runner(IMessageBroker[] brokers, IProcessorFactory processorFabric, IDataContext dataContext, ProxySettings proxySettings)
+        public Runner(IMessageBroker[] brokers, IDataContext dataContext, ProxySettings proxySettings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory)
         {
             this.brokers = brokers;
-            this.processorFabric = processorFabric;
             this.dataContext = dataContext;
             this.proxySettings = proxySettings;
-            this.random = new Random();
+            this.tagRequestProcessorFactory = tagRequestProcessorFactory;
+            this.uriRequestProcessorFactory = uriRequestProcessorFactory;
         }
         
         public async Task Run()
@@ -46,43 +48,26 @@
                 return;
             }
 
-            foreach (var proxy in this.proxySettings.ProxyServers)
+            var tagsCount = await this.dataContext.CountTags();
+            var isEmptyQueues = this.brokers.All(broker => broker.IsEmpty());
+
+            if (tagsCount == 0 && isEmptyQueues)
             {
-                try
-                {
-                    var delay = this.random.Next(this.proxySettings.Delay.First(), this.proxySettings.Delay.Last());
-                    using (var client = new ZadolbaliClient(this.proxySettings.RootUriString, this.proxySettings.Timeout, delay, proxy))
-                    {
-                        if (await this.dataContext.CountTags() == 0)
-                        {
-                            foreach (var tag in await client.GetTags())
-                            {
-                                await this.dataContext.AddAsync(new Tag { Name = tag.Name, TagKey = tag.TagKey }, token);
-                            }
-                        }
-
-                        await this.dataContext.SaveChangesAsync(token);
-
-                        if (this.brokers.All(broker => broker.IsEmpty()))
-                        {
-                            foreach (var id in await client.GenerateIDs())
-                            {
-                                this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(id));
-                            }
-                        }
-                    }
-                }
-                catch (System.Net.WebException) 
-                {
-                    continue;
-                }
-
-                break;
+                this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest("tags"));
+            }
+            else if (isEmptyQueues)
+            {
+                this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(string.Empty));
+            }
+            else if (tagsCount == 0)
+            {
+                this.brokers.OfType<IMessageBroker<string>>().First().Send("tags");
             }
 
-            foreach (var processor in this.processorFabric.Create())
+            foreach (var proxy in this.proxySettings.ProxyServers)
             {
-                processor.Run(token);
+                this.uriRequestProcessorFactory.Create(proxy).Run(token);
+                this.tagRequestProcessorFactory.Create(proxy).Run(token);
             }
 
             if (!(Debugger.IsAttached || Environment.GetCommandLineArgs().Contains("--console")))
