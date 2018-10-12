@@ -10,10 +10,8 @@
 
     using Mega.Domain;
     using Mega.Messaging;
-    using Mega.Services;
     using Mega.Services.TagRequest;
     using Mega.Services.UriRequest;
-    using Mega.Services.ZadolbaliClient;
 
     public class Runner : IDisposable
     {
@@ -27,13 +25,13 @@
 
         private readonly CancellationTokenSource cts = new CancellationTokenSource();
 
-        private readonly ProxySettings proxySettings;
+        private readonly Settings settings;
 
-        public Runner(IMessageBroker[] brokers, IDataContext dataContext, ProxySettings proxySettings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory)
+        public Runner(IMessageBroker[] brokers, IDataContext dataContext, Settings settings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory)
         {
             this.brokers = brokers;
             this.dataContext = dataContext;
-            this.proxySettings = proxySettings;
+            this.settings = settings;
             this.tagRequestProcessorFactory = tagRequestProcessorFactory;
             this.uriRequestProcessorFactory = uriRequestProcessorFactory;
         }
@@ -64,7 +62,7 @@
                 this.brokers.OfType<IMessageBroker<string>>().First().Send("tags");
             }
 
-            foreach (var proxy in this.proxySettings.ProxyServers)
+            foreach (var proxy in this.settings.ProxyServers)
             {
                 this.uriRequestProcessorFactory.Create(proxy).Run(token);
                 this.tagRequestProcessorFactory.Create(proxy).Run(token);
