@@ -22,18 +22,14 @@
 
         public DbSet<Article> Articles { get; set; }
 
-        public IEnumerable<Article> GetArticles(int limit = 0, int offset = 0)
-        {
-            return this.Articles.Skip(offset).Take(limit);
-        }
-
         public DbSet<Tag> Tags { get; set; }
 
         public DbSet<ArticleTag> ArticleTag { get; set; }
 
-        public async Task<Article> GetArticle(int outerKey) => await this.Articles.FirstAsync(t => t.OuterArticleId == outerKey);
-
-        public async Task<Tag> GetTag(string outerKey) => await this.Tags.FirstAsync(t => t.TagKey == outerKey);
+        public IEnumerable<Article> GetArticles(int limit = 0, int offset = 0)
+        {
+            return this.Articles.Skip(offset).Take(limit);
+        }
 
         public async Task<int> CountArticles(int tagId = 0, DateTime? startDate = null, DateTime? endDate = null)
         {
@@ -44,17 +40,18 @@
                        : await this.ArticleTag.CountAsync(x => x.TagId == tagId && x.Article.DateCreate >= start && x.Article.DateCreate <= end);
         }
 
-        public async Task<int> CountTags(int articleId = 0) => articleId == 0 ? await this.Tags.CountAsync() : await this.ArticleTag.CountAsync(t => t.ArticleId == articleId);
+        public async Task<Article> GetArticle(int outerKey) => await this.Articles.FirstAsync(t => t.OuterArticleId == outerKey);
 
-        public IEnumerable<Tag> GetPopularTags(int countTags = 1)
         public IEnumerable<Tag> GetTags(int limit = 0, int offset = 0)
         {
             return this.Tags.Skip(offset).Take(limit);
         }
 
-        public DbSet<ArticlesTags> ArticlesTags { get; set; }
+        public async Task<Tag> GetTag(string outerKey) => await this.Tags.FirstAsync(t => t.TagKey == outerKey);
+      
+        public async Task<int> CountTags(int articleId = 0) => articleId == 0 ? await this.Tags.CountAsync() : await this.ArticleTag.CountAsync(t => t.ArticleId == articleId);
 
-        public IDataContext CreateNewContext()
+        public IEnumerable<Tag> GetPopularTags(int countTags = 1)
         {
             var counts = new Dictionary<int, int>();
             foreach (var tag in this.Tags)
@@ -70,8 +67,6 @@
             }           
         }
 
-        public IDataContext CreateNewContext() => new DataContext(this.connectionString);
-
         public void Migrate() => this.Database.Migrate();
 
         public new async Task AddAsync(object entity, CancellationToken cancellationToken = default(CancellationToken)) => await base.AddAsync(entity, cancellationToken);
@@ -79,9 +74,9 @@
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Article>().HasIndex(pc => pc.OuterArticleId).IsUnique();
-            modelBuilder.Entity<ArticlesTags>().HasKey(pc => new { pc.ArticleId, pc.TagId });
-            modelBuilder.Entity<ArticlesTags>().HasOne(pc => pc.Article).WithMany(p => p.ArticlesTags).HasForeignKey(pc => pc.ArticleId);
-            modelBuilder.Entity<ArticlesTags>().HasOne(pc => pc.Tag).WithMany(c => c.ArticlesTags).HasForeignKey(pc => pc.TagId);
+            modelBuilder.Entity<ArticleTag>().HasKey(pc => new { pc.ArticleId, pc.TagId });
+            modelBuilder.Entity<ArticleTag>().HasOne(pc => pc.Article).WithMany(p => p.ArticleTag).HasForeignKey(pc => pc.ArticleId);
+            modelBuilder.Entity<ArticleTag>().HasOne(pc => pc.Tag).WithMany(c => c.ArticleTag).HasForeignKey(pc => pc.TagId);
         }
     }
 }

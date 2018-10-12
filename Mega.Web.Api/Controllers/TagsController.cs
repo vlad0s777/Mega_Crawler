@@ -16,16 +16,10 @@
     {
         private readonly DataContext context;
 
-        public TagsController(DataContext context)
-        {
-            this.context = context;
-        }
+        public TagsController(DataContext context) => this.context = context;
 
         [HttpGet]
-        public ActionResult<IEnumerable<Tag>> Get()
-        {
-            return this.context.Tags;
-        }
+        public ActionResult<IEnumerable<Tag>> Get() => this.context.Tags;
 
         [HttpGet("{numPage}")]
         public ActionResult<IEnumerable<Tag>> GetPage(int numPage)
@@ -55,9 +49,6 @@
         }
 
         [HttpGet("tag/{id}/articles")]
-        public ActionResult<IEnumerable<Article>> GetArticles(int id)
-        {
-            return new ActionResult<IEnumerable<Article>>(this.context.ArticlesTags.Where(x => x.TagId == id).Select(y => y.Article));
-        }
+        public ActionResult<IEnumerable<Article>> GetArticles(int id) => new ActionResult<IEnumerable<Article>>(this.context.ArticleTag.Where(x => x.TagId == id).Select(y => y.Article));
     }
 }
