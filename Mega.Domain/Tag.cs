@@ -1,8 +1,6 @@
 ﻿namespace Mega.Domain
 {
     using System.Collections.Generic;
-    using System.ComponentModel.DataAnnotations.Schema;
-    using System.Linq;
 
     public class Tag
     {
@@ -12,13 +10,6 @@
 
         public string Name { get; set; }
 
-        public virtual ICollection<ArticlesTags> ArticlesTags { get; } = new List<ArticlesTags>();
-
-        [NotMapped]
-        public IEnumerable<Article> Articles => this.ArticlesTags.Select(e => e.Article);
-
-
-        [NotMapped]
-        public int CountArticles => this.ArticlesTags.Count;
+        public virtual ICollection<ArticleTag> ArticleTag { get; } = new List<ArticleTag>();
     }
 }

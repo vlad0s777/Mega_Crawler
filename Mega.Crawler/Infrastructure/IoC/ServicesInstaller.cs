@@ -1,11 +1,15 @@
 ﻿namespace Mega.Crawler.Infrastructure.IoC
 {
+    using System;
+
     using Mega.Messaging;
     using Mega.Messaging.External;
     using Mega.Services;
+    using Mega.Services.TagRequest;
     using Mega.Services.UriRequest;
 
     using StructureMap;
+    using StructureMap.AutoFactory;
 
     public class ServicesInstaller : Registry
     {
@@ -15,15 +19,15 @@
 
             Forward<IMessageBroker<UriRequest>, IMessageBroker>();
 
-            ForSingletonOf<IProcessorFactory>().Use<UriRequestProcessorFactory>();
-                        Scan(
-                            s =>
-                                {
-                                    s.AssembliesFromPath(".");
-                                    s.AddAllTypesOf<IProcessorFactory>();
-                                });
+            Forward<IMessageBroker<string>, IMessageBroker>();
 
-            ForConcreteType<Initial>();
+            ForSingletonOf<Random>();
+
+            For<IMessageProcessor<UriRequest>>().Use<UriRequestProcessor>();
+            For<IMessageProcessor<string>>().Use<TagRequestProcessor>();
+
+            For<IUriRequestProcessorFactory>().CreateFactory();
+            For<ITagRequestProcessorFactory>().CreateFactory();
         }
     }
 }

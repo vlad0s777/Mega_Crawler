@@ -1,4 +1,4 @@
-﻿namespace Mega.Services.WebClient
+﻿namespace Mega.Services.ZadolbaliClient
 {
     using System;
     using System.Collections.Generic;
@@ -12,9 +12,19 @@
 
     public class ZadolbaliClient : IDisposable
     {
+        public const string RootUriString = "https://zadolba.li/";
+
+        public const int CountAttempt = 3;
+
+        private const int DelayBegin = 5000;
+
+        private const int DelayEnd = 15000;
+
+        private const int Timeout = 8000;
+
         private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ZadolbaliClient>();
 
-        private static readonly Stopwatch Watch = new Stopwatch();
+        private static readonly Stopwatch Watch = new Stopwatch();      
 
         public static DateTime GetDate(string specificDate)
         {
@@ -30,27 +40,107 @@
             }
         }
 
+        public string Proxy
+        {
+            get => this.client.ProxyServer;
+            set => this.client.ProxyServer = value;
+        }
+
         private readonly Func<string, Task<string>> clientDelegate;
 
         private readonly ProxyWebClient client;
 
-        public ZadolbaliClient(Settings settings)
+        public ZadolbaliClient(Random random)
         {
-            this.client = new ProxyWebClient(settings);
+            this.client = new ProxyWebClient(RootUriString, Timeout, random.Next(DelayBegin, DelayEnd));
             this.clientDelegate = id => this.client.GetStringAsync(id);
         }
 
-        public ZadolbaliClient(Func<string, Task<string>> clientDelegate) => this.clientDelegate = clientDelegate;
+        public ZadolbaliClient(int timeout = 0, int delay = 0, string proxy = "")
+        {
+            this.client = new ProxyWebClient(RootUriString, timeout, delay, proxy);
+            this.clientDelegate = id => this.client.GetStringAsync(id);
+        }
+
+        public ZadolbaliClient(Func<string, Task<string>> clientDelegate)
+        {
+            this.clientDelegate = clientDelegate;
+        }
+
+        public async Task<List<string>> GenerateIDs()
+        {
+            DateTime start;
+            try
+            {
+                Watch.Start();
+                var body = await this.clientDelegate.Invoke(string.Empty);
+                var parser = new HtmlParser();
+                
+                using (var document = await parser.ParseAsync(body))
+                {
+                    var firsttagSelector = document.QuerySelector("ul>li.first>a");
+                    start = DateTime.ParseExact(firsttagSelector.Attributes["href"].Value.Split("/").Last(), "yyyyMMdd", null);
+                }
+            }
+            catch (Exception e)
+            {
+                Watch.Reset();
+                throw new Exception(e.Message + e.Source);
+            }
+
+            var current = DateTime.Now;
+            var ids = new List<string>();
+            while (current >= start)
+            {
+                ids.Add(current.Date.ToString("yyyyMMdd"));
+                current = current.AddDays(-1);
+            }
+
+            Logger.LogDebug($"Generate ids: {Watch.Elapsed.TotalMilliseconds} ms.");
+
+            Watch.Reset();
+            return ids;
+        }
+
+        public async Task<List<TagInfo>> GetTags()
+        {
+            var tags = new List<TagInfo>();
+            try
+            {
+                Watch.Start();
+                var body = await this.clientDelegate.Invoke("tags");
+                var parser = new HtmlParser();
+                using (var document = await parser.ParseAsync(body))
+                {
+                    var tagsSelector = document.QuerySelectorAll("#cloud li>a");
+                    foreach (var selector in tagsSelector)
+                    {
+                        var key = selector.Attributes["href"].Value.Split("/").Last();
+                        var text = selector.InnerHtml;
+                        tags.Add(new TagInfo(key, text));
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Watch.Reset();
+                throw new Exception(e.Message);
+            }
+
+            Logger.LogDebug($"Parsing tags: {Watch.Elapsed.TotalMilliseconds} ms.");
+
+            Watch.Reset();
+            return tags;
+        }
 
         public async Task<PageOf<ArticleInfo>> GetArticles(string idPage)
         {
             var articles = new PageOf<ArticleInfo>(idPage);
             try
             {
-                var body = await this.clientDelegate.Invoke(idPage);
-
                 Watch.Start();
 
+                var body = await this.clientDelegate.Invoke(idPage);                
                 var parser = new HtmlParser();
                 using (var document = await parser.ParseAsync(body))
                 {
