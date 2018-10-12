@@ -24,27 +24,7 @@
 
         private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ZadolbaliClient>();
 
-        private static readonly Stopwatch Watch = new Stopwatch();      
-
-        public static DateTime GetDate(string specificDate)
-        {
-            var parts = specificDate.Split(',', ':');
-            switch (parts.First().ToLower())
-            {
-                case "сегодня":
-                    return DateTime.Today.AddHours(Convert.ToDouble(parts[1])).AddMinutes(Convert.ToDouble(parts[2]));
-                case "вчера":
-                    return DateTime.Today.AddDays(-1).AddHours(Convert.ToDouble(parts[1])).AddMinutes(Convert.ToDouble(parts[2]));
-                default:
-                    return DateTime.Parse(parts[0]).AddHours(Convert.ToDouble(parts[1])).AddMinutes(Convert.ToDouble(parts[2]));
-            }
-        }
-
-        public string Proxy
-        {
-            get => this.client.ProxyServer;
-            set => this.client.ProxyServer = value;
-        }
+        private static readonly Stopwatch Watch = new Stopwatch();
 
         private readonly Func<string, Task<string>> clientDelegate;
 
@@ -65,6 +45,26 @@
         public ZadolbaliClient(Func<string, Task<string>> clientDelegate)
         {
             this.clientDelegate = clientDelegate;
+        }
+
+        public string Proxy
+        {
+            get => this.client.ProxyServer;
+            set => this.client.ProxyServer = value;
+        }
+
+        public static DateTime GetDate(string specificDate)
+        {
+            var parts = specificDate.Split(',', ':');
+            switch (parts.First().ToLower())
+            {
+                case "сегодня":
+                    return DateTime.Today.AddHours(Convert.ToDouble(parts[1])).AddMinutes(Convert.ToDouble(parts[2]));
+                case "вчера":
+                    return DateTime.Today.AddDays(-1).AddHours(Convert.ToDouble(parts[1])).AddMinutes(Convert.ToDouble(parts[2]));
+                default:
+                    return DateTime.Parse(parts[0]).AddHours(Convert.ToDouble(parts[1])).AddMinutes(Convert.ToDouble(parts[2]));
+            }
         }
 
         public async Task<List<string>> GenerateIDs()

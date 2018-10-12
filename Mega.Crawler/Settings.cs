@@ -4,24 +4,23 @@
 
     public class Settings
     {
-        public string[] ProxyServers { get; }
-
-        public Settings(
-            string[] proxyServers = null)
+        public Settings(string[] proxyServers = null)
         {
             this.ProxyServers = proxyServers;
         }
 
-        public Settings(IConfiguration settings)
+        public Settings(IConfiguration configuration)
         {
             try
             {
-                this.ProxyServers = settings.GetSection("proxyServers").Get<string[]>();
+                this.ProxyServers = configuration.GetSection("proxyServers").Get<string[]>();
             }
             catch
             {
                 this.ProxyServers = null;
             }
         }
+
+        public string[] ProxyServers { get; }
     }
 }

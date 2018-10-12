@@ -18,7 +18,6 @@
             ForSingletonOf(typeof(IMessageBroker<>)).Use(typeof(RabbitMqMessageBroker<>));
 
             Forward<IMessageBroker<UriRequest>, IMessageBroker>();
-
             Forward<IMessageBroker<string>, IMessageBroker>();
 
             ForSingletonOf<Random>();
