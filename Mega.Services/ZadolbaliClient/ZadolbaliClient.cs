@@ -34,16 +34,16 @@
 
         private int DelayGenerate() => this.random.Next(DelayBegin, DelayEnd);
 
-        public ZadolbaliClient(int seed)
+        public ZadolbaliClient(SeedGenerator seedGenerator)
         {
-            this.random = new Random(seed);
+            this.random = new Random(seedGenerator.Seed);
             this.client = new ProxyWebClient(RootUriString, Timeout);
             this.clientDelegate = id => this.client.GetStringAsync(id);
         }
 
-        public ZadolbaliClient(int seed, int timeout = 0, string proxy = "")
+        public ZadolbaliClient(SeedGenerator seedGenerator, int timeout = 0, string proxy = "")
         {
-            this.random = new Random(seed);
+            this.random = new Random(seedGenerator.Seed);
             this.client = new ProxyWebClient(RootUriString, timeout, proxy);
             this.clientDelegate = id => this.client.GetStringAsync(id);
         }
