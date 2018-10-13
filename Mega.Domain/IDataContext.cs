@@ -17,8 +17,6 @@
 
         IEnumerable<Tag> GetPopularTags(int countTags = 1);
 
-        IDataContext CreateNewContext();
-
         void Migrate();
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken));
