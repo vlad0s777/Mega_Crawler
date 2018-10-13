@@ -30,21 +30,29 @@
 
         private readonly ProxyWebClient client;
 
-        public ZadolbaliClient(Random random)
+        private readonly Random random;
+
+        private int DelayGenerate() => this.random.Next(DelayBegin, DelayEnd);
+
+        public ZadolbaliClient(int seed)
         {
-            this.client = new ProxyWebClient(RootUriString, Timeout, random.Next(DelayBegin, DelayEnd));
+            this.random = new Random(seed);
+            this.client = new ProxyWebClient(RootUriString, Timeout);
             this.clientDelegate = id => this.client.GetStringAsync(id);
         }
 
-        public ZadolbaliClient(int timeout = 0, int delay = 0, string proxy = "")
+        public ZadolbaliClient(int seed, int timeout = 0, string proxy = "")
         {
-            this.client = new ProxyWebClient(RootUriString, timeout, delay, proxy);
+            this.random = new Random(seed);
+            this.client = new ProxyWebClient(RootUriString, timeout, proxy);
             this.clientDelegate = id => this.client.GetStringAsync(id);
         }
 
         public ZadolbaliClient(Func<string, Task<string>> clientDelegate)
         {
             this.clientDelegate = clientDelegate;
+            this.random = new Random();
+            this.client = new ProxyWebClient(RootUriString, Timeout);
         }
 
         public string Proxy
@@ -73,6 +81,7 @@
             try
             {
                 Watch.Start();
+                this.client.Delay = DelayGenerate();
                 var body = await this.clientDelegate.Invoke(string.Empty);
                 var parser = new HtmlParser();
                 
@@ -108,6 +117,7 @@
             try
             {
                 Watch.Start();
+                this.client.Delay = DelayGenerate();
                 var body = await this.clientDelegate.Invoke("tags");
                 var parser = new HtmlParser();
                 using (var document = await parser.ParseAsync(body))
@@ -140,6 +150,7 @@
             {
                 Watch.Start();
 
+                this.client.Delay = DelayGenerate();
                 var body = await this.clientDelegate.Invoke(idPage);                
                 var parser = new HtmlParser();
                 using (var document = await parser.ParseAsync(body))

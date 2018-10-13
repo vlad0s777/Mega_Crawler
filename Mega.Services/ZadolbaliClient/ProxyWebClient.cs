@@ -16,8 +16,6 @@
 
         private readonly int timeout;
 
-        private readonly int delay;
-
         private readonly string rootUriString;
 
         private WebProxy proxyServer;
@@ -26,13 +24,15 @@
         {
             get => this.proxyServer.ToString();
             set => this.proxyServer = value != string.Empty ? new WebProxy(value) : new WebProxy();
-        }        
+        }
 
-        public ProxyWebClient(string rootUriString, int timeout = 0, int delay = 0, string proxy = "")
+        public int Delay { get; set; }
+
+        public ProxyWebClient(string rootUriString, int timeout = 0, string proxy = "")
         {
+            this.Delay = 0;
             this.timeout = timeout;
-            this.delay = delay;
-            this.proxyServer = proxy != string.Empty ? new WebProxy(proxy) : new WebProxy();
+            this.ProxyServer = proxy;
             this.rootUriString = rootUriString;
         }
        
@@ -57,7 +57,7 @@
             {
                 Watch.Start();
                 DownloadStatistic.Start();
-                await Task.Delay(this.delay);
+                await Task.Delay(this.Delay);
                 var watchDelay = Watch.Elapsed.TotalMilliseconds;
                 Watch.Restart();
 
@@ -68,6 +68,7 @@
                 Logger.LogDebug(
                     $"Delay: {watchDelay} ms. Downloading: {Watch.Elapsed.TotalMilliseconds} ms. Speed: {DownloadStatistic.Speed()}");
                 Watch.Reset();
+                Logger.LogDebug($"This proxy {this.proxyServer.Address} delay : {this.Delay}");
                 return completeDownloadString;
             }
             catch (Exception e)

@@ -20,7 +20,7 @@
 
             var connectionString = config.GetConnectionString("DefaultConnection");
 
-            For<IDataContext>().Use<DataContext>().Ctor<string>().Is(connectionString);
+            For<IDataContext>().Use<DataContext>().Ctor<string>("connectionString").Is(connectionString);
         }
     }
 }

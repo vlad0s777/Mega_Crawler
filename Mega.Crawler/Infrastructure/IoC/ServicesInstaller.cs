@@ -7,6 +7,7 @@
     using Mega.Services;
     using Mega.Services.TagRequest;
     using Mega.Services.UriRequest;
+    using Mega.Services.ZadolbaliClient;
 
     using StructureMap;
     using StructureMap.AutoFactory;
@@ -20,7 +21,8 @@
             Forward<IMessageBroker<UriRequest>, IMessageBroker>();
             Forward<IMessageBroker<string>, IMessageBroker>();
 
-            ForSingletonOf<Random>();
+            var random = new Random();
+            ForConcreteType<ZadolbaliClient>().Configure.Ctor<int>("seed").Is(random.Next());
 
             For<IMessageProcessor<UriRequest>>().Use<UriRequestProcessor>();
             For<IMessageProcessor<string>>().Use<TagRequestProcessor>();
