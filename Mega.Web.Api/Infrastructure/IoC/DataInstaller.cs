@@ -6,13 +6,13 @@
 
     using StructureMap;
 
-    public class SettingsInstaller : Registry
+    public class DataInstaller : Registry
     {
-        public SettingsInstaller(IConfiguration config)
+        public DataInstaller(IConfiguration config)
         {
             var connectionString = config.GetConnectionString("DefaultConnection");
 
-            For<DataContext>().Use(new DataContext(connectionString));
+            ForConcreteType<DataContext>().Configure.Ctor<string>("connectionString").Is(connectionString);
         }
     }
 }

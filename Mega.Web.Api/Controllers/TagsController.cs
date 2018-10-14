@@ -1,7 +1,9 @@
 ﻿namespace Mega.Web.Api.Controllers
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
 
     using Mega.Data;
     using Mega.Domain;
@@ -18,10 +20,7 @@
 
         public TagsController(DataContext context) => this.context = context;
 
-        [HttpGet]
-        public ActionResult<IEnumerable<Tag>> Get() => this.context.Tags;
-
-        [HttpGet("{numPage}")]
+        [HttpGet("{numPage=1}")]
         public ActionResult<IEnumerable<Tag>> GetPage(int numPage)
         {
             var tags = this.context.GetTags(10, 10 * (numPage - 1));
@@ -49,6 +48,12 @@
         }
 
         [HttpGet("tag/{id}/articles")]
-        public ActionResult<IEnumerable<Article>> GetArticles(int id) => new ActionResult<IEnumerable<Article>>(this.context.ArticleTag.Where(x => x.TagId == id).Select(y => y.Article));
+        public IEnumerable<Article> GetArticles(int id) => this.context.ArticleTag.Where(x => x.TagId == id).Select(y => y.Article);
+
+        [HttpGet("tag/{id}/articles/count/{startDate:datetime?}/{endDate:datetime?}")]
+        public async Task<int> CountArticles(int id, DateTime? startDate, DateTime? endDate) => await this.context.CountArticles(tagId: id, startDate: startDate, endDate: endDate);
+
+        [HttpGet("popular/{count=1}")]
+        public IEnumerable<Tag> GetPopularTags(int count) => this.context.GetPopularTags(count);
     }
 }

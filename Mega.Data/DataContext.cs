@@ -12,12 +12,9 @@
 
     public class DataContext : DbContext, IDataContext
     {
-        private readonly string connectionString;
-
         public DataContext(string connectionString)
             : base(new DbContextOptionsBuilder<DataContext>().UseNpgsql(connectionString).Options)
         {
-            this.connectionString = connectionString;
         }
 
         public DbSet<Article> Articles { get; set; }
@@ -47,8 +44,11 @@
             return this.Tags.Skip(offset).Take(limit);
         }
 
-        public async Task<Tag> GetTag(string outerKey) => await this.Tags.FirstAsync(t => t.TagKey == outerKey);
-      
+        public async Task<Tag> GetTag(string outerKey)
+        {
+            return await this.Tags.FirstAsync(t => t.TagKey == outerKey);
+        }
+
         public async Task<int> CountTags(int articleId = 0) => articleId == 0 ? await this.Tags.CountAsync() : await this.ArticleTag.CountAsync(t => t.ArticleId == articleId);
 
         public IEnumerable<Tag> GetPopularTags(int countTags = 1)
