@@ -28,16 +28,13 @@
         public UriRequestProcessor(
             IMessageBroker<UriRequest> requests,
             IDataContext dataContext,
-            ZadolbaliClient client,
-            string proxy = "")
+            ZadolbaliClient client)
         {
             this.requests = requests;
 
             this.dataContext = dataContext;
 
             this.client = client;
-
-            this.client.Proxy = proxy;
 
             this.rootUri = new Uri(ZadolbaliClient.RootUriString, UriKind.Absolute);
 

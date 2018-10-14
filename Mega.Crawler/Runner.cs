@@ -12,6 +12,7 @@
     using Mega.Messaging;
     using Mega.Services.TagRequest;
     using Mega.Services.UriRequest;
+    using Mega.Services.ZadolbaliClient;
 
     public class Runner : IDisposable
     {
@@ -21,19 +22,22 @@
 
         private readonly IUriRequestProcessorFactory uriRequestProcessorFactory;
 
+        private readonly IZadolbaliClientFactory zadolbaliClientFactory;
+
         private readonly IDataContext dataContext;
 
         private readonly CancellationTokenSource cts = new CancellationTokenSource();
 
         private readonly Settings settings;
 
-        public Runner(IMessageBroker[] brokers, IDataContext dataContext, Settings settings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory)
+        public Runner(IMessageBroker[] brokers, IDataContext dataContext, Settings settings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory, IZadolbaliClientFactory zadolbaliClientFactory)
         {
             this.brokers = brokers;
             this.dataContext = dataContext;
             this.settings = settings;
             this.tagRequestProcessorFactory = tagRequestProcessorFactory;
             this.uriRequestProcessorFactory = uriRequestProcessorFactory;
+            this.zadolbaliClientFactory = zadolbaliClientFactory;
         }
         
         public async Task Run()
@@ -62,10 +66,12 @@
                 this.brokers.OfType<IMessageBroker<string>>().First().Send("tags");
             }
 
+            var random = new Random();
             foreach (var proxy in this.settings.ProxyServers)
             {
-                this.uriRequestProcessorFactory.Create(proxy).Run(token);
-                this.tagRequestProcessorFactory.Create(proxy).Run(token);
+                var client = this.zadolbaliClientFactory.Create(proxy, random.Next());
+                this.uriRequestProcessorFactory.Create(client).Run(token);
+                this.tagRequestProcessorFactory.Create(client).Run(token);
             }
 
             if (!(Debugger.IsAttached || Environment.GetCommandLineArgs().Contains("--console")))

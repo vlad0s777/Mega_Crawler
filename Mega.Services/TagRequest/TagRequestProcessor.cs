@@ -25,14 +25,12 @@
         public TagRequestProcessor(
             IMessageBroker<string> requests,
             IDataContext dataContext,
-            ZadolbaliClient client,
-            string proxy = "")
+            ZadolbaliClient client)
         {
             this.requests = requests;
             this.dataContext = dataContext;
             this.rootUriString = ZadolbaliClient.RootUriString;
             this.client = client;
-            this.client.Proxy = proxy;
         }
 
         public async Task Handle(string message)

@@ -24,7 +24,19 @@
 
         private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ZadolbaliClient>();
 
-        private static readonly Stopwatch Watch = new Stopwatch();      
+        private static readonly Stopwatch Watch = new Stopwatch();
+
+        private readonly Func<string, Task<string>> clientDelegate;
+
+        private readonly ProxyWebClient client;
+
+        public ZadolbaliClient(string proxy = "", int seed = 0, int timeout = Timeout, int delayBegin = DelayBegin, int delayEnd = DelayEnd)
+        {
+            this.client = new ProxyWebClient(new Random(seed), RootUriString, timeout, delayBegin, delayEnd, proxy);
+            this.clientDelegate = id => this.client.GetStringAsync(id);
+        }
+
+        public ZadolbaliClient(Func<string, Task<string>> clientDelegate) => this.clientDelegate = clientDelegate;
 
         public static DateTime GetDate(string specificDate)
         {
@@ -38,33 +50,6 @@
                 default:
                     return DateTime.Parse(parts[0]).AddHours(Convert.ToDouble(parts[1])).AddMinutes(Convert.ToDouble(parts[2]));
             }
-        }
-
-        public string Proxy
-        {
-            get => this.client.ProxyServer;
-            set => this.client.ProxyServer = value;
-        }
-
-        private readonly Func<string, Task<string>> clientDelegate;
-
-        private readonly ProxyWebClient client;
-
-        public ZadolbaliClient(Random random)
-        {
-            this.client = new ProxyWebClient(RootUriString, Timeout, random.Next(DelayBegin, DelayEnd));
-            this.clientDelegate = id => this.client.GetStringAsync(id);
-        }
-
-        public ZadolbaliClient(int timeout = 0, int delay = 0, string proxy = "")
-        {
-            this.client = new ProxyWebClient(RootUriString, timeout, delay, proxy);
-            this.clientDelegate = id => this.client.GetStringAsync(id);
-        }
-
-        public ZadolbaliClient(Func<string, Task<string>> clientDelegate)
-        {
-            this.clientDelegate = clientDelegate;
         }
 
         public async Task<List<string>> GenerateIDs()
