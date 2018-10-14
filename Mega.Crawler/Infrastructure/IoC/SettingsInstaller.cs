@@ -15,12 +15,8 @@
                 .AddJsonFile($"Mega.Crawler.appsettings.development.json", true); 
 
             var config = builder.Build();
-            
-            var settings = new Settings(config);
-            var servicesSettings = new Services.Settings(config);
 
-            ForSingletonOf<Settings>().Use(settings);
-            ForSingletonOf<Services.Settings>().Use(servicesSettings);
+            ForSingletonOf<Settings>().Use(new Settings(config));
         }
     }
 }

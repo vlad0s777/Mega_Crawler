@@ -1,55 +1,77 @@
 ﻿namespace Mega.Crawler
 {
     using System;
-    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
 
     using DasMulli.Win32.ServiceUtils;
 
+    using Mega.Domain;
     using Mega.Messaging;
+    using Mega.Services.TagRequest;
     using Mega.Services.UriRequest;
+    using Mega.Services.ZadolbaliClient;
 
     public class Runner : IDisposable
     {
         private readonly IMessageBroker[] brokers;
 
-        private readonly IProcessorFactory processorFabric;
+        private readonly ITagRequestProcessorFactory tagRequestProcessorFactory;
+
+        private readonly IUriRequestProcessorFactory uriRequestProcessorFactory;
+
+        private readonly IZadolbaliClientFactory zadolbaliClientFactory;
+
+        private readonly IDataContext dataContext;
 
         private readonly CancellationTokenSource cts = new CancellationTokenSource();
 
-        public Runner(IMessageBroker[] brokers, IProcessorFactory processorFabric)
+        private readonly Settings settings;
+
+        public Runner(IMessageBroker[] brokers, IDataContext dataContext, Settings settings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory, IZadolbaliClientFactory zadolbaliClientFactory)
         {
             this.brokers = brokers;
-            this.processorFabric = processorFabric;
+            this.dataContext = dataContext;
+            this.settings = settings;
+            this.tagRequestProcessorFactory = tagRequestProcessorFactory;
+            this.uriRequestProcessorFactory = uriRequestProcessorFactory;
+            this.zadolbaliClientFactory = zadolbaliClientFactory;
         }
-
-        public static IEnumerable<string> GenerateIDs(DateTime start)
-        {
-            var current = DateTime.Now;
-            while (current >= start)
-            {
-                yield return current.Date.ToString("yyyyMMdd");
-                current = current.AddDays(-1);
-            }
-        }
-
-        public void Run()
+        
+        public async Task Run()
         {
             var token = this.cts.Token;
 
-            if (this.brokers.All(broker => broker.IsEmpty()))
+            if (Environment.GetCommandLineArgs().Contains("--migrate"))
             {
-                foreach (var id in GenerateIDs(new DateTime(2009, 9, 8)))
-                {
-                    this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(id));
-                }
+                this.dataContext.Migrate();
+                return;
             }
 
-            foreach (var processor in this.processorFabric.Create())
+            var tagsCount = await this.dataContext.CountTags();
+            var isEmptyQueues = this.brokers.All(broker => broker.IsEmpty());
+
+            if (tagsCount == 0 && isEmptyQueues)
             {
-                processor.Run(token);
+                this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest("tags"));
+            }
+            else if (isEmptyQueues)
+            {
+                this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(string.Empty));
+            }
+            else if (tagsCount == 0)
+            {
+                this.brokers.OfType<IMessageBroker<string>>().First().Send("tags");
+            }
+
+            var random = new Random();
+            foreach (var proxy in this.settings.ProxyServers)
+            {
+                var client = this.zadolbaliClientFactory.Create(proxy, random.Next());
+                this.uriRequestProcessorFactory.Create(client).Run(token);
+                this.tagRequestProcessorFactory.Create(client).Run(token);
             }
 
             if (!(Debugger.IsAttached || Environment.GetCommandLineArgs().Contains("--console")))
