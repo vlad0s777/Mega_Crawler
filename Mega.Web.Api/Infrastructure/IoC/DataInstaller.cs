@@ -1,6 +1,7 @@
 ﻿namespace Mega.Web.Api.Infrastructure.IoC
 {
     using Mega.Data;
+    using Mega.Domain;
 
     using Microsoft.Extensions.Configuration;
 
@@ -12,7 +13,7 @@
         {
             var connectionString = config.GetConnectionString("DefaultConnection");
 
-            ForConcreteType<DataContext>().Configure.Ctor<string>("connectionString").Is(connectionString);
+            For<IDataContext>().Use<DataContext>().Ctor<string>("connectionString").Is(connectionString);
         }
     }
 }

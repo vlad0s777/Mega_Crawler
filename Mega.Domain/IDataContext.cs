@@ -7,11 +7,17 @@
 
     public interface IDataContext
     {
-        Task<Article> GetArticle(int outerKey);
+        IEnumerable<Article> GetArticles(int limit = int.MaxValue, int offset = 0, int tagId = 0);
+
+        Task<Article> GetArticle(int id, bool outer = false);
+
+        Task<int> CountArticles(int tagId = 0, DateTime? startDate = null, DateTime? endDate = null);
+
+        IEnumerable<Tag> GetTags(int limit = int.MaxValue, int offset = 0, int articleId = 0);
 
         Task<Tag> GetTag(string outerKey);
 
-        Task<int> CountArticles(int tagId = 0, DateTime? startDate = null, DateTime? endDate = null);
+        Task<Tag> GetTag(int id);        
 
         Task<int> CountTags(int articleId = 0);
 

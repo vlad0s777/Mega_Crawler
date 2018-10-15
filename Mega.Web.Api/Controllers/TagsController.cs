@@ -5,7 +5,6 @@
     using System.Linq;
     using System.Threading.Tasks;
 
-    using Mega.Data;
     using Mega.Domain;
     using Mega.Web.Api.Exceptions;
 
@@ -16,9 +15,9 @@
     [ApiController]
     public class TagsController : ControllerBase
     {
-        private readonly DataContext context;
+        private readonly IDataContext context;
 
-        public TagsController(DataContext context) => this.context = context;
+        public TagsController(IDataContext context) => this.context = context;
 
         [HttpGet("{numPage=1}")]
         public ActionResult<IEnumerable<Tag>> GetPage(int numPage)
@@ -33,13 +32,11 @@
         }
 
         [HttpGet("tag/{id}")]
-        public ActionResult<Tag> Get(int id)
+        public async Task<Tag> GetTag(int id)
         {
             try
             {
-                var tag = this.context.Tags.Find(id);
-                var _ = tag.TagId;
-                return tag;
+                return await this.context.GetTag(id);
             }
             catch
             {
@@ -48,7 +45,7 @@
         }
 
         [HttpGet("tag/{id}/articles")]
-        public IEnumerable<Article> GetArticles(int id) => this.context.ArticleTag.Where(x => x.TagId == id).Select(y => y.Article);
+        public IEnumerable<Article> GetArticles(int id) => this.context.GetArticles(tagId: id);
 
         [HttpGet("tag/{id}/articles/count/{startDate:datetime?}/{endDate:datetime?}")]
         public async Task<int> CountArticles(int id, DateTime? startDate, DateTime? endDate) => await this.context.CountArticles(tagId: id, startDate: startDate, endDate: endDate);

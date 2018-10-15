@@ -23,9 +23,22 @@
 
         public DbSet<ArticleTag> ArticleTag { get; set; }
 
-        public IEnumerable<Article> GetArticles(int limit = 0, int offset = 0)
+        public IEnumerable<Article> GetArticles(int limit = int.MaxValue, int offset = 0, int tagId = 0)
         {
-            return this.Articles.Skip(offset).Take(limit);
+            var articles = tagId != 0 ? this.ArticleTag.Where(x => x.TagId == tagId).Select(y => y.Article) : this.Articles;
+            return articles.Skip(offset).Take(limit);
+        }
+
+        public async Task<Article> GetArticle(int id, bool outer = false)
+        {
+            if (outer)
+            {
+                return await this.Articles.FirstAsync(t => t.OuterArticleId == id);
+            }
+            else
+            {
+                return await this.Articles.FirstAsync(t => t.ArticleId == id);
+            }
         }
 
         public async Task<int> CountArticles(int tagId = 0, DateTime? startDate = null, DateTime? endDate = null)
@@ -37,17 +50,15 @@
                        : await this.ArticleTag.CountAsync(x => x.TagId == tagId && x.Article.DateCreate >= start && x.Article.DateCreate <= end);
         }
 
-        public async Task<Article> GetArticle(int outerKey) => await this.Articles.FirstAsync(t => t.OuterArticleId == outerKey);
-
-        public IEnumerable<Tag> GetTags(int limit = 0, int offset = 0)
+        public IEnumerable<Tag> GetTags(int limit = int.MaxValue, int offset = 0, int articleId = 0)
         {
-            return this.Tags.Skip(offset).Take(limit);
+            var tags = articleId != 0 ? this.ArticleTag.Where(x => x.ArticleId == articleId).Select(y => y.Tag) : this.Tags;
+            return tags.Skip(offset).Take(limit);
         }
 
-        public async Task<Tag> GetTag(string outerKey)
-        {
-            return await this.Tags.FirstAsync(t => t.TagKey == outerKey);
-        }
+        public async Task<Tag> GetTag(int id) => await this.Tags.FirstAsync(t => t.TagId == id);       
+
+        public async Task<Tag> GetTag(string outerKey) => await this.Tags.FirstAsync(t => t.TagKey == outerKey);
 
         public async Task<int> CountTags(int articleId = 0) => articleId == 0 ? await this.Tags.CountAsync() : await this.ArticleTag.CountAsync(t => t.ArticleId == articleId);
 
