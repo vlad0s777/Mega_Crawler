@@ -1,7 +1,9 @@
 ﻿namespace Mega.Web.Api.Controllers
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
 
     using Mega.Domain;
     using Mega.Web.Api.Exceptions;
@@ -32,6 +34,8 @@
 
         [HttpGet("{numPage}")]
         public IEnumerable<Models.Article> GetPage(int numPage)
+        [HttpGet("{numPage=1}")]
+        public ActionResult<IEnumerable<Article>> GetPage(int numPage)
         {
             var articles = this.articleMapper.Map(this.context.GetArticles(10, 10 * (numPage - 1)));
 
@@ -45,18 +49,25 @@
         }
 
         [HttpGet("article/{id}")]
-        public ActionResult<Models.Article> Get(int id)
+        public async Task<Article> GetArticle(int id)
         {
             try
             {
-                var article = this.context.Articles.Find(id);
-                var _ = article.ArticleId;
-                return this.articleMapper.Map(article);
+                return await this.context.GetArticle(id);
             }
             catch
             {
                 throw new HttpResponseException(StatusCodes.Status404NotFound, "Article not found!");
             }
+        }
+
+        [HttpGet("article/{id}/tags")]
+        public IEnumerable<Tag> GetTags(int id) => this.context.GetTags(articleId: id);
+
+        [HttpGet("count/{startDate:datetime?}/{endDate:datetime?}")]
+        public async Task<int> CountArticles(DateTime? startDate, DateTime? endDate)
+        {
+            return await this.context.CountArticles(startDate: startDate, endDate: endDate);
         }
     }
 }

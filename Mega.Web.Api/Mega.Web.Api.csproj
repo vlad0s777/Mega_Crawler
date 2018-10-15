@@ -24,7 +24,6 @@
   <ItemGroup>
     <ProjectReference Include="..\Mega.Data\Mega.Data.csproj" />
     <ProjectReference Include="..\Mega.Domain\Mega.Domain.csproj" />
-    <ProjectReference Include="..\Mega.Services\Mega.Services.csproj" />
   </ItemGroup>
 
 </Project>
