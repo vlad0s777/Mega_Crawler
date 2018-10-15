@@ -1,10 +1,11 @@
 ﻿namespace Mega.Tests.Services
 {
     using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
 
-    using Mega.Services.WebClient;
+    using Mega.Services.ZadolbaliClient;
 
     using NUnit.Framework;
 
@@ -60,6 +61,31 @@
             Assert.AreEqual(DateTime.Today.AddDays(-1).AddHours(14).AddMinutes(48), ZadolbaliClient.GetDate("Вчера, 14:48"));
             Assert.AreEqual(DateTime.Parse("4 сентября 2018, 14:48"), ZadolbaliClient.GetDate("4 сентября, 14:48"));
             Assert.AreEqual(DateTime.Parse("4 сентября 2015, 14:48"), ZadolbaliClient.GetDate("4 сентября 2015, 14:48"));
+        }
+
+        [Test]
+        public async Task GetTagsTest()
+        {
+            var checkTagKey = new List<string> { "banks", "household", "hometech" };
+            var checkTagName = new List<string> { "банки", "быт", "бытовая техника" };
+            var body =
+                "<ul class=\"cloud\" id=\"cloud\">\r\n<li class=\"tag4\" data-count=\"385\"><a href=\"/tag/banks\">банки</a></li><li class=\"tag5\" data-count=\"1070\"><a href=\"/tag/household\">быт</a></li><li class=\"tag4\" data-count=\"307\"><a href=\"/tag/hometech\">бытовая техника</a></li>\r\n</ul>";
+
+            var tags = await new ZadolbaliClient(async _ => body).GetTags();
+            for (var i = 0; i < tags.Count; i++)
+            {
+                Assert.AreEqual(checkTagKey[i], tags[i].TagKey);
+                Assert.AreEqual(checkTagName[i], tags[i].Name);
+            }
+        }
+
+        [Test]
+        public async Task GenerateIdTest()
+        {
+            var body = $"<ul><li class='first'><a href='zadolba.li/{DateTime.Now.AddDays(-1).Date:yyyyMMdd}'/></li></ul>";
+            var dates = await new ZadolbaliClient(async _ => body).GenerateIDs();
+            Assert.AreEqual(DateTime.Now.ToString("yyyyMMdd"), dates.First());
+            Assert.AreEqual(DateTime.Now.AddDays(-1).ToString("yyyyMMdd"), dates.Last());
         }
     }
 }

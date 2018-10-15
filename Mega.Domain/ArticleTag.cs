@@ -1,6 +1,6 @@
 ﻿namespace Mega.Domain
 {
-    public class ArticlesTags
+    public class ArticleTag
     {
         public Article Article { get; set; }
 

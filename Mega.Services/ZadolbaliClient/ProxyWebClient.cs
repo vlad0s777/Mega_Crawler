@@ -1,8 +1,8 @@
-﻿namespace Mega.Services.WebClient
+﻿namespace Mega.Services.ZadolbaliClient
 {
     using System;
     using System.Diagnostics;
-    using System.Linq;
+
     using System.Net;
     using System.Threading.Tasks;
 
@@ -16,21 +16,30 @@
 
         private readonly int timeout;
 
-        private readonly int[] delay;
-
-        private readonly WebProxy proxyServer;
+        private readonly string rootUriString;
 
         private readonly Random random;
 
-        private readonly string rootUriString;
+        private readonly int delayBegin;
 
-        public ProxyWebClient(Settings settings)
+        private readonly int delayEnd;
+
+        private WebProxy proxyServer;       
+
+        public string ProxyServer
         {
-            this.timeout = settings.Timeout;
-            this.delay = settings.Delay;
-            this.proxyServer = new WebProxy(settings.CurrentProxyServer);
-            this.random = new Random();
-            this.rootUriString = settings.RootUriString;
+            get => this.proxyServer.ToString();
+            set => this.proxyServer = value != string.Empty ? new WebProxy(value) : new WebProxy();
+        }
+
+        public ProxyWebClient(Random random, string rootUriString, int timeout = 0, int delayBegin = 0, int delayEnd = 0, string proxy = "")
+        {
+            this.timeout = timeout;
+            this.ProxyServer = proxy;
+            this.rootUriString = rootUriString;
+            this.random = random;
+            this.delayBegin = delayBegin;
+            this.delayEnd = delayEnd;
         }
        
         protected override WebRequest GetWebRequest(Uri address)
@@ -55,10 +64,8 @@
                 Watch.Start();
                 DownloadStatistic.Start();
 
-                if (this.delay != null)
-                {
-                    await Task.Delay(this.random.Next(this.delay.First(), this.delay.Last()));
-                }
+                var delay = this.random.Next(this.delayBegin, this.delayEnd);
+                await Task.Delay(delay);
 
                 var watchDelay = Watch.Elapsed.TotalMilliseconds;
                 Watch.Restart();
@@ -70,12 +77,13 @@
                 Logger.LogDebug(
                     $"Delay: {watchDelay} ms. Downloading: {Watch.Elapsed.TotalMilliseconds} ms. Speed: {DownloadStatistic.Speed()}");
                 Watch.Reset();
+                Logger.LogDebug($"This proxy {this.proxyServer.Address} delay : {delay}");
                 return completeDownloadString;
             }
             catch (Exception e)
             {             
                 Watch.Reset();
-                throw new Exception($"This proxy {this.proxyServer.Address} in id: {id} error: {e.Message}");
+                throw new Exception($"This proxy {this.proxyServer.Address} in id: {id} error: {e.Message}. {e.GetType().FullName}.");
             }
         }
     }

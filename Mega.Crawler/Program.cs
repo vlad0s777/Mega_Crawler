@@ -22,7 +22,7 @@
             return logger;
         }
 
-        private static void Main(string[] args)
+        private static void Main()
         {
             ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug);
 
@@ -33,6 +33,7 @@
 
             try
             {
+                registry.IncludeRegistry<DataInstaller>();
                 registry.IncludeRegistry<SettingsInstaller>();
                 registry.IncludeRegistry<ServicesInstaller>();
 
@@ -41,7 +42,7 @@
                     var runner = container.GetInstance<Runner>();
                     try
                     {
-                        runner.Run();
+                        runner.Run().Wait();
                     }
                     finally
                     {

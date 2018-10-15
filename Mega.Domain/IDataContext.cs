@@ -5,31 +5,28 @@
     using System.Threading;
     using System.Threading.Tasks;
 
-    using Microsoft.EntityFrameworkCore;
-    using Microsoft.EntityFrameworkCore.ChangeTracking;
-
-    public interface IDataContext : IDisposable
+    public interface IDataContext
     {
-        DbSet<Article> Articles { get; set; }
+        IEnumerable<Article> GetArticles(int limit = int.MaxValue, int offset = 0, int tagId = 0);
 
-        DbSet<Tag> Tags { get; set; }
+        Task<Article> GetArticle(int id, bool outer = false);
 
-        IEnumerable<Article> GetArticles(int limit = 0, int offset = 0);
+        Task<int> CountArticles(int tagId = 0, DateTime? startDate = null, DateTime? endDate = null);
 
-        IEnumerable<Tag> GetTags(int limit = 0, int offset = 0);
+        IEnumerable<Tag> GetTags(int limit = int.MaxValue, int offset = 0, int articleId = 0);
 
-        DbSet<ArticlesTags> ArticlesTags { get; set; }
+        Task<Tag> GetTag(string outerKey);
 
-        IDataContext CreateNewContext();
+        Task<Tag> GetTag(int id);        
+
+        Task<int> CountTags(int articleId = 0);
+
+        IEnumerable<Tag> GetPopularTags(int countTags = 1);
 
         void Migrate();
 
         Task<int> SaveChangesAsync(CancellationToken cancellationToken = default(CancellationToken));
 
-        Task<EntityEntry> AddAsync(object entity, CancellationToken cancellationToken = default(CancellationToken));
-
-        int SaveChanges();
-
-        EntityEntry Add(object entity); 
+        Task AddAsync(object entity, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

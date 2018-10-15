@@ -4,7 +4,6 @@
     using System.IO;
     using System.Reflection;
 
-    using Mega.Services;
     using Mega.Web.Api.Infrastructure.IoC;
     using Mega.Web.Api.Middleware;
 
@@ -13,7 +12,6 @@
     using Microsoft.AspNetCore.Mvc;
     using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.DependencyInjection;
-    using Microsoft.Extensions.Logging;
 
     using StructureMap;
 
@@ -23,7 +21,6 @@
     {
         public Startup(IConfiguration configuration)
         {
-            ApplicationLogging.LoggerFactory.AddEventLog(LogLevel.Debug);
             this.Configuration = configuration;
         }
 
@@ -53,10 +50,8 @@
             return container.GetInstance<IServiceProvider>();
         }
 
-        public void Configure(IApplicationBuilder app, IHostingEnvironment env, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
-            loggerFactory.AddEventLog(LogLevel.Debug);
-
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();

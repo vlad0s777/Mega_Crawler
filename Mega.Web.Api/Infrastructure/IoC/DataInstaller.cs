@@ -12,13 +12,14 @@
     {
         public DataInstaller(IConfiguration config)
         {
-            var connectionString = config.GetConnectionString("DefaultConnection");
-            For<IDataContext>().Use(new DataContext(connectionString));
+            var connectionString = config.GetConnectionString("DefaultConnection");            
 
-            Scan(x =>
+            For<IDataContext>().Use<DataContext>().Ctor<string>("connectionString").Is(connectionString);
+
+            Scan(y =>
                 {
-                    x.TheCallingAssembly();
-                    x.ConnectImplementationsToTypesClosing(typeof(IMapper<,>));
+                    y.TheCallingAssembly();
+                    y.ConnectImplementationsToTypesClosing(typeof(IMapper<,>));
                 });
         }
     }

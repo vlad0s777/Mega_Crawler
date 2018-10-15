@@ -2,9 +2,6 @@
 {
     using System.IO;
 
-    using Mega.Data;
-    using Mega.Domain;
-
     using Microsoft.Extensions.Configuration;
 
     using StructureMap;
@@ -19,15 +16,7 @@
 
             var config = builder.Build();
 
-            var connectionString = config.GetConnectionString("DefaultConnection");
-
-            var settings = new Settings(config);
-            var servicesSettings = new Services.Settings(config);
-
-            For<IDataContext>().Use(new DataContext(connectionString));
-
-            ForSingletonOf<Settings>().Use(settings);
-            ForSingletonOf<Services.Settings>().Use(servicesSettings);
+            ForSingletonOf<Settings>().Use(new Settings(config));
         }
     }
 }
