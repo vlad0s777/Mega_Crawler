@@ -7,7 +7,7 @@
     /// <summary>
     /// Модель статьи
     /// </summary>
-    public class Article
+    public class ArticleModel
     {
         /// <value>
         /// ID статьи

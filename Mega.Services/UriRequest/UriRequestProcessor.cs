@@ -6,12 +6,12 @@
 
     using Mega.Domain;
     using Mega.Messaging;
-    using Mega.Services.WebClient;
+    using Mega.Services.ZadolbaliClient;
 
     using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
 
-    public class UriRequestProcessor : IMessageProcessor<UriRequest>, IDisposable
+    public class UriRequestProcessor : IMessageProcessor<UriRequest>
     {
         private static readonly ILogger Logger = ApplicationLogging.CreateLogger<UriRequestProcessor>();
 
@@ -19,34 +19,59 @@
 
         private readonly IMessageBroker<UriRequest> requests;
 
-        private readonly IDataContext dataContext; 
+        private readonly IDataContext dataContext;
+
+        private readonly Uri rootUri;
+
+        private readonly ZadolbaliClient client;
 
         public UriRequestProcessor(
             IMessageBroker<UriRequest> requests,
-            Settings settings,
-            IDataContext dataContext)
+            IDataContext dataContext,
+            ZadolbaliClient client)
         {
             this.requests = requests;
 
             this.dataContext = dataContext;
 
-            this.RootUri = new Uri(settings.RootUriString, UriKind.Absolute);
+            this.client = client;
 
-            this.client = new ZadolbaliClient(settings);
+            this.rootUri = new Uri(ZadolbaliClient.RootUriString, UriKind.Absolute);
 
-            this.countAttempt = settings.AttemptLimit;
+            this.countAttempt = ZadolbaliClient.CountAttempt;
         }
-
-        private Uri RootUri { get; }
-
-        private readonly ZadolbaliClient client;
 
         public async Task Handle(UriRequest message)
         {
-            Logger.LogInformation($"Processing {this.RootUri + message.Id}.");
+            Logger.LogInformation($"Processing {this.rootUri + message.Id}.");
 
             try
             {
+                if (message.Id == string.Empty)
+                {
+                    foreach (var id in await this.client.GenerateIDs())
+                    {
+                        this.requests.Send(new UriRequest(id));
+                    }
+
+                    return;
+                }
+
+                if (message.Id == "tags")
+                {
+                    foreach (var tag in await this.client.GetTags())
+                    {
+                        await this.dataContext.AddAsync(new Tag { Name = tag.Name, TagKey = tag.TagKey });
+                        await this.dataContext.SaveChangesAsync();
+                    }
+
+                    Logger.LogInformation($"All tags added");
+
+                    this.requests.Send(new UriRequest(string.Empty));
+
+                    return;
+                }
+
                 var articles = await this.client.GetArticles(message.Id);
 
                 foreach (var article in articles)
@@ -62,8 +87,8 @@
                     {
                         foreach (var tag in article.Tags)
                         {
-                            var domainTag = await this.dataContext.Tags.FirstAsync(t => t.TagKey == tag.TagKey);
-                            await this.dataContext.AddAsync(new ArticlesTags { Article = domainArticle, Tag = domainTag });
+                            var domainTag = await this.dataContext.GetTag(tag.TagKey);
+                            await this.dataContext.AddAsync(new ArticleTag { Article = domainArticle, Tag = domainTag });
                         }
 
                         await this.dataContext.SaveChangesAsync();
@@ -71,7 +96,7 @@
                     }
                     catch (DbUpdateException)
                     {
-                        Logger.LogWarning($"Article id {domainArticle.ArticleId} alreydy exists!");
+                        Logger.LogWarning($"Article id {article.Id} alreydy exists!");
                     }
                 }
             }
@@ -101,12 +126,6 @@
             {
                 Logger.LogWarning(e.Message);
             }
-        }
-
-        public void Dispose()
-        {
-            this.client?.Dispose();
-            this.dataContext?.Dispose();
         }
     }
 }

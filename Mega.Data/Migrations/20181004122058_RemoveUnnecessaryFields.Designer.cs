@@ -3,20 +3,22 @@ using System;
 using Mega.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Mega.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20181004122058_RemoveUnnecessaryFields")]
+    partial class RemoveUnnecessaryFields
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "2.1.4-rtm-31024")
+                .HasAnnotation("ProductVersion", "2.1.3-rtm-32065")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             modelBuilder.Entity("Mega.Domain.Article", b =>
@@ -70,12 +72,12 @@ namespace Mega.Data.Migrations
             modelBuilder.Entity("Mega.Domain.ArticleTag", b =>
                 {
                     b.HasOne("Mega.Domain.Article", "Article")
-                        .WithMany("ArticleTag")
+                        .WithMany("ArticleTags")
                         .HasForeignKey("ArticleId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Mega.Domain.Tag", "Tag")
-                        .WithMany("ArticleTag")
+                        .WithMany("ArticleTags")
                         .HasForeignKey("TagId")
                         .OnDelete(DeleteBehavior.Cascade);
                 });

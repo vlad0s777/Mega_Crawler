@@ -3,29 +3,32 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    public class ArticleMapper : IMapper<Domain.Article, Models.Article>
-    {
-        private readonly Domain.IDataContext context;
+    using Mega.Domain;
+    using Mega.Web.Api.Models;
 
-        public ArticleMapper(Domain.IDataContext context)
+    public class ArticleMapper : IMapper<Article, ArticleModel>
+    {
+        private readonly IDataContext context;
+
+        public ArticleMapper(IDataContext context)
         {
             this.context = context;
         }
 
-        public Models.Article Map(Domain.Article article)
+        public ArticleModel Map(Article article)
         {
-            return new Models.Article()
+            return new ArticleModel()
                        {
                            ArticleId = article.ArticleId,
                            DateCreate = article.DateCreate,
                            Head = article.Head,
                            OuterArticleId = article.OuterArticleId,
                            Text = article.Text,
-                           Tags = this.context.ArticlesTags.Where(x => x.ArticleId == article.ArticleId).Select(y => y.Tag.Name)
+                           Tags = this.context.GetTags(articleId: article.ArticleId).Select(x => x.TagKey)
                        };
         }
 
-        public IEnumerable<Models.Article> Map(IEnumerable<Domain.Article> articles)
+        public IEnumerable<ArticleModel> Map(IEnumerable<Article> articles)
         {
             return articles.Select(Map);
         }
