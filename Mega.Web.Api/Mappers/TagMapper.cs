@@ -4,30 +4,28 @@
     using System.Linq;
 
     using Mega.Domain;
+    using Mega.Web.Api.Models;
 
-    public class TagMapper : IMapper<Tag, Models.Tag>
+    public class TagMapper : IMapper<Tag, TagModel>
     {
-        private readonly Domain.IDataContext context;
+        private readonly IDataContext context;
 
-        public TagMapper(Domain.IDataContext context)
+        public TagMapper(IDataContext context)
         {
             this.context = context;
         }
 
-        public Models.Tag Map(Domain.Tag tag)
+        public TagModel Map(Tag tag)
         {
-            return new Models.Tag()
+            return new TagModel()
                        {
                            TagKey = tag.TagKey,
                            TagId = tag.TagId,
-                           Articles = this.context.ArticlesTags.Where(x => x.TagId == tag.TagId).Select(y => y.Article.Head),
-                           Name = tag.Name
+                           Name = tag.Name,
+                           CountArticles = this.context.CountArticles(tag.TagId).Result
             };
         }
 
-        public IEnumerable<Models.Tag> Map(IEnumerable<Domain.Tag> tags)
-        {
-            return tags.Select(Map);
-        }
+        public IEnumerable<TagModel> Map(IEnumerable<Tag> tags) => tags.Select(Map);
     }
 }

@@ -6,7 +6,7 @@
     /// <summary>
     /// Модель тега
     /// </summary>
-    public class Tag
+    public class TagModel
     {
         /// <value>
         /// ID тега
@@ -24,13 +24,8 @@
         public string Name { get; set; }
 
         /// <value>
-        /// статьи с данным тегом
-        /// </value>
-        public IEnumerable<string> Articles { get; set; }
-
-        /// <value>
         /// количество статей с данным тегом
         /// </value>
-        public int CountArticles => this.Articles.Count();
+        public int CountArticles { get; set; }
     }
 }

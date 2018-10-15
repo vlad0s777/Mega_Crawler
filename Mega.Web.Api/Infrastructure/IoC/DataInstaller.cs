@@ -2,6 +2,7 @@
 {
     using Mega.Data;
     using Mega.Domain;
+    using Mega.Web.Api.Mappers;
 
     using Microsoft.Extensions.Configuration;
 
@@ -11,9 +12,15 @@
     {
         public DataInstaller(IConfiguration config)
         {
-            var connectionString = config.GetConnectionString("DefaultConnection");
+            var connectionString = config.GetConnectionString("DefaultConnection");            
 
             For<IDataContext>().Use<DataContext>().Ctor<string>("connectionString").Is(connectionString);
+
+            Scan(y =>
+                {
+                    y.TheCallingAssembly();
+                    y.ConnectImplementationsToTypesClosing(typeof(IMapper<,>));
+                });
         }
     }
 }
