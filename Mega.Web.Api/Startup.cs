@@ -30,7 +30,7 @@
         public IServiceProvider ConfigureServices(IServiceCollection services)
         {
             services.AddAuthentication(IISDefaults.AuthenticationScheme);
-            services.AddAuthorization(opts => { opts.AddPolicy("RequireAdmin", policy => policy.RequireRole("Администраторы", "Administrators")); });
+            services.AddAuthorization(opts => { opts.AddPolicy("RequireAdmin", policy => policy.RequireRole("Администраторы", "Administrators", "Admin")); });
 
             services.AddMvc().SetCompatibilityVersion(CompatibilityVersion.Version_2_1);
 
@@ -48,6 +48,7 @@
             container.Configure(config =>
                 {
                     config.AddRegistry(new DataInstaller(this.Configuration));
+                    config.AddRegistry(new ServicesInstaller());
                     config.Populate(services);
                 });
 

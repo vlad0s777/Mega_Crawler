@@ -4,6 +4,28 @@
         <name>Mega.Web.Api</name>
     </assembly>
     <members>
+        <member name="T:Mega.Web.Api.Controllers.AdminController">
+            <summary>
+            Управляющий контроллер
+            </summary>
+            <remarks>
+            В данном контроллере можно запустить процесс краулинга
+            </remarks>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.AdminController.#ctor(Mega.Messaging.IMessageBroker{Mega.Services.UriRequest.UriRequest})">
+            <param name="broker">Брокер сообщений</param>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.AdminController.StartCrawler">
+            <summary>
+            Получение списка тегов
+            </summary>
+            <remarks>
+            Брокеру отправляется пустое сообщение, которое инициирует процесс краулинга
+            </remarks>
+            <returns>
+            Результат запуска краулинга
+            </returns>
+        </member>
         <member name="T:Mega.Web.Api.Controllers.ArticlesController">
             <summary>
             Контроллер статей

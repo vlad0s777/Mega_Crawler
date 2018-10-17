@@ -42,6 +42,8 @@
         
         public async Task Run()
         {
+            var isService = !(Debugger.IsAttached || Environment.GetCommandLineArgs().Contains("--console"));
+
             var token = this.cts.Token;
 
             if (Environment.GetCommandLineArgs().Contains("--migrate"))
@@ -53,11 +55,11 @@
             var tagsCount = await this.dataContext.CountTags();
             var isEmptyQueues = this.brokers.All(broker => broker.IsEmpty());
 
-            if (tagsCount == 0 && isEmptyQueues)
+            if (tagsCount == 0 && isEmptyQueues && !isService)
             {
                 this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest("tags"));
             }
-            else if (isEmptyQueues)
+            else if (isEmptyQueues && !isService)
             {
                 this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(string.Empty));
             }
@@ -74,7 +76,7 @@
                 this.tagRequestProcessorFactory.Create(client).Run(token);
             }
 
-            if (!(Debugger.IsAttached || Environment.GetCommandLineArgs().Contains("--console")))
+            if (isService)
             {
                 new Win32ServiceHost(new CrawlerService()).Run();
             }
