@@ -21,6 +21,8 @@
 
         public DbSet<Tag> Tags { get; set; }
 
+        public DbSet<TagDelete> TagsDelete { get; set; }
+
         public DbSet<ArticleTag> ArticleTag { get; set; }
 
         public IEnumerable<Article> GetArticles(int limit = int.MaxValue, int offset = 0, int tagId = 0)
@@ -52,20 +54,32 @@
 
         public IEnumerable<Tag> GetTags(int limit = int.MaxValue, int offset = 0, int articleId = 0)
         {
-            var tags = articleId != 0 ? this.ArticleTag.Where(x => x.ArticleId == articleId).Select(y => y.Tag) : this.Tags;
+            var tags = articleId == 0
+                           ? from u in this.Tags
+                             join p in GetDeleteTags() on u equals p.Tag into gj
+                             from x in gj.DefaultIfEmpty()
+                             where x == null
+                             select u
+                           : from u in this.ArticleTag.Where(x => x.ArticleId == articleId)
+                             join p in GetDeleteTags() on u.Tag equals p.Tag into gj
+                             from x in gj.DefaultIfEmpty()
+                             where x == null
+                             select u.Tag;
             return tags.Skip(offset).Take(limit);
         }
+
+        public IEnumerable<TagDelete> GetDeleteTags(int limit = int.MaxValue, int offset = 0) => this.TagsDelete.Skip(offset).Take(limit);
 
         public async Task<Tag> GetTag(int id) => await this.Tags.FirstAsync(t => t.TagId == id);       
 
         public async Task<Tag> GetTag(string outerKey) => await this.Tags.FirstAsync(t => t.TagKey == outerKey);
 
-        public async Task<int> CountTags(int articleId = 0) => articleId == 0 ? await this.Tags.CountAsync() : await this.ArticleTag.CountAsync(t => t.ArticleId == articleId);
+        public int CountTags(int articleId = 0) => GetTags(articleId).Count();
 
         public IEnumerable<Tag> GetPopularTags(int countTags = 1)
         {
             var counts = new Dictionary<int, int>();
-            foreach (var tag in this.Tags)
+            foreach (var tag in GetTags())
             {
                 counts.Add(tag.TagId, CountArticles(tag.TagId).Result);
             }
@@ -85,9 +99,12 @@
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             modelBuilder.Entity<Article>().HasIndex(pc => pc.OuterArticleId).IsUnique();
+
             modelBuilder.Entity<ArticleTag>().HasKey(pc => new { pc.ArticleId, pc.TagId });
             modelBuilder.Entity<ArticleTag>().HasOne(pc => pc.Article).WithMany(p => p.ArticleTag).HasForeignKey(pc => pc.ArticleId);
             modelBuilder.Entity<ArticleTag>().HasOne(pc => pc.Tag).WithMany(c => c.ArticleTag).HasForeignKey(pc => pc.TagId);
+
+            modelBuilder.Entity<TagDelete>().HasOne(x => x.Tag).WithOne(x => x.TagDelete).HasForeignKey<TagDelete>(x => x.TagId).OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

@@ -52,7 +52,7 @@
                 return;
             }
 
-            var tagsCount = await this.dataContext.CountTags();
+            var tagsCount = this.dataContext.CountTags();
             var isEmptyQueues = this.brokers.All(broker => broker.IsEmpty());
 
             if (tagsCount == 0 && isEmptyQueues && !isService)

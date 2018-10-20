@@ -1,5 +1,10 @@
 ﻿namespace Mega.Web.Api.Controllers
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Threading.Tasks;
+
+    using Mega.Domain;
     using Mega.Messaging;
     using Mega.Services.UriRequest;
 
@@ -18,10 +23,14 @@
     {
         private readonly IMessageBroker<UriRequest> broker;
 
+        private readonly IDataContext context;
+
         /// <param name="broker">Брокер сообщений</param>
-        public AdminController(IMessageBroker<UriRequest> broker)
+        /// <param name="context">Контекст данных</param>
+        public AdminController(IMessageBroker<UriRequest> broker, IDataContext context)
         {
             this.broker = broker;
+            this.context = context;
         }
 
         /// <summary>
@@ -46,6 +55,58 @@
             {
                 return "Crawler is already running";
             }
+        }
+
+        /// <summary>
+        /// Удаление одного тега
+        /// </summary>
+        /// <remarks>
+        /// Добавляем тег в блеклист (таблица TagsDelete)
+        /// </remarks>
+        /// <returns>
+        /// Результат  удаления
+        /// </returns>
+        /// <param name="id">Идентификатор тега</param>
+        [HttpDelete("deletetag")]
+        [Authorize(Policy = "RequireAdmin")]
+        public async Task<string> DeleteTag(int id)
+        {
+            object entity;
+            try
+            {
+                entity = new TagDelete { DateDelete = DateTime.Now, Tag = await this.context.GetTag(id) };
+            }
+            catch (Exception e)
+            {
+                return $"Tag {id} no delete. Cause: {e.Message}";
+            }
+
+            await this.context.AddAsync(entity);
+            await this.context.SaveChangesAsync();
+            return $"Tag {id} delete.";
+        }
+
+        /// <summary>
+        /// Удаление списка тегов
+        /// </summary>
+        /// <remarks>
+        /// Добавляем теги в блеклист (таблица TagsDelete)
+        /// </remarks>
+        /// <returns>
+        /// Результат  удаления
+        /// </returns>
+        /// <param name="ids">Список идентификаторов тегов</param>
+        [HttpDelete("deletetags")]
+        [Authorize(Policy = "RequireAdmin")]
+        public async Task<string> DeleteTags(List<int> ids)
+        {
+            var output = string.Empty;
+            foreach (var id in ids)
+            {
+                output += await DeleteTag(id) + " ";
+            }
+
+            return output;
         }
     }
 }

@@ -11,5 +11,7 @@
         public string Name { get; set; }
 
         public virtual ICollection<ArticleTag> ArticleTag { get; } = new List<ArticleTag>();
+
+        public TagDelete TagDelete { get; set; }
     }
 }

@@ -15,11 +15,13 @@
 
         IEnumerable<Tag> GetTags(int limit = int.MaxValue, int offset = 0, int articleId = 0);
 
+        IEnumerable<TagDelete> GetDeleteTags(int limit = int.MaxValue, int offset = 0);
+
         Task<Tag> GetTag(string outerKey);
 
         Task<Tag> GetTag(int id);        
 
-        Task<int> CountTags(int articleId = 0);
+        int CountTags(int articleId = 0);
 
         IEnumerable<Tag> GetPopularTags(int countTags = 1);
 

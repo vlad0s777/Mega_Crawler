@@ -52,7 +52,7 @@
         [HttpGet("{numPage=1}")]
         public IEnumerable<TagModel> GetPage(int numPage)
         {
-            var tags = this.tagMapper.Map(this.context.GetTags(10, 10 * (numPage - 1)));
+            var tags = this.tagMapper.Map(this.context.GetTags());
             var tagModels = tags as TagModel[] ?? tags.ToArray();
             if (tagModels.Count() != 0)
             {

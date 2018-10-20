@@ -12,8 +12,9 @@
             В данном контроллере можно запустить процесс краулинга
             </remarks>
         </member>
-        <member name="M:Mega.Web.Api.Controllers.AdminController.#ctor(Mega.Messaging.IMessageBroker{Mega.Services.UriRequest.UriRequest})">
+        <member name="M:Mega.Web.Api.Controllers.AdminController.#ctor(Mega.Messaging.IMessageBroker{Mega.Services.UriRequest.UriRequest},Mega.Domain.IDataContext)">
             <param name="broker">Брокер сообщений</param>
+            <param name="context">Контекст данных</param>
         </member>
         <member name="M:Mega.Web.Api.Controllers.AdminController.StartCrawler">
             <summary>
@@ -25,6 +26,30 @@
             <returns>
             Результат запуска краулинга
             </returns>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.AdminController.DeleteTag(System.Int32)">
+            <summary>
+            Удаление одного тега
+            </summary>
+            <remarks>
+            Добавляем тег в блеклист (таблица TagsDelete)
+            </remarks>
+            <returns>
+            Результат  удаления
+            </returns>
+            <param name="id">Идентификатор тега</param>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.AdminController.DeleteTags(System.Collections.Generic.List{System.Int32})">
+            <summary>
+            Удаление списка тегов
+            </summary>
+            <remarks>
+            Добавляем теги в блеклист (таблица TagsDelete)
+            </remarks>
+            <returns>
+            Результат  удаления
+            </returns>
+            <param name="ids">Список идентификаторов тегов</param>
         </member>
         <member name="T:Mega.Web.Api.Controllers.ArticlesController">
             <summary>
