@@ -24,16 +24,16 @@
 
         private readonly IZadolbaliClientFactory zadolbaliClientFactory;
 
-        private readonly IDataContext dataContext;
+        private readonly ISomeReportDataProvider someReportDataProvider;
 
         private readonly CancellationTokenSource cts = new CancellationTokenSource();
 
         private readonly Settings settings;
 
-        public Runner(IMessageBroker[] brokers, IDataContext dataContext, Settings settings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory, IZadolbaliClientFactory zadolbaliClientFactory)
+        public Runner(IMessageBroker[] brokers, ISomeReportDataProvider someReportDataProvider, Settings settings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory, IZadolbaliClientFactory zadolbaliClientFactory)
         {
             this.brokers = brokers;
-            this.dataContext = dataContext;
+            this.someReportDataProvider = someReportDataProvider;
             this.settings = settings;
             this.tagRequestProcessorFactory = tagRequestProcessorFactory;
             this.uriRequestProcessorFactory = uriRequestProcessorFactory;
@@ -48,11 +48,11 @@
 
             if (Environment.GetCommandLineArgs().Contains("--migrate"))
             {
-                this.dataContext.Migrate();
+                this.someReportDataProvider.Migrate();
                 return;
             }
 
-            var tagsCount = this.dataContext.CountTags();
+            var tagsCount = await this.someReportDataProvider.CountTags();
             var isEmptyQueues = this.brokers.All(broker => broker.IsEmpty());
 
             if (tagsCount == 0 && isEmptyQueues && !isService)

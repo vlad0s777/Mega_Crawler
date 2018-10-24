@@ -24,18 +24,18 @@
     [ApiController]
     public class TagsController : ControllerBase
     {
-        private readonly IDataContext context;
+        private readonly ISomeReportDataProvider someReportDataProvider;
 
         private readonly IMapper<Article, ArticleModel> articleMapper;
 
         private readonly IMapper<Tag, TagModel> tagMapper;
 
-        /// <param name="context">Контекст данных</param>
+        /// <param name="someReportDataProvider">Контекст данных</param>
         /// <param name="articleMapper">Конвертер домена статьи в модель статьи</param>
         /// <param name="tagMapper">Конвертер домена тега в модель тега</param>
-        public TagsController(IDataContext context, IMapper<Tag, TagModel> tagMapper, IMapper<Article, ArticleModel> articleMapper)
+        public TagsController(ISomeReportDataProvider someReportDataProvider, IMapper<Tag, TagModel> tagMapper, IMapper<Article, ArticleModel> articleMapper)
         {
-            this.context = context;
+            this.someReportDataProvider = someReportDataProvider;
             this.tagMapper = tagMapper;
             this.articleMapper = articleMapper;
         }
@@ -50,13 +50,12 @@
         /// </exception>
         /// <param name="numPage">Номер страницы</param>
         [HttpGet("{numPage=1}")]
-        public IEnumerable<TagModel> GetPage(int numPage)
+        public async Task<List<TagModel>> GetPage(int numPage)
         {
-            var tags = this.tagMapper.Map(this.context.GetTags());
-            var tagModels = tags as TagModel[] ?? tags.ToArray();
-            if (tagModels.Count() != 0)
+            var tags = this.tagMapper.Map(await this.someReportDataProvider.GetTags(10, 10 * (numPage - 1))).ToList();
+            if (tags.Count() != 0)
             {
-                return tagModels;
+                return tags;
             }
 
             throw new HttpResponseException(StatusCodes.Status404NotFound, "Page not found!");
@@ -76,7 +75,7 @@
         {
             try
             {
-                return this.tagMapper.Map(await this.context.GetTag(id));
+                return await this.tagMapper.Map(await this.someReportDataProvider.GetTag(id));
             }
             catch
             {
@@ -95,13 +94,12 @@
         /// <param name="numPage">Номер страницы</param>
         /// <param name="id">Идентификатор тега</param>
         [HttpGet("tag/{id}/articles/{numPage=1}")]
-        public IEnumerable<ArticleModel> GetArticles(int id, int numPage)
+        public async Task<List<ArticleModel>> GetArticles(int id, int numPage)
         {
-            var articles = this.articleMapper.Map(this.context.GetArticles(10, 10 * (numPage - 1), id));
-            var articleModels = articles as ArticleModel[] ?? articles.ToArray();
-            if (articleModels.Count() != 0)
+            var articles = this.articleMapper.Map(await this.someReportDataProvider.GetArticles(10, 10 * (numPage - 1), id)).ToList();
+            if (articles.Count() != 0)
             {
-                return articleModels;
+                return articles;
             }
 
             throw new HttpResponseException(StatusCodes.Status404NotFound, "Page not found!");
@@ -117,7 +115,7 @@
         /// <param name="endDate">Конечная дата, необяательная, если без неё, то будет подсчитано количество статей от начальной даты до последней статьи</param>
         /// <param name="id">Идентификатор тега</param>
         [HttpGet("tag/{id}/articles/count/{startDate:datetime?}/{endDate:datetime?}")]
-        public async Task<int> CountArticles(int id, DateTime? startDate, DateTime? endDate) => await this.context.CountArticles(tagId: id, startDate: startDate, endDate: endDate);
+        public async Task<int> CountArticles(int id, DateTime? startDate, DateTime? endDate) => await this.someReportDataProvider.CountArticles(tagId: id, startDate: startDate, endDate: endDate);
 
         /// <summary>
         /// Получение определенного количества самых популярных тегов
@@ -127,6 +125,6 @@
         /// </returns>
         /// <param name="count">Количество возвращаемых самых популярных тегов</param>
         [HttpGet("popular/{count=1}")]
-        public IEnumerable<TagModel> GetPopularTags(int count) => this.tagMapper.Map(this.context.GetPopularTags(count));
+        public async Task<List<TagModel>> GetPopularTags(int count) => this.tagMapper.Map(await this.someReportDataProvider.GetPopularTags(count)).ToList();
     }
 }

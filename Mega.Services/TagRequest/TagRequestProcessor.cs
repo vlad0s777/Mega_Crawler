@@ -16,7 +16,7 @@
 
         private readonly IMessageBroker<string> requests;
 
-        private readonly IDataContext dataContext;
+        private readonly ISomeReportDataProvider someReportDataProvider;
 
         private readonly ZadolbaliClient client;
 
@@ -24,11 +24,11 @@
 
         public TagRequestProcessor(
             IMessageBroker<string> requests,
-            IDataContext dataContext,
+            ISomeReportDataProvider someReportDataProvider,
             ZadolbaliClient client)
         {
             this.requests = requests;
-            this.dataContext = dataContext;
+            this.someReportDataProvider = someReportDataProvider;
             this.rootUriString = ZadolbaliClient.RootUriString;
             this.client = client;
         }
@@ -42,8 +42,7 @@
                 {
                     foreach (var tag in await this.client.GetTags())
                     {
-                        await this.dataContext.AddAsync(new Tag { Name = tag.Name, TagKey = tag.TagKey });
-                        await this.dataContext.SaveChangesAsync();
+                        await this.someReportDataProvider.AddAsync(new Tag { Name = tag.Name, TagKey = tag.TagKey });
                     }                  
                 }
 

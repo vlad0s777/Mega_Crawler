@@ -2,9 +2,6 @@
 {
     using Mega.Data;
     using Mega.Domain;
-    using Mega.Messaging;
-    using Mega.Messaging.External;
-    using Mega.Services.UriRequest;
     using Mega.Web.Api.Mappers;
 
     using Microsoft.Extensions.Configuration;
@@ -17,7 +14,7 @@
         {
             var connectionString = config.GetConnectionString("DefaultConnection");            
 
-            For<IDataContext>().Use<DataContext>().Ctor<string>().Is(connectionString);
+            For<ISomeReportDataProvider>().Use<SomeReportDataProvider>().Ctor<string>().Is(connectionString);
 
             Scan(y =>
                 {

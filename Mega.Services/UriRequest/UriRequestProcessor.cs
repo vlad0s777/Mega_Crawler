@@ -19,7 +19,7 @@
 
         private readonly IMessageBroker<UriRequest> requests;
 
-        private readonly IDataContext dataContext;
+        private readonly ISomeReportDataProvider someReportDataProvider;
 
         private readonly Uri rootUri;
 
@@ -27,12 +27,12 @@
 
         public UriRequestProcessor(
             IMessageBroker<UriRequest> requests,
-            IDataContext dataContext,
+            ISomeReportDataProvider someReportDataProvider,
             ZadolbaliClient client)
         {
             this.requests = requests;
 
-            this.dataContext = dataContext;
+            this.someReportDataProvider = someReportDataProvider;
 
             this.client = client;
 
@@ -61,8 +61,7 @@
                 {
                     foreach (var tag in await this.client.GetTags())
                     {
-                        await this.dataContext.AddAsync(new Tag { Name = tag.Name, TagKey = tag.TagKey });
-                        await this.dataContext.SaveChangesAsync();
+                        await this.someReportDataProvider.AddAsync(new Tag { Name = tag.Name, TagKey = tag.TagKey });
                     }
 
                     Logger.LogInformation($"All tags added");
@@ -76,25 +75,25 @@
 
                 foreach (var article in articles)
                 {
-                    var domainArticle = new Article()
+                    try
+                    {
+                        var domainArticle = (Article)await this.someReportDataProvider.AddAsync(new Article
                                             {
                                                 OuterArticleId = article.Id,
                                                 DateCreate = article.DateCreate,
                                                 Head = article.Head,
                                                 Text = article.Text
-                                            };
-                    try
-                    {
+                                            });
+                    
                         foreach (var tag in article.Tags)
                         {
-                            var domainTag = await this.dataContext.GetTag(tag.TagKey);
-                            await this.dataContext.AddAsync(new ArticleTag { Article = domainArticle, Tag = domainTag });
+                            var domainTag = await this.someReportDataProvider.GetTag(tag.TagKey);
+                            await this.someReportDataProvider.AddAsync(new ArticleTag { ArticleId = domainArticle.ArticleId, TagId = domainTag.TagId });
                         }
 
-                        await this.dataContext.SaveChangesAsync();
                         Logger.LogInformation($"Added from the page {message.Id} to the database {domainArticle.Head}.");
                     }
-                    catch (DbUpdateException)
+                    catch
                     {
                         Logger.LogWarning($"Article id {article.Id} alreydy exists!");
                     }

@@ -23,15 +23,15 @@
     [ApiController]
     public class ArticlesController : ControllerBase
     {
-        private readonly IDataContext context;
+        private readonly ISomeReportDataProvider someReportDataProvider;
 
         private readonly IMapper<Article, ArticleModel> articleMapper;
 
-        /// <param name="context">Контекст данных</param>
+        /// <param name="someReportDataProvider">Контекст данных</param>
         /// <param name="articleMapper">Конвертер домена статьи в модель статьи</param>
-        public ArticlesController(IDataContext context, IMapper<Article, ArticleModel> articleMapper)
+        public ArticlesController(ISomeReportDataProvider someReportDataProvider, IMapper<Article, ArticleModel> articleMapper)
         {
-            this.context = context;
+            this.someReportDataProvider = someReportDataProvider;
             this.articleMapper = articleMapper;
         }
 
@@ -45,13 +45,12 @@
         /// </exception>
         /// <param name="numPage">Номер страницы</param>
         [HttpGet("{numPage=1}")]
-        public IEnumerable<ArticleModel> GetPage(int numPage)
+        public async Task<List<ArticleModel>> GetPage(int numPage)
         {
-            var articles = this.articleMapper.Map(this.context.GetArticles(10, 10 * (numPage - 1)));
-            var articleModels = articles as ArticleModel[] ?? articles.ToArray();
-            if (articleModels.Count() != 0)
+            var articles = this.articleMapper.Map(await this.someReportDataProvider.GetArticles(10, 10 * (numPage - 1))).ToList();
+            if (articles.Count() != 0)
             {
-                return articleModels;
+                return articles;
             }
 
             throw new HttpResponseException(StatusCodes.Status404NotFound, "Page not found!");
@@ -71,7 +70,7 @@
         {
             try
             {
-                return this.articleMapper.Map(await this.context.GetArticle(id));
+                return await this.articleMapper.Map(await this.someReportDataProvider.GetArticle(id));
             }
             catch
             {
@@ -90,7 +89,7 @@
         [HttpGet("count/{startDate:datetime?}/{endDate:datetime?}")]
         public async Task<int> CountArticles(DateTime? startDate, DateTime? endDate)
         {
-            return await this.context.CountArticles(startDate: startDate, endDate: endDate);
+            return await this.someReportDataProvider.CountArticles(startDate: startDate, endDate: endDate);
         }
     }
 }

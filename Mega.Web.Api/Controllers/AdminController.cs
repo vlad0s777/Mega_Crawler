@@ -23,14 +23,14 @@
     {
         private readonly IMessageBroker<UriRequest> broker;
 
-        private readonly IDataContext context;
+        private readonly ISomeReportDataProvider someReportDataProvider;
 
         /// <param name="broker">Брокер сообщений</param>
-        /// <param name="context">Контекст данных</param>
-        public AdminController(IMessageBroker<UriRequest> broker, IDataContext context)
+        /// <param name="someReportDataProvider">Контекст данных</param>
+        public AdminController(IMessageBroker<UriRequest> broker, ISomeReportDataProvider someReportDataProvider)
         {
             this.broker = broker;
-            this.context = context;
+            this.someReportDataProvider = someReportDataProvider;
         }
 
         /// <summary>
@@ -74,15 +74,14 @@
             object entity;
             try
             {
-                entity = new TagDelete { DateDelete = DateTime.Now, Tag = await this.context.GetTag(id) };
+                entity = new TagDelete { DateDelete = DateTime.Now, Tag = await this.someReportDataProvider.GetTag(id) };
             }
             catch (Exception e)
             {
                 return $"Tag {id} no delete. Cause: {e.Message}";
             }
 
-            await this.context.AddAsync(entity);
-            await this.context.SaveChangesAsync();
+            await this.someReportDataProvider.AddAsync(entity);
             return $"Tag {id} delete.";
         }
 

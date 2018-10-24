@@ -1,10 +1,11 @@
 ﻿namespace Mega.Web.Api.Mappers
 {
     using System.Collections.Generic;
+    using System.Threading.Tasks;
 
-    public interface IMapper<in TSource, out TDestination>
+    public interface IMapper<in TSource, TDestination>
     {
-        TDestination Map(TSource sourceObject);
+        Task<TDestination> Map(TSource sourceObject);
 
         IEnumerable<TDestination> Map(IEnumerable<TSource> articles);
     }
