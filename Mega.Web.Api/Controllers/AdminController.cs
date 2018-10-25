@@ -17,6 +17,7 @@
     /// <remarks>
     /// В данном контроллере можно запустить процесс краулинга
     /// </remarks>
+    [Authorize(Policy = "RequireAdmin")]
     [Route("api/[controller]")]
     [ApiController]
     public class AdminController : ControllerBase
@@ -43,7 +44,6 @@
         /// Результат запуска краулинга
         /// </returns>
         [HttpGet("start")]
-        [Authorize(Policy = "RequireAdmin")]
         public string StartCrawler()
         {
             if (this.broker.IsEmpty())
@@ -68,13 +68,12 @@
         /// </returns>
         /// <param name="id">Идентификатор тега</param>
         [HttpDelete("deletetag")]
-        [Authorize(Policy = "RequireAdmin")]
         public async Task<string> DeleteTag(int id)
         {
             object entity;
             try
             {
-                entity = new TagDelete { DateDelete = DateTime.Now, Tag = await this.context.GetTag(id) };
+                entity = new RemovedTag { DeletionDate = DateTime.Now, Tag = await this.context.GetTag(id) };
             }
             catch (Exception e)
             {
@@ -97,7 +96,6 @@
         /// </returns>
         /// <param name="ids">Список идентификаторов тегов</param>
         [HttpDelete("deletetags")]
-        [Authorize(Policy = "RequireAdmin")]
         public async Task<string> DeleteTags(List<int> ids)
         {
             var output = string.Empty;

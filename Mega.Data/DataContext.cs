@@ -21,7 +21,7 @@
 
         public DbSet<Tag> Tags { get; set; }
 
-        public DbSet<TagDelete> TagsDelete { get; set; }
+        public DbSet<RemovedTag> RemovedTags { get; set; }
 
         public DbSet<ArticleTag> ArticleTag { get; set; }
 
@@ -56,19 +56,19 @@
         {
             var tags = articleId == 0
                            ? from u in this.Tags
-                             join p in GetDeleteTags() on u equals p.Tag into gj
+                             join p in GetRemovedTags() on u equals p.Tag into gj
                              from x in gj.DefaultIfEmpty()
                              where x == null
                              select u
                            : from u in this.ArticleTag.Where(x => x.ArticleId == articleId)
-                             join p in GetDeleteTags() on u.Tag equals p.Tag into gj
+                             join p in GetRemovedTags() on u.Tag equals p.Tag into gj
                              from x in gj.DefaultIfEmpty()
                              where x == null
                              select u.Tag;
             return tags.Skip(offset).Take(limit);
         }
 
-        public IEnumerable<TagDelete> GetDeleteTags(int limit = int.MaxValue, int offset = 0) => this.TagsDelete.Skip(offset).Take(limit);
+        public IEnumerable<RemovedTag> GetRemovedTags(int limit = int.MaxValue, int offset = 0) => this.RemovedTags.Skip(offset).Take(limit);
 
         public async Task<Tag> GetTag(int id) => await this.Tags.FirstAsync(t => t.TagId == id);       
 
@@ -76,21 +76,15 @@
 
         public int CountTags(int articleId = 0) => GetTags(articleId).Count();
 
-        public IEnumerable<Tag> GetPopularTags(int countTags = 1)
-        {
-            var counts = new Dictionary<int, int>();
-            foreach (var tag in GetTags())
-            {
-                counts.Add(tag.TagId, CountArticles(tag.TagId).Result);
-            }
-
-            var countsList = counts.ToList();
-            countsList.Sort((pair1, pair2) => pair2.Value.CompareTo(pair1.Value));
-            for (var i = 0; i < countTags; i++)
-            {
-                yield return this.Tags.Find(countsList[i].Key);
-            }           
-        }
+        public IEnumerable<Tag> GetPopularTags(int countTags = 1) =>
+            (from artags in this.ArticleTag
+             group artags by artags.TagId into grouped
+             join tags in this.Tags on grouped.Key equals tags.TagId
+             join removedtags in this.RemovedTags on grouped.Key equals removedtags.TagId into gj
+             from x in gj.DefaultIfEmpty()
+             where x == null
+             orderby grouped.Count() descending
+             select tags).Take(countTags);
 
         public void Migrate() => this.Database.Migrate();
 
@@ -104,7 +98,7 @@
             modelBuilder.Entity<ArticleTag>().HasOne(pc => pc.Article).WithMany(p => p.ArticleTag).HasForeignKey(pc => pc.ArticleId);
             modelBuilder.Entity<ArticleTag>().HasOne(pc => pc.Tag).WithMany(c => c.ArticleTag).HasForeignKey(pc => pc.TagId);
 
-            modelBuilder.Entity<TagDelete>().HasOne(x => x.Tag).WithOne(x => x.TagDelete).HasForeignKey<TagDelete>(x => x.TagId).OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<RemovedTag>().HasOne(x => x.Tag).WithOne(x => x.RemovedTag).HasForeignKey<RemovedTag>(x => x.TagId).OnDelete(DeleteBehavior.Restrict);
         }
     }
 }

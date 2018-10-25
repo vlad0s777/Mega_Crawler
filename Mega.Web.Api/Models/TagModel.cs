@@ -1,8 +1,5 @@
 ﻿namespace Mega.Web.Api.Models
 {
-    using System.Collections.Generic;
-    using System.Linq;
-
     /// <summary>
     /// Модель тега
     /// </summary>
@@ -26,6 +23,6 @@
         /// <value>
         /// количество статей с данным тегом
         /// </value>
-        public int CountArticles { get; set; }
+        public int ArticlesCount { get; set; }
     }
 }

@@ -15,7 +15,7 @@
 
         IEnumerable<Tag> GetTags(int limit = int.MaxValue, int offset = 0, int articleId = 0);
 
-        IEnumerable<TagDelete> GetDeleteTags(int limit = int.MaxValue, int offset = 0);
+        IEnumerable<RemovedTag> GetRemovedTags(int limit = int.MaxValue, int offset = 0);
 
         Task<Tag> GetTag(string outerKey);
 

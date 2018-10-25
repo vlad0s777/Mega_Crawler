@@ -22,7 +22,7 @@
                            TagKey = tag.TagKey,
                            TagId = tag.TagId,
                            Name = tag.Name,
-                           CountArticles = this.context.CountArticles(tag.TagId).Result
+                           ArticlesCount = this.context.CountArticles(tag.TagId).Result
             };
         }
 
