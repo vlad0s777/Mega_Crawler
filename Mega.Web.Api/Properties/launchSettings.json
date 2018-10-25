@@ -12,7 +12,7 @@
     "IIS Express": {
       "commandName": "IISExpress",
       "launchBrowser": true,
-      "launchUrl": "api/articles",
+      "launchUrl": "help",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       }
@@ -20,7 +20,7 @@
     "Mega.Web.Api": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "api/articles",
+      "launchUrl": "help",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

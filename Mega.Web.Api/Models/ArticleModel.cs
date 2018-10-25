@@ -42,6 +42,6 @@
         /// <value>
         /// Идентификатор статьи с сайта
         /// </value>
-        public int CountTags => this.Tags.Count();
+        public int TagsCount => this.Tags.Count();
     }
 }

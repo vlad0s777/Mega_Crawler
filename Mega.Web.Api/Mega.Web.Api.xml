@@ -198,7 +198,7 @@
             Теги статьи
             </value>
         </member>
-        <member name="P:Mega.Web.Api.Models.ArticleModel.CountTags">
+        <member name="P:Mega.Web.Api.Models.ArticleModel.TagsCount">
             <value>
             Идентификатор статьи с сайта
             </value>
@@ -223,7 +223,7 @@
             имя тега
             </value>
         </member>
-        <member name="P:Mega.Web.Api.Models.TagModel.CountArticles">
+        <member name="P:Mega.Web.Api.Models.TagModel.ArticlesCount">
             <value>
             количество статей с данным тегом
             </value>
