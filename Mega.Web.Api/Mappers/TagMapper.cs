@@ -23,7 +23,7 @@
                            TagKey = tag.TagKey,
                            TagId = tag.TagId,
                            Name = tag.Name,
-                           CountArticles = await this.someReportDataProvider.CountArticles(tag.TagId)
+                           ArticlesCount = await this.someReportDataProvider.CountArticles(tag.TagId)
                        };
         }
 

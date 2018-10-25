@@ -73,7 +73,7 @@
             object entity;
             try
             {
-                entity = new TagDelete { DateDelete = DateTime.Now, Tag = await this.someReportDataProvider.GetTag(id) };
+                entity = new RemovedTag() { DeletionDate = DateTime.Now, Tag = await this.someReportDataProvider.GetTag(id) };
             }
             catch (Exception e)
             {
