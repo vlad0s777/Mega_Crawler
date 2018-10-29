@@ -4,6 +4,7 @@
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
+    using System.Threading.Tasks;
 
     using DasMulli.Win32.ServiceUtils;
 
@@ -39,7 +40,7 @@
             this.zadolbaliClientFactory = zadolbaliClientFactory;
         }
         
-        public void Run()
+        public async Task Run()
         {
             var isService = !(Debugger.IsAttached || Environment.GetCommandLineArgs().Contains("--console"));
 

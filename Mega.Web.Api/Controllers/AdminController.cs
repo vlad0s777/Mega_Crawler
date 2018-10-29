@@ -45,11 +45,11 @@
         /// Результат запуска краулинга
         /// </returns>
         [HttpGet("start")]
-        public string StartCrawler()
+        public async Task<string> StartCrawler()
         {
             if (this.broker.IsEmpty())
             {
-                this.broker.Send(this.context.CountTags() != 0 ? new UriRequest(string.Empty) : new UriRequest("tags"));
+                this.broker.Send(await this.someReportDataProvider.CountTags() != 0 ? new UriRequest(string.Empty) : new UriRequest("tags"));
 
                 return "Crawler started successfully!";
             }
