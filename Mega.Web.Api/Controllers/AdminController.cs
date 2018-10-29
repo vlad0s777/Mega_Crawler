@@ -35,10 +35,11 @@
         }
 
         /// <summary>
-        /// Получение списка тегов
+        /// Запуск краулера
         /// </summary>
         /// <remarks>
-        /// Брокеру отправляется пустое сообщение, которое инициирует процесс краулинга
+        /// Брокеру отправляется пустое сообщение, если таблица тегов не пуста,
+        /// или сообщение tags, если пуста
         /// </remarks>
         /// <returns>
         /// Результат запуска краулинга
@@ -48,7 +49,8 @@
         {
             if (this.broker.IsEmpty())
             {
-                this.broker.Send(new UriRequest(string.Empty));
+                this.broker.Send(this.context.CountTags() != 0 ? new UriRequest(string.Empty) : new UriRequest("tags"));
+
                 return "Crawler started successfully!";
             }
             else

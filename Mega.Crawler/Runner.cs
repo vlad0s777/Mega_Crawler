@@ -4,7 +4,6 @@
     using System.Diagnostics;
     using System.Linq;
     using System.Threading;
-    using System.Threading.Tasks;
 
     using DasMulli.Win32.ServiceUtils;
 
@@ -40,7 +39,7 @@
             this.zadolbaliClientFactory = zadolbaliClientFactory;
         }
         
-        public async Task Run()
+        public void Run()
         {
             var isService = !(Debugger.IsAttached || Environment.GetCommandLineArgs().Contains("--console"));
 
@@ -62,10 +61,6 @@
             else if (isEmptyQueues && !isService)
             {
                 this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(string.Empty));
-            }
-            else if (tagsCount == 0)
-            {
-                this.brokers.OfType<IMessageBroker<string>>().First().Send("tags");
             }
 
             var random = new Random();
