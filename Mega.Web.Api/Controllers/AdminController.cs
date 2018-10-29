@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
-    using Mega.Data.Migrations;
     using Mega.Domain;
     using Mega.Messaging;
     using Mega.Services.UriRequest;
@@ -93,7 +92,7 @@
             object entity;
             try
             {
-                entity = new RemovedTag() { DeletionDate = DateTime.Now, Tag = await this.someReportDataProvider.GetTag(id) };
+                entity = new RemovedTag() { DeletionDate = DateTime.Now, TagId = id };
             }
             catch (Exception e)
             {

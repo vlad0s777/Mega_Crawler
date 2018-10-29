@@ -8,7 +8,6 @@
     using Mega.Messaging;
     using Mega.Services.ZadolbaliClient;
 
-    using Microsoft.EntityFrameworkCore;
     using Microsoft.Extensions.Logging;
 
     public class UriRequestProcessor : IMessageProcessor<UriRequest>

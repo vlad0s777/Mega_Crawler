@@ -33,8 +33,8 @@
 
         public async Task<Article> GetArticle(int id, bool outer = false)
         {
-            var colId = !outer ? "\"ArticleId\"" : "\"OuterArticleId\"";
-            return await this.db.QueryFirstOrDefaultAsync<Article>("SELECT * FROM \"Articles\" WHERE @colId = @id", new { colId, id });
+            var query = !outer ? "SELECT * FROM \"Articles\" WHERE \"ArticleId\" = @id" : "SELECT * FROM \"Articles\" WHERE \"OuterArticleId\" = @id";
+            return await this.db.QueryFirstOrDefaultAsync<Article>(query, new { id });
         }
 
         public async Task<int> CountArticles(int tagId = 0, DateTime? startDate = null, DateTime? endDate = null)
@@ -63,7 +63,10 @@
                 .ToList();
         }
 
-        public async Task<Tag> GetTag(string outerKey) => await this.db.QueryFirstOrDefaultAsync<Tag>($"SELECT * FROM \"Tags\" WHERE \"TagKey\" = @outerKey", outerKey);
+        public async Task<Tag> GetTag(string outerKey)
+        {
+            return await this.db.QueryFirstOrDefaultAsync<Tag>($"SELECT * FROM \"Tags\" WHERE \"TagKey\" = @outerKey", new { outerKey });
+        }
 
         public async Task<Tag> GetTag(int id)
         {
