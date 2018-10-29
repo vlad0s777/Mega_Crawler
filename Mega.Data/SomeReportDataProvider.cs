@@ -8,122 +8,96 @@
 
     using Dapper;
 
-    using Mega.Data.Repository;
+    using Mega.Data.Migrations;
     using Mega.Domain;
-
-    using Npgsql;
 
     public class SomeReportDataProvider : ISomeReportDataProvider
     {
-        private readonly string connectionString;
+        private readonly IDbConnection db;
 
-        private readonly IRepository<Article> articleRepository;
+        private readonly Migrator migrator;
 
-        private readonly IRepository<Tag> tagRepository;
-
-        private readonly IRepository<ArticleTag> articleTagRepository;
-
-        private readonly IRepository<TagDelete> tagDeleteRepository;
-
-        public SomeReportDataProvider(string connectionString)
+        public SomeReportDataProvider(IDbConnection db, Migrator migrator)
         {
-            this.connectionString = connectionString;
-            this.articleRepository = new ArticleRepository(connectionString);
-            this.tagRepository = new TagRepository(connectionString);
-            this.articleTagRepository = new ArticleTagRepository(connectionString);
-            this.tagDeleteRepository = new TagDeleteRepository(connectionString);
+            this.db = db;
+            this.migrator = migrator;
         }
 
         public async Task<List<Article>> GetArticles(int limit = int.MaxValue, int offset = 0, int tagId = 0)
         {
-            using (IDbConnection db = new NpgsqlConnection(this.connectionString))
-            {
-                var query = tagId == 0
-                                ? "SELECT * FROM \"Articles\" LIMIT @limit OFFSET @offset"
-                                : "SELECT A.* FROM \"Articles\" AS A INNER JOIN \"ArticleTag\" AS AT ON AT.\"ArticleId\" = A.\"ArticleId\" WHERE AT.\"TagId\" = @tagId LIMIT @limit OFFSET @offset";
-                return (await db.QueryAsync<Article>(query, new { limit, offset, tagId })).ToList();
-            }
+            var query = tagId == 0
+                            ? "SELECT * FROM \"Articles\" LIMIT @limit OFFSET @offset"
+                            : "SELECT A.* FROM \"Articles\" AS A INNER JOIN \"ArticleTag\" AS AT ON AT.\"ArticleId\" = A.\"ArticleId\" WHERE AT.\"TagId\" = @tagId LIMIT @limit OFFSET @offset";
+            return (await this.db.QueryAsync<Article>(query, new { limit, offset, tagId })).ToList();
         }
 
         public async Task<Article> GetArticle(int id, bool outer = false)
         {
-            using (IDbConnection db = new NpgsqlConnection(this.connectionString))
-            {
-                return !outer
-                           ? await this.articleRepository.Get(id)
-                           : await db.QueryFirstOrDefaultAsync<Article>("SELECT * FROM \"Articles\" WHERE \"OuterArticleId\" = @id", id);
-            }
+            var colId = !outer ? "\"ArticleId\"" : "\"OuterArticleId\"";
+            return await this.db.QueryFirstOrDefaultAsync<Article>("SELECT * FROM \"Articles\" WHERE @colId = @id", new { colId, id });
         }
 
         public async Task<int> CountArticles(int tagId = 0, DateTime? startDate = null, DateTime? endDate = null)
         {
             var start = startDate ?? DateTime.MinValue;
             var end = endDate ?? DateTime.Now;
-            using (IDbConnection db = new NpgsqlConnection(this.connectionString))
-            {
-                return tagId == 0
-                           ? await db.QueryFirstOrDefaultAsync<int>(
-                                 "SELECT COUNT(*) FROM \"Articles\" WHERE \"DateCreate\" > @start AND \"DateCreate\" < @end", new { start, end })
-                           : await db.QueryFirstOrDefaultAsync<int>(
-                                 "SELECT COUNT(*) FROM \"Articles\" AS A INNER JOIN \"ArticleTag\" AS AT ON AT.\"ArticleId\" = A.\"ArticleId\" WHERE AT.\"TagId\" = @tagId AND A.\"DateCreate\" > @start AND \"DateCreate\" < @end", new { start, end, tagId });
-            }
+
+            return tagId == 0
+                        ? await this.db.QueryFirstOrDefaultAsync<int>(
+                                "SELECT COUNT(*) FROM \"Articles\" WHERE \"DateCreate\" > @start AND \"DateCreate\" < @end", new { start, end })
+                        : await this.db.QueryFirstOrDefaultAsync<int>(
+                                "SELECT COUNT(*) FROM \"Articles\" AS A INNER JOIN \"ArticleTag\" AS AT ON AT.\"ArticleId\" = A.\"ArticleId\" WHERE AT.\"TagId\" = @tagId AND A.\"DateCreate\" > @start AND \"DateCreate\" < @end", new { start, end, tagId });
         }
 
         public async Task<List<Tag>> GetTags(int limit = int.MaxValue, int offset = 0, int articleId = 0)
         {
-            using (IDbConnection db = new NpgsqlConnection(this.connectionString))
-            {
-                var query = articleId == 0
-                                ? $"SELECT T .* FROM \"Tags\" AS T LEFT JOIN \"TagsDelete\" AS TD ON TD.\"TagId\" = T .\"TagId\" WHERE TD.\"TagDeleteId\" IS NULL LIMIT @limit OFFSET @offset"
-                                : $"SELECT T.* FROM (\"Tags\" AS T LEFT JOIN \"TagsDelete\" AS TD ON TD.\"TagId\" = T.\"TagId\") INNER JOIN \"ArticleTag\" AS AT ON AT.\"TagId\" = T.\"TagId\" WHERE AT.\"ArticleId\" = @articleId AND TD.\"TagDeleteId\" IS NULL LIMIT @limit OFFSET @offset";
-                return (await db.QueryAsync<Tag>(query, new { limit, offset, articleId })).ToList();
-            }
+            var query = articleId == 0
+                            ? $"SELECT T .* FROM \"Tags\" AS T LEFT JOIN \"RemovedTags\" AS TD ON TD.\"TagId\" = T .\"TagId\" WHERE TD.\"RemovedTagId\" IS NULL LIMIT @limit OFFSET @offset"
+                            : $"SELECT T.* FROM (\"Tags\" AS T LEFT JOIN \"RemovedTags\" AS TD ON TD.\"TagId\" = T.\"TagId\") INNER JOIN \"ArticleTag\" AS AT ON AT.\"TagId\" = T.\"TagId\" WHERE AT.\"ArticleId\" = @articleId AND TD.\"RemovedTagId\" IS NULL LIMIT @limit OFFSET @offset";
+            return (await this.db.QueryAsync<Tag>(query, new { limit, offset, articleId })).ToList();
         }
 
-        public async Task<List<TagDelete>> GetDeleteTags(int limit = int.MaxValue, int offset = 0)
+        public async Task<List<RemovedTag>> GetRemovedTags(int limit = int.MaxValue, int offset = 0)
         {
-            using (IDbConnection db = new NpgsqlConnection(this.connectionString))
-            {
-                return (await db.QueryAsync<TagDelete>($"SELECT * FROM \"TagsDelete\" LIMIT @limit OFFSET @offset", new { limit, offset })).ToList();
-            }
+            return (await this.db.QueryAsync<RemovedTag>($"SELECT * FROM \"RemovedTags\" LIMIT @limit OFFSET @offset", new { limit, offset }))
+                .ToList();
         }
 
-        public async Task<Tag> GetTag(string outerKey)
+        public async Task<Tag> GetTag(string outerKey) => await this.db.QueryFirstOrDefaultAsync<Tag>($"SELECT * FROM \"Tags\" WHERE \"TagKey\" = @outerKey", outerKey);
+
+        public async Task<Tag> GetTag(int id)
         {
-            using (IDbConnection db = new NpgsqlConnection(this.connectionString))
-            {
-                return await db.QueryFirstOrDefaultAsync<Tag>($"SELECT * FROM \"Tags\" WHERE \"TagKey\" = @outerKey", outerKey);
-            }
+            return await this.db.QueryFirstOrDefaultAsync<Tag>("SELECT * FROM \"Tags\" WHERE \"TagId\" = @id", new { id });
         }
-
-        public async Task<Tag> GetTag(int id) => await this.tagRepository.Get(id);
 
         public async Task<int> CountTags(int articleId = 0)
         {
-            using (IDbConnection db = new NpgsqlConnection(this.connectionString))
-            {
-                return articleId == 0
-                           ? await db.QueryFirstOrDefaultAsync<int>($"SELECT COUNT(*) FROM \"Tags\"")
-                           : await db.QueryFirstOrDefaultAsync(
-                                 $"SELECT COUNT(*) FROM \"Tags\" AS T INNER JOIN \"ArticleTag\" AS AT ON AT.\"TagId\" = T.\"TagId\" WHERE AT.\"ArticleId\" = @articleId", articleId);
-            }
+            return articleId == 0
+                        ? await this.db.QueryFirstOrDefaultAsync<int>("SELECT COUNT(*) FROM \"Tags\" AS T LEFT JOIN \"RemovedTags\" AS TD ON TD.\"TagId\" = T.\"TagId\" WHERE TD.\"RemovedTagId\" IS NULL")
+                        : await this.db.QueryFirstOrDefaultAsync(
+                                "SELECT\r\n\tCOUNT (*)\r\nFROM \"Tags\" AS T\r\nINNER JOIN \"ArticleTag\" AS AT ON AT.\"TagId\" = T.\"TagId\" \r\nLEFT JOIN \"RemovedTags\" AS TD ON TD.\"TagId\" = T.\"TagId\" \r\nWHERE TD.\"RemovedTagId\" IS NULL AND AT.\"ArticleId\" = @articleId",
+                                articleId);
         }
 
         public async Task<List<Tag>> GetPopularTags(int countTags = 1)
         {
-            var query =
-                "WITH D AS (SELECT AT.\"TagId\", COUNT (*) AS tag_count FROM \"ArticleTag\" AS AT GROUP BY AT.\"TagId\" ORDER BY tag_count DESC) "
-                + "SELECT T.* FROM (D INNER JOIN \"Tags\" AS T ON D.\"TagId\" = T.\"TagId\") "
-                + "LEFT JOIN \"TagsDelete\" AS TD ON TD.\"TagId\" = T.\"TagId\" WHERE TD.\"TagDeleteId\" IS NULL";
-            using (IDbConnection db = new NpgsqlConnection(this.connectionString))
-            {
-                return (await db.QueryAsync<Tag>(query)).ToList();
-            }
+            var query = "WITH IDS AS (" +
+                        "	SELECT AT .\"TagId\"" +
+                        "	FROM \"ArticleTag\" AS AT" +
+                        "	GROUP BY AT .\"TagId\"" +
+                        "	ORDER BY COUNT (*) DESC) " +
+                        "SELECT T .* FROM IDS " +
+                        "INNER JOIN \"Tags\" AS T ON IDS.\"TagId\" = T .\"TagId\" " +
+                        "LEFT JOIN \"RemovedTags\" AS TD ON IDS.\"TagId\" = TD.\"TagId\" " +
+                        "WHERE TD.\"RemovedTagId\" IS NULL " +
+                        "LIMIT @countTags";
+
+            return (await this.db.QueryAsync<Tag>(query, new { countTags })).ToList();
         }
 
-        public void Migrate()
+        public async Task<string> Migrate()
         {
-            throw new NotImplementedException();
+            return await this.migrator.Migrate();
         }
 
         public async Task<object> AddAsync(object entity)
@@ -131,13 +105,24 @@
             switch (entity)
             {
                 case Tag _:
-                    return await this.tagRepository.Create(entity as Tag);
-                case TagDelete _:
-                    return await this.tagDeleteRepository.Create(entity as TagDelete);
+                    var tag = (Tag)entity;
+                    var tagId = await this.db.QueryFirstOrDefaultAsync<int>("INSERT INTO \"Tags\" (\"TagKey\", \"Name\") VALUES(@TagKey, @Name) RETURNING \"TagId\"", new { tag.TagKey, tag.Name });
+                    tag.TagId = tagId;
+                    return tag;
+                case RemovedTag _:
+                    var removedTag = (RemovedTag)entity;
+                    var removedTagId = await this.db.QueryFirstOrDefaultAsync<int>("INSERT INTO \"RemovedTags\" (\"TagId\", \"DeletionDate\") VALUES(@TagId, @DeletionDate) RETURNING \"RemovedTagId\"", new { removedTag.TagId, removedTag.DeletionDate });
+                    removedTag.TagId = removedTagId;
+                    return removedTag;
                 case Article _:
-                    return await this.articleRepository.Create(entity as Article);
+                    var article = (Article)entity;
+                    var articleId = await this.db.QueryFirstOrDefaultAsync<int>("INSERT INTO \"Articles\" (\"DateCreate\", \"Text\", \"Head\", \"OuterArticleId\") VALUES(@DateCreate, @Text, @Head, @OuterArticleId) RETURNING \"ArticleId\"", new { article.DateCreate, article.Text, article.Head, article.OuterArticleId });
+                    article.ArticleId = articleId;
+                    return article;
                 case ArticleTag _:
-                    return await this.articleTagRepository.Create(entity as ArticleTag);
+                    var articleTag = (ArticleTag)entity;
+                    await this.db.ExecuteAsync("INSERT INTO \"ArticleTag\" (\"TagId\", \"ArticleId\") VALUES(@TagId, @ArticleId)", new { articleTag.ArticleId, articleTag.TagId });
+                    return articleTag;
                 default:
                     throw new Exception("Invalid entity");
             }

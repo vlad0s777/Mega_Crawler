@@ -87,7 +87,7 @@
         /// <param name="startDate">Начальная дата, необязательная, если без неё, то будет подсчитано количество всех статей</param>
         /// <param name="endDate">Конечная дата, необяательная, если без неё, то будет подсчитано количество статей от начальной даты до последней статьи</param>
         [HttpGet("count/{startDate:datetime?}/{endDate:datetime?}")]
-        public async Task<int> CountArticles(DateTime? startDate, DateTime? endDate)
+        public async Task<int> CountArticles(DateTime? startDate = null, DateTime? endDate = null)
         {
             return await this.someReportDataProvider.CountArticles(startDate: startDate, endDate: endDate);
         }

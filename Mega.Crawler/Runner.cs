@@ -48,7 +48,7 @@
 
             if (Environment.GetCommandLineArgs().Contains("--migrate"))
             {
-                this.someReportDataProvider.Migrate();
+                await this.someReportDataProvider.Migrate();
                 return;
             }
 

@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Threading.Tasks;
 
+    using Mega.Data.Migrations;
     using Mega.Domain;
     using Mega.Messaging;
     using Mega.Services.UriRequest;
@@ -55,6 +56,25 @@
             {
                 return "Crawler is already running";
             }
+        }
+
+        /// <summary>
+        /// Запуск миграции базы данных
+        /// </summary>
+        /// <remarks>
+        /// В начале он через Dapper запрашивает всё содержимое таблицы миграций; 
+        /// Если таблицы нет — создаёт её прямым SQL-запросом через имеющийся DbConnection;
+        /// Получает список файлов из каталога миграций, упорядочивает его по алфавиту(и как следствие, по времени);
+        /// По порядку пытается выполнять содержимое тех файлов-запросов, которых ещё не было в таблице миграций;
+        /// На каждую успешно выполненную миграцию записывает соответствующую строку в таблицу миграций;
+        /// </remarks>
+        /// <returns>
+        /// Результат запуска миграции
+        /// </returns>
+        [HttpGet("migration")]
+        public async Task<string> StartMigration()
+        {
+            return await this.someReportDataProvider.Migrate();
         }
 
         /// <summary>

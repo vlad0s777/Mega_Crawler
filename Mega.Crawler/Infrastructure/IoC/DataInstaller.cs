@@ -1,11 +1,15 @@
 ﻿namespace Mega.Crawler.Infrastructure.IoC
 {
+    using System.Data;
     using System.IO;
 
     using Mega.Data;
+    using Mega.Data.Migrations;
     using Mega.Domain;
 
     using Microsoft.Extensions.Configuration;
+
+    using Npgsql;
 
     using StructureMap;
 
@@ -20,7 +24,11 @@
 
             var connectionString = config.GetConnectionString("DefaultConnection");
 
-            For<ISomeReportDataProvider>().Use<SomeReportDataProvider>().Ctor<string>("connectionString").Is(connectionString);
+            For<IDbConnection>().Use<NpgsqlConnection>().Ctor<string>().Is(connectionString);
+
+            For<ISomeReportDataProvider>().Use<SomeReportDataProvider>();
+
+            ForConcreteType<Migrator>();
         }
     }
 }
