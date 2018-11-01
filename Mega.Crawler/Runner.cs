@@ -27,9 +27,8 @@
 
         private readonly Settings settings;
 
-        public Runner(IMessageBroker[] brokers, ISomeReportDataProvider someReportDataProvider, Settings settings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory, IZadolbaliClientFactory zadolbaliClientFactory)
+        public Runner(ISomeReportDataProvider someReportDataProvider, Settings settings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory, IZadolbaliClientFactory zadolbaliClientFactory)
         {
-            this.brokers = brokers;
             this.someReportDataProvider = someReportDataProvider;
             this.settings = settings;
             this.tagRequestProcessorFactory = tagRequestProcessorFactory;

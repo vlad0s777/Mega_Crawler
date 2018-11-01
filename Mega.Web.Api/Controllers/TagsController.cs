@@ -126,7 +126,7 @@
         /// </returns>
         /// <param name="count">Количество возвращаемых самых популярных тегов</param>
         [HttpGet("popular/{count=1}")]
-        public IEnumerable<TagModel> GetPopularTags(int count) => this.tagMapper.Map(this.context.GetPopularTags(count));
+        public async Task<List<TagModel>> GetPopularTags(int count) => this.tagMapper.Map(await this.someReportDataProvider.GetPopularTags(count)).ToList();
 
         /// <summary>
         /// Удаление одного тега
@@ -145,15 +145,14 @@
             object entity;
             try
             {
-                entity = new RemovedTag { DeletionDate = DateTime.Now, Tag = await this.context.GetTag(id) };
+                entity = new RemovedTag { DeletionDate = DateTime.Now, Tag = await this.someReportDataProvider.GetTag(id) };
             }
             catch
             {
                 throw new HttpResponseException(404, $"Tag {id} not found");
             }
 
-            await this.context.AddAsync(entity);
-            await this.context.SaveChangesAsync();
+            await this.someReportDataProvider.AddAsync(entity);
         }
 
         /// <summary>
