@@ -10,6 +10,7 @@
     using Mega.Web.Api.Mappers;
     using Mega.Web.Api.Models;
 
+    using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Mvc;
 
@@ -17,7 +18,7 @@
     /// Контроллер тегов
     /// </summary>
     /// <remarks>
-    /// В данном контроллере можно получить тэги, статьи у определенных тегов, количество статей у определенного тега в опредеделенный промежуток времени,
+    /// В данном контроллере можно получить теги, статьи у определенных тегов, количество статей у определенного тега в опредеделенный промежуток времени,
     /// получить определенное количество популярных тегов
     /// </remarks>
     [Route("api/[controller]")]
@@ -125,6 +126,54 @@
         /// </returns>
         /// <param name="count">Количество возвращаемых самых популярных тегов</param>
         [HttpGet("popular/{count=1}")]
-        public async Task<List<TagModel>> GetPopularTags(int count) => this.tagMapper.Map(await this.someReportDataProvider.GetPopularTags(count)).ToList();
+        public IEnumerable<TagModel> GetPopularTags(int count) => this.tagMapper.Map(this.context.GetPopularTags(count));
+
+        /// <summary>
+        /// Удаление одного тега
+        /// </summary>
+        /// <remarks>
+        /// Добавляем тег в блеклист (таблица TagsDelete)
+        /// </remarks>
+        /// <returns>
+        /// Результат  удаления
+        /// </returns>
+        /// <param name="id">Идентификатор тега</param>
+        [HttpDelete("tag/{id}")]
+        [Authorize(Policy = "RequireAdmin")]
+        public async Task DeleteTag(int id)
+        {
+            object entity;
+            try
+            {
+                entity = new RemovedTag { DeletionDate = DateTime.Now, Tag = await this.context.GetTag(id) };
+            }
+            catch
+            {
+                throw new HttpResponseException(404, $"Tag {id} not found");
+            }
+
+            await this.context.AddAsync(entity);
+            await this.context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Удаление списка тегов
+        /// </summary>
+        /// <remarks>
+        /// Добавляем теги в блеклист (таблица TagsDelete)
+        /// </remarks>
+        /// <returns>
+        /// Результат  удаления
+        /// </returns>
+        /// <param name="ids">Список идентификаторов тегов</param>
+        [Authorize(Policy = "RequireAdmin")]
+        [HttpDelete]
+        public async Task DeleteTags(List<int> ids)
+        {
+            foreach (var id in ids)
+            {
+                await DeleteTag(id);
+            }
+        }
     }
 }
