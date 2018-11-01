@@ -4,69 +4,6 @@
         <name>Mega.Web.Api</name>
     </assembly>
     <members>
-        <member name="T:Mega.Web.Api.Controllers.AdminController">
-            <summary>
-            Управляющий контроллер
-            </summary>
-            <remarks>
-            В данном контроллере можно запустить процесс краулинга
-            </remarks>
-        </member>
-        <member name="M:Mega.Web.Api.Controllers.AdminController.#ctor(Mega.Messaging.IMessageBroker{Mega.Services.UriRequest.UriRequest},Mega.Domain.ISomeReportDataProvider)">
-            <param name="broker">Брокер сообщений</param>
-            <param name="someReportDataProvider">Контекст данных</param>
-        </member>
-        <member name="M:Mega.Web.Api.Controllers.AdminController.StartCrawler">
-            <summary>
-            Запуск краулера
-            </summary>
-            <remarks>
-            Брокеру отправляется пустое сообщение, если таблица тегов не пуста,
-            или сообщение tags, если пуста
-            </remarks>
-            <returns>
-            Результат запуска краулинга
-            </returns>
-        </member>
-        <member name="M:Mega.Web.Api.Controllers.AdminController.StartMigration">
-            <summary>
-            Запуск миграции базы данных
-            </summary>
-            <remarks>
-            В начале он через Dapper запрашивает всё содержимое таблицы миграций; 
-            Если таблицы нет — создаёт её прямым SQL-запросом через имеющийся DbConnection;
-            Получает список файлов из каталога миграций, упорядочивает его по алфавиту(и как следствие, по времени);
-            По порядку пытается выполнять содержимое тех файлов-запросов, которых ещё не было в таблице миграций;
-            На каждую успешно выполненную миграцию записывает соответствующую строку в таблицу миграций;
-            </remarks>
-            <returns>
-            Результат запуска миграции
-            </returns>
-        </member>
-        <member name="M:Mega.Web.Api.Controllers.AdminController.DeleteTag(System.Int32)">
-            <summary>
-            Удаление одного тега
-            </summary>
-            <remarks>
-            Добавляем тег в блеклист (таблица TagsDelete)
-            </remarks>
-            <returns>
-            Результат  удаления
-            </returns>
-            <param name="id">Идентификатор тега</param>
-        </member>
-        <member name="M:Mega.Web.Api.Controllers.AdminController.DeleteTags(System.Collections.Generic.List{System.Int32})">
-            <summary>
-            Удаление списка тегов
-            </summary>
-            <remarks>
-            Добавляем теги в блеклист (таблица TagsDelete)
-            </remarks>
-            <returns>
-            Результат  удаления
-            </returns>
-            <param name="ids">Список идентификаторов тегов</param>
-        </member>
         <member name="T:Mega.Web.Api.Controllers.ArticlesController">
             <summary>
             Контроллер статей
@@ -111,12 +48,36 @@
             <param name="startDate">Начальная дата, необязательная, если без неё, то будет подсчитано количество всех статей</param>
             <param name="endDate">Конечная дата, необяательная, если без неё, то будет подсчитано количество статей от начальной даты до последней статьи</param>
         </member>
+        <member name="T:Mega.Web.Api.Controllers.MessagesController">
+            <summary>
+            Управляющий контроллер
+            </summary>
+            <remarks>
+            В данном контроллере можно запустить процесс краулинга
+            </remarks>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.MessagesController.#ctor(Mega.Messaging.IMessageBroker{Mega.Services.UriRequest.UriRequest},Mega.Domain.ISomeReportDataProvider)">
+            <param name="broker">Брокер сообщений</param>
+            <param name="someReportDataProvider">Контекст данных</param>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.MessagesController.StartCrawler">
+            <summary>
+            Запуск краулера
+            </summary>
+            <remarks>
+            Брокеру отправляется пустое сообщение, если таблица тегов не пуста,
+            или сообщение tags, если пуста
+            </remarks>
+            <returns>
+            Результат запуска краулинга
+            </returns>
+        </member>
         <member name="T:Mega.Web.Api.Controllers.TagsController">
             <summary>
             Контроллер тегов
             </summary>
             <remarks>
-            В данном контроллере можно получить тэги, статьи у определенных тегов, количество статей у определенного тега в опредеделенный промежуток времени,
+            В данном контроллере можно получить теги, статьи у определенных тегов, количество статей у определенного тега в опредеделенный промежуток времени,
             получить определенное количество популярных тегов
             </remarks>
         </member>
@@ -179,45 +140,69 @@
             </returns>
             <param name="count">Количество возвращаемых самых популярных тегов</param>
         </member>
+        <member name="M:Mega.Web.Api.Controllers.TagsController.DeleteTag(System.Int32)">
+            <summary>
+            Удаление одного тега
+            </summary>
+            <remarks>
+            Добавляем тег в блеклист (таблица TagsDelete)
+            </remarks>
+            <returns>
+            Результат  удаления
+            </returns>
+            <param name="id">Идентификатор тега</param>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.TagsController.DeleteTags(System.Collections.Generic.List{System.Int32})">
+            <summary>
+            Удаление списка тегов
+            </summary>
+            <remarks>
+            Добавляем теги в блеклист (таблица TagsDelete)
+            </remarks>
+            <returns>
+            Результат  удаления
+            </returns>
+            <param name="ids">Список идентификаторов тегов</param>
+        </member>
         <member name="T:Mega.Web.Api.Models.ArticleModel">
             <summary>
             Модель статьи
             </summary>
         </member>
         <member name="P:Mega.Web.Api.Models.ArticleModel.ArticleId">
-            <value>
+            <summary>
             ID статьи
-            </value>
+            </summary>        
         </member>
         <member name="P:Mega.Web.Api.Models.ArticleModel.DateCreate">
-            <value>
+            <summary>
             Дата создания статьи
-            </value>
+            </summary>
         </member>
         <member name="P:Mega.Web.Api.Models.ArticleModel.Text">
-            <value>
+            <summary>
             Текст статьи
-            </value>
+            </summary>
         </member>
         <member name="P:Mega.Web.Api.Models.ArticleModel.Head">
-            <value>
+            <summary>
             Заголовок статьи
-            </value>
+            </summary>
         </member>
         <member name="P:Mega.Web.Api.Models.ArticleModel.OuterArticleId">
-            <value>
+            <summary>
             Идентификатор статьи с сайта
-            </value>
+            </summary>
         </member>
         <member name="P:Mega.Web.Api.Models.ArticleModel.Tags">
-            <value>
+            <summary>
             Теги статьи
-            </value>
+            </summary>
         </member>
         <member name="P:Mega.Web.Api.Models.ArticleModel.TagsCount">
-            <value>
+            <summary>
             Идентификатор статьи с сайта
-            </value>
+            </summary>
         </member>
         <member name="T:Mega.Web.Api.Models.TagModel">
             <summary>
@@ -225,24 +210,24 @@
             </summary>
         </member>
         <member name="P:Mega.Web.Api.Models.TagModel.TagId">
-            <value>
+            <summary>
             ID тега
-            </value>
+            </summary>
         </member>
         <member name="P:Mega.Web.Api.Models.TagModel.TagKey">
-            <value>
+            <summary>
             строковый ключ статьи с сайта
-            </value>
+            </summary>
         </member>
         <member name="P:Mega.Web.Api.Models.TagModel.Name">
-            <value>
+            <summary>
             имя тега
-            </value>
+            </summary>
         </member>
         <member name="P:Mega.Web.Api.Models.TagModel.ArticlesCount">
-            <value>
+            <summary>
             количество статей с данным тегом
-            </value>
+            </summary>
         </member>
     </members>
 </doc>

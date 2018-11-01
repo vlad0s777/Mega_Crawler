@@ -1,5 +1,7 @@
 ﻿namespace Mega.Web.Api.Controllers
 {
+    using System.Threading.Tasks;
+
     using Mega.Domain;
     using Mega.Messaging;
     using Mega.Services.UriRequest;
@@ -20,14 +22,14 @@
     {
         private readonly IMessageBroker<UriRequest> broker;
 
-        private readonly IDataContext context;
+        private readonly ISomeReportDataProvider someReportDataProvider;
 
         /// <param name="broker">Брокер сообщений</param>
-        /// <param name="context">Контекст данных</param>
-        public MessagesController(IMessageBroker<UriRequest> broker, IDataContext context)
+        /// <param name="someReportDataProvider">Контекст данных</param>
+        public MessagesController(IMessageBroker<UriRequest> broker, ISomeReportDataProvider someReportDataProvider)
         {
             this.broker = broker;
-            this.context = context;
+            this.someReportDataProvider = someReportDataProvider;
         }
 
         /// <summary>
@@ -41,11 +43,11 @@
         /// Результат запуска краулинга
         /// </returns>
         [HttpPost("start")]
-        public string StartCrawler()
+        public async Task<string> StartCrawler()
         {
             if (this.broker.IsEmpty())
             {
-                this.broker.Send(this.context.CountTags() != 0 ? new UriRequest(string.Empty) : new UriRequest("tags"));
+                this.broker.Send(await this.someReportDataProvider.CountTags() != 0 ? new UriRequest(string.Empty) : new UriRequest("tags"));
 
                 return "Crawler started successfully!";
             }
