@@ -1,28 +1,31 @@
 ﻿namespace Mega.Web.Api.Models
 {
+    using System.Diagnostics.CodeAnalysis;
+
     /// <summary>
     /// Модель тега
     /// </summary>
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1623:PropertySummaryDocumentationMustMatchAccessors", Justification = "Reviewed. Suppression is OK here.")]
     public class TagModel
     {
-        /// <value>
+        /// <summary>
         /// ID тега
-        /// </value>
+        /// </summary>
         public int TagId { get; set; }
 
-        /// <value>
+        /// <summary>
         /// строковый ключ статьи с сайта
-        /// </value>
+        /// </summary>
         public string TagKey { get; set; }
 
-        /// <value>
+        /// <summary>
         /// имя тега
-        /// </value>
+        /// </summary>
         public string Name { get; set; }
 
-        /// <value>
+        /// <summary>
         /// количество статей с данным тегом
-        /// </value>
+        /// </summary>
         public int ArticlesCount { get; set; }
     }
 }

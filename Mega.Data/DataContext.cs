@@ -56,7 +56,7 @@
         {
             var tags = articleId == 0
                            ? from u in this.Tags
-                             join p in GetRemovedTags() on u equals p.Tag into gj
+                             join p in GetRemovedTags() on u.TagId equals p.TagId into gj
                              from x in gj.DefaultIfEmpty()
                              where x == null
                              select u
@@ -74,7 +74,7 @@
 
         public async Task<Tag> GetTag(string outerKey) => await this.Tags.FirstAsync(t => t.TagKey == outerKey);
 
-        public int CountTags(int articleId = 0) => GetTags(articleId).Count();
+        public int CountTags(int articleId = 0) => GetTags(articleId: articleId).Count();
 
         public IEnumerable<Tag> GetPopularTags(int countTags = 1) =>
             (from artags in this.ArticleTag

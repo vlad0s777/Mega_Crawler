@@ -2,46 +2,48 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics.CodeAnalysis;
     using System.Linq;
 
     /// <summary>
     /// Модель статьи
     /// </summary>
+    [SuppressMessage("StyleCop.CSharp.DocumentationRules", "SA1623:PropertySummaryDocumentationMustMatchAccessors", Justification = "Reviewed. Suppression is OK here.")]
     public class ArticleModel
     {
-        /// <value>
+        /// <summary>
         /// ID статьи
-        /// </value>
+        /// </summary>        
         public int ArticleId { get; set; }
 
-        /// <value>
+        /// <summary>
         /// Дата создания статьи
-        /// </value>
+        /// </summary>
         public DateTime DateCreate { get; set; }
 
-        /// <value>
+        /// <summary>
         /// Текст статьи
-        /// </value>
+        /// </summary>
         public string Text { get; set; }
 
-        /// <value>
+        /// <summary>
         /// Заголовок статьи
-        /// </value>
+        /// </summary>
         public string Head { get; set; }
 
-        /// <value>
+        /// <summary>
         /// Идентификатор статьи с сайта
-        /// </value>
+        /// </summary>
         public int OuterArticleId { get; set; }
 
-        /// <value>
+        /// <summary>
         /// Теги статьи
-        /// </value>
+        /// </summary>
         public IEnumerable<string> Tags { get; set; }
 
-        /// <value>
+        /// <summary>
         /// Идентификатор статьи с сайта
-        /// </value>
+        /// </summary>
         public int TagsCount => this.Tags.Count();
     }
 }

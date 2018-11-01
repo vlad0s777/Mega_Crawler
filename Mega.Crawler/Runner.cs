@@ -8,15 +8,12 @@
     using DasMulli.Win32.ServiceUtils;
 
     using Mega.Domain;
-    using Mega.Messaging;
     using Mega.Services.TagRequest;
     using Mega.Services.UriRequest;
     using Mega.Services.ZadolbaliClient;
 
     public class Runner : IDisposable
     {
-        private readonly IMessageBroker[] brokers;
-
         private readonly ITagRequestProcessorFactory tagRequestProcessorFactory;
 
         private readonly IUriRequestProcessorFactory uriRequestProcessorFactory;
@@ -29,9 +26,8 @@
 
         private readonly Settings settings;
 
-        public Runner(IMessageBroker[] brokers, IDataContext dataContext, Settings settings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory, IZadolbaliClientFactory zadolbaliClientFactory)
+        public Runner(IDataContext dataContext, Settings settings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory, IZadolbaliClientFactory zadolbaliClientFactory)
         {
-            this.brokers = brokers;
             this.dataContext = dataContext;
             this.settings = settings;
             this.tagRequestProcessorFactory = tagRequestProcessorFactory;
@@ -49,18 +45,6 @@
             {
                 this.dataContext.Migrate();
                 return;
-            }
-
-            var tagsCount = this.dataContext.CountTags();
-            var isEmptyQueues = this.brokers.All(broker => broker.IsEmpty());
-
-            if (tagsCount == 0 && isEmptyQueues && !isService)
-            {
-                this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest("tags"));
-            }
-            else if (isEmptyQueues && !isService)
-            {
-                this.brokers.OfType<IMessageBroker<UriRequest>>().First().Send(new UriRequest(string.Empty));
             }
 
             var random = new Random();

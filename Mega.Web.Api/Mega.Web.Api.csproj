@@ -17,6 +17,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Mega.Web.Api.xml" />
+  </ItemGroup>
+
+  <ItemGroup>
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
@@ -37,12 +41,6 @@
     <ProjectReference Include="..\Mega.Domain\Mega.Domain.csproj" />
     <ProjectReference Include="..\Mega.Messaging.External\Mega.Messaging.External.csproj" />
     <ProjectReference Include="..\Mega.Messaging\Mega.Messaging.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Mega.Web.Api.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>

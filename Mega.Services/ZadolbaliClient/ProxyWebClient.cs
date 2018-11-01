@@ -77,13 +77,13 @@
                 Logger.LogDebug(
                     $"Delay: {watchDelay} ms. Downloading: {Watch.Elapsed.TotalMilliseconds} ms. Speed: {DownloadStatistic.Speed()}");
                 Watch.Reset();
-                Logger.LogDebug($"This proxy {this.proxyServer.Address} delay : {delay}");
+                Logger.LogDebug($"This proxy {this.proxyServer.Address.Host}:{this.proxyServer.Address.Port} delay : {delay}");
                 return completeDownloadString;
             }
             catch (Exception e)
             {             
                 Watch.Reset();
-                throw new Exception($"This proxy {this.proxyServer.Address} in id: {id} error: {e.Message}. {e.GetType().FullName}.");
+                throw new Exception($"This proxy {this.proxyServer.Address.Host}:{this.proxyServer.Address.Port} in id: {id} error: {e.Message}. {e.GetType().FullName}.");
             }
         }
     }
