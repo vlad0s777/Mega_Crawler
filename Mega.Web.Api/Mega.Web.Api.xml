@@ -1,0 +1,233 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>Mega.Web.Api</name>
+    </assembly>
+    <members>
+        <member name="T:Mega.Web.Api.Controllers.ArticlesController">
+            <summary>
+            Контроллер статей
+            </summary>
+            <remarks>
+            В данном контроллере можно просмотреть скрауленные статьи, получить количество статей в опредеделенный промежуток времени
+            </remarks>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.ArticlesController.#ctor(Mega.Domain.IDataContext,Mega.Web.Api.Mappers.IMapper{Mega.Domain.Article,Mega.Web.Api.Models.ArticleModel})">
+            <param name="context">Контекст данных</param>
+            <param name="articleMapper">Конвертер домена статьи в модель статьи</param>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.ArticlesController.GetPage(System.Int32)">
+            <summary>
+            Получение списка статей
+            </summary>
+            <returns>
+            Модели статей
+            </returns>
+            <exception cref="T:Mega.Web.Api.Exceptions.HttpResponseException">Возникает если страница не найдена
+            </exception>
+            <param name="numPage">Номер страницы</param>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.ArticlesController.GetArticle(System.Int32)">
+            <summary>
+            Получение одной статьи по идентификатору
+            </summary>
+            <returns>
+            Модель статьи
+            </returns>
+            <exception cref="T:Mega.Web.Api.Exceptions.HttpResponseException">Возникает если статья не найдена
+            </exception>
+            <param name="id">Идентификатор статьи</param>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.ArticlesController.CountArticles(System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+            <summary>
+            Получение количества статей в определенный промежуток времени
+            </summary>
+            <returns>
+            Количество статей
+            </returns>
+            <param name="startDate">Начальная дата, необязательная, если без неё, то будет подсчитано количество всех статей</param>
+            <param name="endDate">Конечная дата, необяательная, если без неё, то будет подсчитано количество статей от начальной даты до последней статьи</param>
+        </member>
+        <member name="T:Mega.Web.Api.Controllers.MessagesController">
+            <summary>
+            Управляющий контроллер
+            </summary>
+            <remarks>
+            В данном контроллере можно запустить процесс краулинга
+            </remarks>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.MessagesController.#ctor(Mega.Messaging.IMessageBroker{Mega.Services.UriRequest.UriRequest},Mega.Domain.IDataContext)">
+            <param name="broker">Брокер сообщений</param>
+            <param name="context">Контекст данных</param>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.MessagesController.StartCrawler">
+            <summary>
+            Запуск краулера
+            </summary>
+            <remarks>
+            Брокеру отправляется пустое сообщение, если таблица тегов не пуста,
+            или сообщение tags, если пуста
+            </remarks>
+            <returns>
+            Результат запуска краулинга
+            </returns>
+        </member>
+        <member name="T:Mega.Web.Api.Controllers.TagsController">
+            <summary>
+            Контроллер тегов
+            </summary>
+            <remarks>
+            В данном контроллере можно получить теги, статьи у определенных тегов, количество статей у определенного тега в опредеделенный промежуток времени,
+            получить определенное количество популярных тегов
+            </remarks>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.TagsController.#ctor(Mega.Domain.IDataContext,Mega.Web.Api.Mappers.IMapper{Mega.Domain.Tag,Mega.Web.Api.Models.TagModel},Mega.Web.Api.Mappers.IMapper{Mega.Domain.Article,Mega.Web.Api.Models.ArticleModel})">
+            <param name="context">Контекст данных</param>
+            <param name="articleMapper">Конвертер домена статьи в модель статьи</param>
+            <param name="tagMapper">Конвертер домена тега в модель тега</param>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.TagsController.GetPage(System.Int32)">
+            <summary>
+            Получение списка тегов
+            </summary>
+            <returns>
+            Модели тегов
+            </returns>
+            <exception cref="T:Mega.Web.Api.Exceptions.HttpResponseException">Возникает если страница не найдена
+            </exception>
+            <param name="numPage">Номер страницы</param>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.TagsController.GetTag(System.Int32)">
+            <summary>
+            Получение одного тега по идентификатору
+            </summary>
+            <returns>
+            Модель тега
+            </returns>
+            <exception cref="T:Mega.Web.Api.Exceptions.HttpResponseException">Возникает если тег не найден
+            </exception>
+            <param name="id">Идентификатор тега</param>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.TagsController.GetArticles(System.Int32,System.Int32)">
+            <summary>
+            Получение списка статей у определенного тега
+            </summary>
+            <returns>
+            Модели статей
+            </returns>
+            <exception cref="T:Mega.Web.Api.Exceptions.HttpResponseException">Возникает если страница не найдена
+            </exception>
+            <param name="numPage">Номер страницы</param>
+            <param name="id">Идентификатор тега</param>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.TagsController.CountArticles(System.Int32,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">
+            <summary>
+            Получение количества статей в определенный промежуток времени у определенного тега
+            </summary>
+            <returns>
+            Количество статей
+            </returns>
+            <param name="startDate">Начальная дата, необязательная, если без неё, то будет подсчитано количество всех статей</param>
+            <param name="endDate">Конечная дата, необяательная, если без неё, то будет подсчитано количество статей от начальной даты до последней статьи</param>
+            <param name="id">Идентификатор тега</param>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.TagsController.GetPopularTags(System.Int32)">
+            <summary>
+            Получение определенного количества самых популярных тегов
+            </summary>
+            <returns>
+            Модели статей
+            </returns>
+            <param name="count">Количество возвращаемых самых популярных тегов</param>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.TagsController.DeleteTag(System.Int32)">
+            <summary>
+            Удаление одного тега
+            </summary>
+            <remarks>
+            Добавляем тег в блеклист (таблица TagsDelete)
+            </remarks>
+            <returns>
+            Результат  удаления
+            </returns>
+            <param name="id">Идентификатор тега</param>
+        </member>
+        <member name="M:Mega.Web.Api.Controllers.TagsController.DeleteTags(System.Collections.Generic.List{System.Int32})">
+            <summary>
+            Удаление списка тегов
+            </summary>
+            <remarks>
+            Добавляем теги в блеклист (таблица TagsDelete)
+            </remarks>
+            <returns>
+            Результат  удаления
+            </returns>
+            <param name="ids">Список идентификаторов тегов</param>
+        </member>
+        <member name="T:Mega.Web.Api.Models.ArticleModel">
+            <summary>
+            Модель статьи
+            </summary>
+        </member>
+        <member name="P:Mega.Web.Api.Models.ArticleModel.ArticleId">
+            <summary>
+            ID статьи
+            </summary>        
+        </member>
+        <member name="P:Mega.Web.Api.Models.ArticleModel.DateCreate">
+            <summary>
+            Дата создания статьи
+            </summary>
+        </member>
+        <member name="P:Mega.Web.Api.Models.ArticleModel.Text">
+            <summary>
+            Текст статьи
+            </summary>
+        </member>
+        <member name="P:Mega.Web.Api.Models.ArticleModel.Head">
+            <summary>
+            Заголовок статьи
+            </summary>
+        </member>
+        <member name="P:Mega.Web.Api.Models.ArticleModel.OuterArticleId">
+            <summary>
+            Идентификатор статьи с сайта
+            </summary>
+        </member>
+        <member name="P:Mega.Web.Api.Models.ArticleModel.Tags">
+            <summary>
+            Теги статьи
+            </summary>
+        </member>
+        <member name="P:Mega.Web.Api.Models.ArticleModel.TagsCount">
+            <summary>
+            Идентификатор статьи с сайта
+            </summary>
+        </member>
+        <member name="T:Mega.Web.Api.Models.TagModel">
+            <summary>
+            Модель тега
+            </summary>
+        </member>
+        <member name="P:Mega.Web.Api.Models.TagModel.TagId">
+            <summary>
+            ID тега
+            </summary>
+        </member>
+        <member name="P:Mega.Web.Api.Models.TagModel.TagKey">
+            <summary>
+            строковый ключ статьи с сайта
+            </summary>
+        </member>
+        <member name="P:Mega.Web.Api.Models.TagModel.Name">
+            <summary>
+            имя тега
+            </summary>
+        </member>
+        <member name="P:Mega.Web.Api.Models.TagModel.ArticlesCount">
+            <summary>
+            количество статей с данным тегом
+            </summary>
+        </member>
+    </members>
+</doc>

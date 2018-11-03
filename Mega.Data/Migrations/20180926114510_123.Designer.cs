@@ -3,20 +3,22 @@ using System;
 using Mega.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Mega.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20180926114510_123")]
+    partial class _123
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
                 .HasAnnotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.SerialColumn)
-                .HasAnnotation("ProductVersion", "2.1.4-rtm-31024")
+                .HasAnnotation("ProductVersion", "2.1.3-rtm-32065")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             modelBuilder.Entity("Mega.Domain.Article", b =>
@@ -28,14 +30,9 @@ namespace Mega.Data.Migrations
 
                     b.Property<string>("Head");
 
-                    b.Property<int>("OuterArticleId");
-
                     b.Property<string>("Text");
 
                     b.HasKey("ArticleId");
-
-                    b.HasIndex("OuterArticleId")
-                        .IsUnique();
 
                     b.ToTable("Articles");
                 });
@@ -50,24 +47,7 @@ namespace Mega.Data.Migrations
 
                     b.HasIndex("TagId");
 
-                    b.ToTable("ArticleTag");
-                });
-
-            modelBuilder.Entity("Mega.Domain.RemovedTag", b =>
-                {
-                    b.Property<int>("RemovedTagId")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<DateTime>("DeletionDate");
-
-                    b.Property<int>("TagId");
-
-                    b.HasKey("RemovedTagId");
-
-                    b.HasIndex("TagId")
-                        .IsUnique();
-
-                    b.ToTable("RemovedTags");
+                    b.ToTable("ArticlesTags");
                 });
 
             modelBuilder.Entity("Mega.Domain.Tag", b =>
@@ -87,22 +67,14 @@ namespace Mega.Data.Migrations
             modelBuilder.Entity("Mega.Domain.ArticleTag", b =>
                 {
                     b.HasOne("Mega.Domain.Article", "Article")
-                        .WithMany("ArticleTag")
+                        .WithMany("ArticleTags")
                         .HasForeignKey("ArticleId")
                         .OnDelete(DeleteBehavior.Cascade);
 
                     b.HasOne("Mega.Domain.Tag", "Tag")
-                        .WithMany("ArticleTag")
+                        .WithMany("ArticleTags")
                         .HasForeignKey("TagId")
                         .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("Mega.Domain.RemovedTag", b =>
-                {
-                    b.HasOne("Mega.Domain.Tag", "Tag")
-                        .WithOne("RemovedTag")
-                        .HasForeignKey("Mega.Domain.RemovedTag", "TagId")
-                        .OnDelete(DeleteBehavior.Restrict);
                 });
 #pragma warning restore 612, 618
         }

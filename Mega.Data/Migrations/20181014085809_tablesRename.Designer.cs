@@ -3,15 +3,17 @@ using System;
 using Mega.Data;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace Mega.Data.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20181014085809_tablesRename")]
+    partial class tablesRename
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -53,23 +55,6 @@ namespace Mega.Data.Migrations
                     b.ToTable("ArticleTag");
                 });
 
-            modelBuilder.Entity("Mega.Domain.RemovedTag", b =>
-                {
-                    b.Property<int>("RemovedTagId")
-                        .ValueGeneratedOnAdd();
-
-                    b.Property<DateTime>("DeletionDate");
-
-                    b.Property<int>("TagId");
-
-                    b.HasKey("RemovedTagId");
-
-                    b.HasIndex("TagId")
-                        .IsUnique();
-
-                    b.ToTable("RemovedTags");
-                });
-
             modelBuilder.Entity("Mega.Domain.Tag", b =>
                 {
                     b.Property<int>("TagId")
@@ -95,14 +80,6 @@ namespace Mega.Data.Migrations
                         .WithMany("ArticleTag")
                         .HasForeignKey("TagId")
                         .OnDelete(DeleteBehavior.Cascade);
-                });
-
-            modelBuilder.Entity("Mega.Domain.RemovedTag", b =>
-                {
-                    b.HasOne("Mega.Domain.Tag", "Tag")
-                        .WithOne("RemovedTag")
-                        .HasForeignKey("Mega.Domain.RemovedTag", "TagId")
-                        .OnDelete(DeleteBehavior.Restrict);
                 });
 #pragma warning restore 612, 618
         }

@@ -15,6 +15,6 @@
 
         public int OuterArticleId { get; set; }
 
-        public virtual ICollection<ArticleTag> ArticleTags { get; } = new List<ArticleTag>();
+        public virtual ICollection<ArticleTag> ArticleTag { get; } = new List<ArticleTag>();
     }
 }
