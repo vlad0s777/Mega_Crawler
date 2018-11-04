@@ -10,9 +10,9 @@
 
     public class ProxyWebClient : WebClient
     {
-        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ProxyWebClient>();
-
         private static readonly Stopwatch Watch = new Stopwatch();
+
+        private readonly ILogger logger;
 
         private readonly int timeout;
 
@@ -32,11 +32,12 @@
             set => this.proxyServer = value != string.Empty ? new WebProxy(value) : new WebProxy();
         }
 
-        public ProxyWebClient(Random random, string rootUriString, int timeout = 0, int delayBegin = 0, int delayEnd = 0, string proxy = "")
+        public ProxyWebClient(ILoggerFactory loggerFactory, Random random, string rootUriString, int timeout = 0, int delayBegin = 0, int delayEnd = 0, string proxy = "")
         {
             this.timeout = timeout;
             this.ProxyServer = proxy;
             this.rootUriString = rootUriString;
+            this.logger = loggerFactory.CreateLogger(typeof(ProxyWebClient).FullName + " " + proxy);
             this.random = random;
             this.delayBegin = delayBegin;
             this.delayEnd = delayEnd;
@@ -74,16 +75,15 @@
 
                 DownloadStatistic.Inсrement();
 
-                Logger.LogDebug(
-                    $"Delay: {watchDelay} ms. Downloading: {Watch.Elapsed.TotalMilliseconds} ms. Speed: {DownloadStatistic.Speed()}");
+                this.logger.LogDebug($"Delay: {watchDelay} ms. Downloading: {Watch.Elapsed.TotalMilliseconds} ms. Speed: {DownloadStatistic.Speed()}");
                 Watch.Reset();
-                Logger.LogDebug($"This proxy {this.proxyServer.Address.Host}:{this.proxyServer.Address.Port} delay : {delay}");
+                this.logger.LogDebug($"Delay : {delay}");
                 return completeDownloadString;
             }
-            catch (Exception e)
+            catch
             {             
                 Watch.Reset();
-                throw new Exception($"This proxy {this.proxyServer.Address.Host}:{this.proxyServer.Address.Port} in id: {id} error: {e.Message}. {e.GetType().FullName}.");
+                throw;
             }
         }
     }

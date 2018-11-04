@@ -25,7 +25,7 @@
             </returns>
             <exception cref="T:Mega.Web.Api.Exceptions.HttpResponseException">Возникает если страница не найдена
             </exception>
-            <param name="numPage">Номер страницы</param>
+            <param name="page">Номер страницы</param>
         </member>
         <member name="M:Mega.Web.Api.Controllers.ArticlesController.GetArticle(System.Int32)">
             <summary>
@@ -95,7 +95,7 @@
             </returns>
             <exception cref="T:Mega.Web.Api.Exceptions.HttpResponseException">Возникает если страница не найдена
             </exception>
-            <param name="numPage">Номер страницы</param>
+            <param name="page">Номер страницы</param>
         </member>
         <member name="M:Mega.Web.Api.Controllers.TagsController.GetTag(System.Int32)">
             <summary>
@@ -117,7 +117,7 @@
             </returns>
             <exception cref="T:Mega.Web.Api.Exceptions.HttpResponseException">Возникает если страница не найдена
             </exception>
-            <param name="numPage">Номер страницы</param>
+            <param name="page">Номер страницы</param>
             <param name="id">Идентификатор тега</param>
         </member>
         <member name="M:Mega.Web.Api.Controllers.TagsController.CountArticles(System.Int32,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">

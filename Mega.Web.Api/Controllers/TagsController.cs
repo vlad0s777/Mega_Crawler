@@ -49,11 +49,11 @@
         /// </returns>
         /// <exception cref="HttpResponseException">Возникает если страница не найдена
         /// </exception>
-        /// <param name="numPage">Номер страницы</param>
-        [HttpGet("{numPage=1}")]
-        public async Task<List<TagModel>> GetPage(int numPage)
+        /// <param name="page">Номер страницы</param>
+        [HttpGet]
+        public async Task<List<TagModel>> GetPage(int page = 1)
         {
-            var tags = this.tagMapper.Map(await this.someReportDataProvider.GetTags(10, 10 * (numPage - 1))).ToList();
+            var tags = this.tagMapper.Map(await this.someReportDataProvider.GetTags(10, 10 * (page - 1))).ToList();
             if (tags.Count() != 0)
             {
                 return tags;
@@ -71,7 +71,7 @@
         /// <exception cref="HttpResponseException">Возникает если тег не найден
         /// </exception>
         /// <param name="id">Идентификатор тега</param>
-        [HttpGet("tag/{id}")]
+        [HttpGet("{id}")]
         public async Task<TagModel> GetTag(int id)
         {
             try
@@ -92,12 +92,12 @@
         /// </returns>
         /// <exception cref="HttpResponseException">Возникает если страница не найдена
         /// </exception>
-        /// <param name="numPage">Номер страницы</param>
+        /// <param name="page">Номер страницы</param>
         /// <param name="id">Идентификатор тега</param>
-        [HttpGet("tag/{id}/articles/{numPage=1}")]
-        public async Task<List<ArticleModel>> GetArticles(int id, int numPage)
+        [HttpGet("{id}/articles")]
+        public async Task<List<ArticleModel>> GetArticles(int id, int page = 1)
         {
-            var articles = this.articleMapper.Map(await this.someReportDataProvider.GetArticles(10, 10 * (numPage - 1), id)).ToList();
+            var articles = this.articleMapper.Map(await this.someReportDataProvider.GetArticles(10, 10 * (page - 1), id)).ToList();
             if (articles.Count() != 0)
             {
                 return articles;
@@ -115,7 +115,7 @@
         /// <param name="startDate">Начальная дата, необязательная, если без неё, то будет подсчитано количество всех статей</param>
         /// <param name="endDate">Конечная дата, необяательная, если без неё, то будет подсчитано количество статей от начальной даты до последней статьи</param>
         /// <param name="id">Идентификатор тега</param>
-        [HttpGet("tag/{id}/articles/count/{startDate:datetime?}/{endDate:datetime?}")]
+        [HttpGet("tag/{id}/articles/count")]
         public async Task<int> CountArticles(int id, DateTime? startDate, DateTime? endDate) => await this.someReportDataProvider.CountArticles(tagId: id, startDate: startDate, endDate: endDate);
 
         /// <summary>
@@ -125,8 +125,8 @@
         /// Модели статей
         /// </returns>
         /// <param name="count">Количество возвращаемых самых популярных тегов</param>
-        [HttpGet("popular/{count=1}")]
-        public async Task<List<TagModel>> GetPopularTags(int count) => this.tagMapper.Map(await this.someReportDataProvider.GetPopularTags(count)).ToList();
+        [HttpGet("popular")]
+        public async Task<List<TagModel>> GetPopularTags(int count = 1) => this.tagMapper.Map(await this.someReportDataProvider.GetPopularTags(count)).ToList();
 
         /// <summary>
         /// Удаление одного тега
@@ -138,7 +138,7 @@
         /// Результат  удаления
         /// </returns>
         /// <param name="id">Идентификатор тега</param>
-        [HttpDelete("tag/{id}")]
+        [HttpDelete("{id}")]
         [Authorize(Policy = "RequireAdmin")]
         public async Task DeleteTag(int id)
         {
@@ -149,7 +149,7 @@
             }
             catch
             {
-                throw new HttpResponseException(404, $"Tag {id} not found");
+                throw new HttpResponseException(StatusCodes.Status404NotFound, $"Tag {id} not found");
             }
 
             await this.someReportDataProvider.AddAsync(entity);

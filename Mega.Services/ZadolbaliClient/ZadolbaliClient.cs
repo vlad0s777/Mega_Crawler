@@ -20,23 +20,28 @@
 
         private const int DelayEnd = 15000;
 
-        private const int Timeout = 8000;
-
-        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ZadolbaliClient>();
+        private const int Timeout = 8000;        
 
         private static readonly Stopwatch Watch = new Stopwatch();
+
+        private readonly ILogger logger;
 
         private readonly Func<string, Task<string>> clientDelegate;
 
         private readonly ProxyWebClient client;
 
-        public ZadolbaliClient(string proxy = "", int seed = 0, int timeout = Timeout, int delayBegin = DelayBegin, int delayEnd = DelayEnd)
+        public ZadolbaliClient(ILoggerFactory loggerFactory, string proxy = "", int seed = 0, int timeout = Timeout, int delayBegin = DelayBegin, int delayEnd = DelayEnd)
         {
-            this.client = new ProxyWebClient(new Random(seed), RootUriString, timeout, delayBegin, delayEnd, proxy);
+            this.logger = loggerFactory.CreateLogger(typeof(ZadolbaliClient).FullName + " " + proxy);
+            this.client = new ProxyWebClient(loggerFactory, new Random(seed), RootUriString, timeout, delayBegin, delayEnd, proxy);
             this.clientDelegate = id => this.client.GetStringAsync(id);
         }
 
-        public ZadolbaliClient(Func<string, Task<string>> clientDelegate) => this.clientDelegate = clientDelegate;
+        public ZadolbaliClient(Func<string, Task<string>> clientDelegate)
+        {
+            this.clientDelegate = clientDelegate;
+            this.logger = new LoggerFactory().CreateLogger<ZadolbaliClient>();
+        }
 
         public static DateTime GetDate(string specificDate)
         {
@@ -70,6 +75,7 @@
             catch (Exception e)
             {
                 Watch.Reset();
+                this.logger.LogWarning(e.Message + e.Source);
                 throw new Exception(e.Message + e.Source);
             }
 
@@ -81,7 +87,7 @@
                 current = current.AddDays(-1);
             }
 
-            Logger.LogDebug($"Generate ids: {Watch.Elapsed.TotalMilliseconds} ms.");
+            this.logger.LogDebug($"Generate ids: {Watch.Elapsed.TotalMilliseconds} ms.");
 
             Watch.Reset();
             return ids;
@@ -109,10 +115,11 @@
             catch (Exception e)
             {
                 Watch.Reset();
-                throw new Exception(e.Message);
+                this.logger.LogWarning(e.Message);
+                throw;
             }
 
-            Logger.LogDebug($"Parsing tags: {Watch.Elapsed.TotalMilliseconds} ms.");
+            this.logger.LogDebug($"Parsing tags: {Watch.Elapsed.TotalMilliseconds} ms.");
 
             Watch.Reset();
             return tags;
@@ -152,11 +159,11 @@
                             }
 
                             articles.Add(new ArticleInfo(date, tags, content, head, Convert.ToInt32(urlArticle.Value.Split("/").Last())));
-                            Logger.LogInformation($"Add '{head}' document! Speed: {DownloadStatistic.Speed()}");
+                            this.logger.LogInformation($"Add '{head}' document! Speed: {DownloadStatistic.Speed()}");
                         }
                         catch (Exception e)
                         {
-                            Logger.LogWarning(e.Message);
+                            this.logger.LogWarning(e.Message);
                         }
                     }
                 }
@@ -164,10 +171,11 @@
             catch (Exception e)
             {
                 Watch.Reset();
-                throw new Exception(e.Message);
+                this.logger.LogWarning(e.Message);
+                throw;
             }
 
-            Logger.LogDebug($"Parsing pages: {Watch.Elapsed.TotalMilliseconds} ms.");
+            this.logger.LogDebug($"Parsing pages: {Watch.Elapsed.TotalMilliseconds} ms.");
             Watch.Reset();
             return articles;
         }

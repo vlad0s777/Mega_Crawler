@@ -43,11 +43,11 @@
         /// </returns>
         /// <exception cref="HttpResponseException">Возникает если страница не найдена
         /// </exception>
-        /// <param name="numPage">Номер страницы</param>
-        [HttpGet("{numPage=1}")]
-        public async Task<List<ArticleModel>> GetPage(int numPage)
+        /// <param name="page">Номер страницы</param>
+        [HttpGet]
+        public async Task<List<ArticleModel>> GetPage(int page = 1)
         {
-            var articles = this.articleMapper.Map(await this.someReportDataProvider.GetArticles(10, 10 * (numPage - 1))).ToList();
+            var articles = this.articleMapper.Map(await this.someReportDataProvider.GetArticles(10, 10 * (page - 1))).ToList();
             if (articles.Count() != 0)
             {
                 return articles;
@@ -65,7 +65,7 @@
         /// <exception cref="HttpResponseException">Возникает если статья не найдена
         /// </exception>
         /// <param name="id">Идентификатор статьи</param>
-        [HttpGet("article/{id}")]
+        [HttpGet("{id}")]
         public async Task<ArticleModel> GetArticle(int id)
         {
             try
@@ -86,7 +86,7 @@
         /// </returns>
         /// <param name="startDate">Начальная дата, необязательная, если без неё, то будет подсчитано количество всех статей</param>
         /// <param name="endDate">Конечная дата, необяательная, если без неё, то будет подсчитано количество статей от начальной даты до последней статьи</param>
-        [HttpGet("count/{startDate:datetime?}/{endDate:datetime?}")]
+        [HttpGet("count")]
         public async Task<int> CountArticles(DateTime? startDate = null, DateTime? endDate = null)
         {
             return await this.someReportDataProvider.CountArticles(startDate: startDate, endDate: endDate);

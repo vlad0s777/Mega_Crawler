@@ -12,7 +12,7 @@
 
     public class UriRequestProcessor : IMessageProcessor<UriRequest>
     {
-        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<UriRequestProcessor>();
+        private readonly ILogger logger;
 
         private readonly int countAttempt;
 
@@ -25,10 +25,13 @@
         private readonly ZadolbaliClient client;
 
         public UriRequestProcessor(
+            ILoggerFactory loggerFactory,
             IMessageBroker<UriRequest> requests,
             ISomeReportDataProvider someReportDataProvider,
             ZadolbaliClient client)
         {
+            this.logger = loggerFactory.CreateLogger<UriRequestProcessor>();
+
             this.requests = requests;
 
             this.someReportDataProvider = someReportDataProvider;
@@ -42,7 +45,7 @@
 
         public async Task Handle(UriRequest message)
         {
-            Logger.LogInformation($"Processing {this.rootUri + message.Id}.");
+            this.logger.LogInformation($"Processing {this.rootUri + message.Id}.");
 
             try
             {
@@ -63,7 +66,7 @@
                         await this.someReportDataProvider.AddAsync(new Tag { Name = tag.Name, TagKey = tag.TagKey });
                     }
 
-                    Logger.LogInformation($"All tags added");
+                    this.logger.LogInformation($"All tags added");
 
                     this.requests.Send(new UriRequest(string.Empty));
 
@@ -90,11 +93,11 @@
                             await this.someReportDataProvider.AddAsync(new ArticleTag { ArticleId = domainArticle.ArticleId, TagId = domainTag.TagId });
                         }
 
-                        Logger.LogInformation($"Added from the page {message.Id} to the database {domainArticle.Head}.");
+                        this.logger.LogInformation($"Added from the page {message.Id} to the database {domainArticle.Head}.");
                     }
                     catch
                     {
-                        Logger.LogWarning($"Article id {article.Id} alreydy exists!");
+                        this.logger.LogWarning($"Article id {article.Id} alreydy exists!");
                     }
                 }
             }
@@ -104,12 +107,12 @@
                 if (att < this.countAttempt)
                 {
                     this.requests.Send(new UriRequest(message.Id, att, message.Depth));
-                    Logger.LogWarning(
+                    this.logger.LogWarning(
                         $"{e.Message}. There are still attempts: {this.countAttempt - message.Attempt}");
                 }
                 else
                 {
-                    Logger.LogWarning($"{e.Message}. Attempts are no more!");
+                    this.logger.LogWarning($"{e.Message}. Attempts are no more!");
                 }
             }
         }
@@ -122,7 +125,7 @@
             }
             catch (Exception e)
             {
-                Logger.LogWarning(e.Message);
+                this.logger.LogWarning(e.Message);
             }
         }
     }

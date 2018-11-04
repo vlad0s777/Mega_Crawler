@@ -7,6 +7,8 @@
     using Mega.Services.UriRequest;
     using Mega.Services.ZadolbaliClient;
 
+    using Microsoft.Extensions.Logging;
+
     using StructureMap;
     using StructureMap.AutoFactory;
 
@@ -26,7 +28,9 @@
             For<IMessageProcessor<string>>().Use<TagRequestProcessor>();
 
             For<IUriRequestProcessorFactory>().CreateFactory();
-            For<ITagRequestProcessorFactory>().CreateFactory();            
+            For<ITagRequestProcessorFactory>().CreateFactory();
+
+            For<ILoggerFactory>().Use(new LoggerFactory().AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug));
         }
     }
 }

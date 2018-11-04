@@ -12,7 +12,7 @@
 
     public class TagRequestProcessor : IMessageProcessor<string>
     {
-        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<TagRequestProcessor>();
+        private readonly ILogger logger;
 
         private readonly IMessageBroker<string> requests;
 
@@ -23,10 +23,12 @@
         private readonly string rootUriString;
 
         public TagRequestProcessor(
+            ILoggerFactory loggerFactory,
             IMessageBroker<string> requests,
             ISomeReportDataProvider someReportDataProvider,
             ZadolbaliClient client)
         {
+            this.logger = loggerFactory.CreateLogger<TagRequestProcessor>();
             this.requests = requests;
             this.someReportDataProvider = someReportDataProvider;
             this.rootUriString = ZadolbaliClient.RootUriString;
@@ -35,7 +37,7 @@
 
         public async Task Handle(string message)
         {
-            Logger.LogInformation($"Processing {this.rootUriString + message}.");
+            this.logger.LogInformation($"Processing {this.rootUriString + message}.");
             try
             {
                 if (message == "tags")
@@ -46,7 +48,7 @@
                     }                  
                 }
 
-                Logger.LogInformation($"All tags added");
+                this.logger.LogInformation($"All tags added");
             }
             catch
             {
@@ -62,7 +64,7 @@
             }
             catch (Exception e)
             {
-                Logger.LogWarning(e.Message);
+                this.logger.LogWarning(e.Message);
             }
         }
     }
