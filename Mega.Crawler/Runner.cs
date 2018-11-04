@@ -8,6 +8,7 @@
 
     using DasMulli.Win32.ServiceUtils;
 
+    using Mega.Crawler.Jobs;
     using Mega.Domain;
     using Mega.Services.TagRequest;
     using Mega.Services.UriRequest;
@@ -47,8 +48,9 @@
                 await this.someReportDataProvider.Migrate();
                 return;
             }
-
+            
             var random = new Random();
+            
             foreach (var proxy in this.settings.ProxyServers)
             {
                 var client = this.zadolbaliClientFactory.Create(proxy, random.Next());
@@ -56,6 +58,7 @@
                 this.tagRequestProcessorFactory.Create(client).Run(token);
             }
 
+            
             if (isService)
             {
                 new Win32ServiceHost(new CrawlerService()).Run();

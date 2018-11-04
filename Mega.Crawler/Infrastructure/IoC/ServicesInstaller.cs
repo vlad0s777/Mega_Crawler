@@ -1,5 +1,6 @@
 ﻿namespace Mega.Crawler.Infrastructure.IoC
 {
+    using Mega.Crawler.Jobs;
     using Mega.Messaging;
     using Mega.Messaging.External;
     using Mega.Services;
@@ -26,7 +27,7 @@
             For<IMessageProcessor<string>>().Use<TagRequestProcessor>();
 
             For<IUriRequestProcessorFactory>().CreateFactory();
-            For<ITagRequestProcessorFactory>().CreateFactory();            
+            For<ITagRequestProcessorFactory>().CreateFactory();
         }
     }
 }

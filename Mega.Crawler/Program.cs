@@ -5,6 +5,7 @@
     using System.Reflection;
 
     using Mega.Crawler.Infrastructure.IoC;
+    using Mega.Crawler.Jobs;
     using Mega.Services;
 
     using Microsoft.Extensions.Logging;
@@ -36,13 +37,13 @@
                 registry.IncludeRegistry<DataInstaller>();
                 registry.IncludeRegistry<SettingsInstaller>();
                 registry.IncludeRegistry<ServicesInstaller>();
-
+                MessageSheduler.Start().GetAwaiter().GetResult();
                 using (var container = new Container(registry))
                 {
                     var runner = container.GetInstance<Runner>();
                     try
                     {
-                        runner.Run().Wait();
+                        runner.Run().GetAwaiter().GetResult();
                     }
                     finally
                     {
