@@ -40,10 +40,9 @@
             this.clientDelegate = id => this.client.GetStringAsync(id);
         }
 
-        public ZadolbaliClient(Func<string, Task<string>> clientDelegate, string proxy)
+        public ZadolbaliClient(Func<string, Task<string>> clientDelegate)
         {
             this.clientDelegate = clientDelegate;
-            this.Proxy = proxy;
             this.logger = new LoggerFactory().CreateLogger<ZadolbaliClient>();
         }
 
