@@ -30,16 +30,20 @@
 
         private readonly ProxyWebClient client;
 
-        public ZadolbaliClient(ILoggerFactory loggerFactory, string proxy = "", int seed = 0, int timeout = Timeout, int delayBegin = DelayBegin, int delayEnd = DelayEnd)
+        public string Proxy { get; }
+
+        public ZadolbaliClient(ILoggerFactory loggerFactory,  string proxy = "", int seed = 0, int timeout = Timeout, int delayBegin = DelayBegin, int delayEnd = DelayEnd)
         {
+            this.Proxy = proxy;
             this.logger = loggerFactory.CreateLogger(typeof(ZadolbaliClient).FullName + " " + proxy);
             this.client = new ProxyWebClient(loggerFactory, new Random(seed), RootUriString, timeout, delayBegin, delayEnd, proxy);
             this.clientDelegate = id => this.client.GetStringAsync(id);
         }
 
-        public ZadolbaliClient(Func<string, Task<string>> clientDelegate)
+        public ZadolbaliClient(Func<string, Task<string>> clientDelegate, string proxy)
         {
             this.clientDelegate = clientDelegate;
+            this.Proxy = proxy;
             this.logger = new LoggerFactory().CreateLogger<ZadolbaliClient>();
         }
 

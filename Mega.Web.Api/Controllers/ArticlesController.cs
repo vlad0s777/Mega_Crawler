@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
 
     using Mega.Domain;
+    using Mega.Domain.Repositories;
     using Mega.Web.Api.Exceptions;
     using Mega.Web.Api.Mappers;
     using Mega.Web.Api.Models;
@@ -23,16 +24,16 @@
     [ApiController]
     public class ArticlesController : ControllerBase
     {
-        private readonly ISomeReportDataProvider someReportDataProvider;
+        private readonly IArticleRepository articleRepository;
 
-        private readonly IMapper<Article, ArticleModel> articleMapper;
+        private readonly IMapper<Articles, ArticleModel> articleMapper;
 
-        /// <param name="someReportDataProvider">Контекст данных</param>
+        /// <param name="articleRepository">Репозиторий статьи</param>
         /// <param name="articleMapper">Конвертер домена статьи в модель статьи</param>
-        public ArticlesController(ISomeReportDataProvider someReportDataProvider, IMapper<Article, ArticleModel> articleMapper)
+        public ArticlesController(IMapper<Articles, ArticleModel> articleMapper, IArticleRepository articleRepository)
         {
-            this.someReportDataProvider = someReportDataProvider;
             this.articleMapper = articleMapper;
+            this.articleRepository = articleRepository;
         }
 
         /// <summary>
@@ -47,7 +48,7 @@
         [HttpGet]
         public async Task<List<ArticleModel>> GetPage(int page = 1)
         {
-            var articles = this.articleMapper.Map(await this.someReportDataProvider.GetArticles(10, 10 * (page - 1))).ToList();
+            var articles = this.articleMapper.Map(await this.articleRepository.GetArticles(10, 10 * (page - 1))).ToList();
             if (articles.Count() != 0)
             {
                 return articles;
@@ -70,7 +71,7 @@
         {
             try
             {
-                return await this.articleMapper.Map(await this.someReportDataProvider.GetArticle(id));
+                return await this.articleMapper.Map(await this.articleRepository.Get(id));
             }
             catch
             {
@@ -89,7 +90,7 @@
         [HttpGet("count")]
         public async Task<int> CountArticles(DateTime? startDate = null, DateTime? endDate = null)
         {
-            return await this.someReportDataProvider.CountArticles(startDate: startDate, endDate: endDate);
+            return await this.articleRepository.CountArticles(startDate: startDate, endDate: endDate);
         }
     }
 }

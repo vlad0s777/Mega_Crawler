@@ -36,6 +36,7 @@
 
                 using (var container = new Container(registry))
                 {
+                    Logger.LogDebug(container.WhatDoIHave());
                     var runner = container.GetInstance<Runner>();
                     try
                     {

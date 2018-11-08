@@ -2,9 +2,8 @@
 {
     using System.Data;
 
-    using Mega.Data;
     using Mega.Data.Migrations;
-    using Mega.Domain;
+    using Mega.Domain.Repositories;
     using Mega.Web.Api.Mappers;
 
     using Microsoft.Extensions.Configuration;
@@ -27,9 +26,14 @@
                     y.ConnectImplementationsToTypesClosing(typeof(IMapper<,>));
                 });
 
-            For<ISomeReportDataProvider>().Use<SomeReportDataProvider>();
-
             ForConcreteType<Migrator>();
+
+            Scan(y =>
+                {
+                    y.Assembly("Mega.Data");
+                    y.WithDefaultConventions();
+                    y.ConnectImplementationsToTypesClosing(typeof(IRepository<>));
+                });
         }
     }
 }

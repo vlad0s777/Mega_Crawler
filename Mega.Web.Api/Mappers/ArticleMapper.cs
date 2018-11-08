@@ -5,30 +5,31 @@
     using System.Threading.Tasks;
 
     using Mega.Domain;
+    using Mega.Domain.Repositories;
     using Mega.Web.Api.Models;
 
-    public class ArticleMapper : IMapper<Article, ArticleModel>
+    public class ArticleMapper : IMapper<Articles, ArticleModel>
     {
-        private readonly ISomeReportDataProvider someReportDataProvider;
+        private readonly ITagRepository tagRepository;
 
-        public ArticleMapper(ISomeReportDataProvider someReportDataProvider)
+        public ArticleMapper(ITagRepository tagRepository)
         {
-            this.someReportDataProvider = someReportDataProvider;
+            this.tagRepository = tagRepository;
         }
 
-        public async Task<ArticleModel> Map(Article article)
+        public async Task<ArticleModel> Map(Articles article)
         {
             return new ArticleModel()
                        {
-                           ArticleId = article.ArticleId,
-                           DateCreate = article.DateCreate,
+                           ArticleId = article.Article_Id,
+                           DateCreate = article.Date_Create,
                            Head = article.Head,
-                           OuterArticleId = article.OuterArticleId,
+                           OuterArticleId = article.Outer_Article_Id,
                            Text = article.Text,
-                           Tags = (await this.someReportDataProvider.GetTags(articleId: article.ArticleId)).Select(x => x.TagKey)
+                           Tags = (await this.tagRepository.GetTags(articleId: article.Article_Id)).Select(x => x.Tag_Key)
                        };
         }
 
-        public IEnumerable<ArticleModel> Map(IEnumerable<Article> articles) => articles.Select(x => Map(x).Result);
+        public IEnumerable<ArticleModel> Map(IEnumerable<Articles> articles) => articles.Select(x => Map(x).Result);
     }
 }

@@ -8,7 +8,7 @@
 
     using DasMulli.Win32.ServiceUtils;
 
-    using Mega.Domain;
+    using Mega.Data.Migrations;
     using Mega.Services.TagRequest;
     using Mega.Services.UriRequest;
     using Mega.Services.ZadolbaliClient;
@@ -25,20 +25,20 @@
 
         private readonly IZadolbaliClientFactory zadolbaliClientFactory;
 
-        private readonly ISomeReportDataProvider someReportDataProvider;
+        private readonly Migrator migrator;
 
         private readonly CancellationTokenSource cts = new CancellationTokenSource();
 
         private readonly Settings settings;
 
-        public Runner(ISomeReportDataProvider someReportDataProvider, Settings settings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory, IZadolbaliClientFactory zadolbaliClientFactory, ILoggerFactory loggerFactory)
+        public Runner(Settings settings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory, IZadolbaliClientFactory zadolbaliClientFactory, ILoggerFactory loggerFactory, Migrator migrator)
         {
-            this.someReportDataProvider = someReportDataProvider;
             this.settings = settings;
             this.tagRequestProcessorFactory = tagRequestProcessorFactory;
             this.uriRequestProcessorFactory = uriRequestProcessorFactory;
             this.zadolbaliClientFactory = zadolbaliClientFactory;
             this.loggerFactory = loggerFactory;
+            this.migrator = migrator;
         }
         
         public async Task Run()
@@ -49,7 +49,7 @@
 
             if (Environment.GetCommandLineArgs().Contains("--migrate"))
             {
-                await this.someReportDataProvider.Migrate();
+                await this.migrator.Migrate();
                 return;
             }
 

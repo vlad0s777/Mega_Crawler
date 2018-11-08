@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
 
     using Mega.Domain;
+    using Mega.Domain.Repositories;
     using Mega.Web.Api.Exceptions;
     using Mega.Web.Api.Mappers;
     using Mega.Web.Api.Models;
@@ -25,20 +26,28 @@
     [ApiController]
     public class TagsController : ControllerBase
     {
-        private readonly ISomeReportDataProvider someReportDataProvider;
+        private readonly ITagRepository tagRepository;
 
-        private readonly IMapper<Article, ArticleModel> articleMapper;
+        private readonly IArticleRepository articleRepository;
 
-        private readonly IMapper<Tag, TagModel> tagMapper;
+        private readonly IRepository<Removed_Tags> removedTagRepository;
 
-        /// <param name="someReportDataProvider">Контекст данных</param>
+        private readonly IMapper<Articles, ArticleModel> articleMapper;
+
+        private readonly IMapper<Tags, TagModel> tagMapper;
+
+        /// <param name="tagRepository">Репозиторий тегов</param>
+        /// <param name="removedTagRepository">Репозиторий удаленных тегов</param>
+        /// <param name="articleRepository">Репозиторий статей</param>
         /// <param name="articleMapper">Конвертер домена статьи в модель статьи</param>
         /// <param name="tagMapper">Конвертер домена тега в модель тега</param>
-        public TagsController(ISomeReportDataProvider someReportDataProvider, IMapper<Tag, TagModel> tagMapper, IMapper<Article, ArticleModel> articleMapper)
+        public TagsController(IMapper<Tags, TagModel> tagMapper, IMapper<Articles, ArticleModel> articleMapper, ITagRepository tagRepository, IRepository<Removed_Tags> removedTagRepository, IArticleRepository articleRepository)
         {
-            this.someReportDataProvider = someReportDataProvider;
             this.tagMapper = tagMapper;
             this.articleMapper = articleMapper;
+            this.tagRepository = tagRepository;
+            this.removedTagRepository = removedTagRepository;
+            this.articleRepository = articleRepository;
         }
 
         /// <summary>
@@ -53,7 +62,7 @@
         [HttpGet]
         public async Task<List<TagModel>> GetPage(int page = 1)
         {
-            var tags = this.tagMapper.Map(await this.someReportDataProvider.GetTags(10, 10 * (page - 1))).ToList();
+            var tags = this.tagMapper.Map(await this.tagRepository.GetTags(10, 10 * (page - 1))).ToList();
             if (tags.Count() != 0)
             {
                 return tags;
@@ -76,7 +85,7 @@
         {
             try
             {
-                return await this.tagMapper.Map(await this.someReportDataProvider.GetTag(id));
+                return await this.tagMapper.Map(await this.tagRepository.Get(id));
             }
             catch
             {
@@ -97,7 +106,7 @@
         [HttpGet("{id}/articles")]
         public async Task<List<ArticleModel>> GetArticles(int id, int page = 1)
         {
-            var articles = this.articleMapper.Map(await this.someReportDataProvider.GetArticles(10, 10 * (page - 1), id)).ToList();
+            var articles = this.articleMapper.Map(await this.articleRepository.GetArticles(10, 10 * (page - 1), id)).ToList();
             if (articles.Count() != 0)
             {
                 return articles;
@@ -116,7 +125,7 @@
         /// <param name="endDate">Конечная дата, необяательная, если без неё, то будет подсчитано количество статей от начальной даты до последней статьи</param>
         /// <param name="id">Идентификатор тега</param>
         [HttpGet("tag/{id}/articles/count")]
-        public async Task<int> CountArticles(int id, DateTime? startDate, DateTime? endDate) => await this.someReportDataProvider.CountArticles(tagId: id, startDate: startDate, endDate: endDate);
+        public async Task<int> CountArticles(int id, DateTime? startDate, DateTime? endDate) => await this.articleRepository.CountArticles(tagId: id, startDate: startDate, endDate: endDate);
 
         /// <summary>
         /// Получение определенного количества самых популярных тегов
@@ -126,7 +135,7 @@
         /// </returns>
         /// <param name="count">Количество возвращаемых самых популярных тегов</param>
         [HttpGet("popular")]
-        public async Task<List<TagModel>> GetPopularTags(int count = 1) => this.tagMapper.Map(await this.someReportDataProvider.GetPopularTags(count)).ToList();
+        public async Task<List<TagModel>> GetPopularTags(int count = 1) => this.tagMapper.Map(await this.tagRepository.GetPopularTags(count)).ToList();
 
         /// <summary>
         /// Удаление одного тега
@@ -142,17 +151,15 @@
         [Authorize(Policy = "RequireAdmin")]
         public async Task DeleteTag(int id)
         {
-            object entity;
             try
             {
-                entity = new RemovedTag { DeletionDate = DateTime.Now, Tag = await this.someReportDataProvider.GetTag(id) };
+                var entity = new Removed_Tags { Deletion_Date = DateTime.Now, Tag_Id = id };
+                await this.removedTagRepository.Create(entity);
             }
             catch
             {
                 throw new HttpResponseException(StatusCodes.Status404NotFound, $"Tag {id} not found");
             }
-
-            await this.someReportDataProvider.AddAsync(entity);
         }
 
         /// <summary>

@@ -12,8 +12,8 @@
             В данном контроллере можно просмотреть скрауленные статьи, получить количество статей в опредеделенный промежуток времени
             </remarks>
         </member>
-        <member name="M:Mega.Web.Api.Controllers.ArticlesController.#ctor(Mega.Domain.ISomeReportDataProvider,Mega.Web.Api.Mappers.IMapper{Mega.Domain.Article,Mega.Web.Api.Models.ArticleModel})">
-            <param name="someReportDataProvider">Контекст данных</param>
+        <member name="M:Mega.Web.Api.Controllers.ArticlesController.#ctor(Mega.Web.Api.Mappers.IMapper{Mega.Domain.Articles,Mega.Web.Api.Models.ArticleModel},Mega.Domain.Repositories.IArticleRepository)">
+            <param name="articleRepository">Репозиторий статьи</param>
             <param name="articleMapper">Конвертер домена статьи в модель статьи</param>
         </member>
         <member name="M:Mega.Web.Api.Controllers.ArticlesController.GetPage(System.Int32)">
@@ -56,9 +56,9 @@
             В данном контроллере можно запустить процесс краулинга
             </remarks>
         </member>
-        <member name="M:Mega.Web.Api.Controllers.MessagesController.#ctor(Mega.Messaging.IMessageBroker{Mega.Services.UriRequest.UriRequest},Mega.Domain.ISomeReportDataProvider)">
+        <member name="M:Mega.Web.Api.Controllers.MessagesController.#ctor(Mega.Messaging.IMessageBroker{Mega.Services.UriRequest.UriRequest},Mega.Domain.Repositories.ITagRepository)">
             <param name="broker">Брокер сообщений</param>
-            <param name="someReportDataProvider">Контекст данных</param>
+            <param name="tagRepository">Репозиторий тегов</param>
         </member>
         <member name="M:Mega.Web.Api.Controllers.MessagesController.StartCrawler">
             <summary>
@@ -81,8 +81,10 @@
             получить определенное количество популярных тегов
             </remarks>
         </member>
-        <member name="M:Mega.Web.Api.Controllers.TagsController.#ctor(Mega.Domain.ISomeReportDataProvider,Mega.Web.Api.Mappers.IMapper{Mega.Domain.Tag,Mega.Web.Api.Models.TagModel},Mega.Web.Api.Mappers.IMapper{Mega.Domain.Article,Mega.Web.Api.Models.ArticleModel})">
-            <param name="someReportDataProvider">Контекст данных</param>
+        <member name="M:Mega.Web.Api.Controllers.TagsController.#ctor(Mega.Web.Api.Mappers.IMapper{Mega.Domain.Tags,Mega.Web.Api.Models.TagModel},Mega.Web.Api.Mappers.IMapper{Mega.Domain.Articles,Mega.Web.Api.Models.ArticleModel},Mega.Domain.Repositories.ITagRepository,Mega.Domain.Repositories.IRepository{Mega.Domain.Removed_Tags},Mega.Domain.Repositories.IArticleRepository)">
+            <param name="tagRepository">Репозиторий тегов</param>
+            <param name="removedTagRepository">Репозиторий удаленных тегов</param>
+            <param name="articleRepository">Репозиторий статей</param>
             <param name="articleMapper">Конвертер домена статьи в модель статьи</param>
             <param name="tagMapper">Конвертер домена тега в модель тега</param>
         </member>

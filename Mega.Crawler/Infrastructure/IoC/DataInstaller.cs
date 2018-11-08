@@ -2,10 +2,8 @@
 {
     using System.Data;
     using System.IO;
-
-    using Mega.Data;
     using Mega.Data.Migrations;
-    using Mega.Domain;
+    using Mega.Domain.Repositories;
 
     using Microsoft.Extensions.Configuration;
 
@@ -26,9 +24,14 @@
 
             For<IDbConnection>().Use<NpgsqlConnection>().Ctor<string>().Is(connectionString);
 
-            For<ISomeReportDataProvider>().Use<SomeReportDataProvider>();
-
             ForConcreteType<Migrator>();
+      
+            Scan(y =>
+                {
+                    y.Assembly("Mega.Data");
+                    y.WithDefaultConventions();
+                    y.ConnectImplementationsToTypesClosing(typeof(IRepository<>));                   
+                });
         }
     }
 }

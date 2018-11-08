@@ -30,7 +30,7 @@
             For<IUriRequestProcessorFactory>().CreateFactory();
             For<ITagRequestProcessorFactory>().CreateFactory();
 
-            For<ILoggerFactory>().Use(new LoggerFactory().AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug));
+            ForSingletonOf<ILoggerFactory>().Use(new LoggerFactory().AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug));
         }
     }
 }

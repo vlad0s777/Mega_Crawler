@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
 
     using Mega.Domain;
+    using Mega.Domain.Repositories;
     using Mega.Messaging;
     using Mega.Services.ZadolbaliClient;
 
@@ -16,7 +17,7 @@
 
         private readonly IMessageBroker<string> requests;
 
-        private readonly ISomeReportDataProvider someReportDataProvider;
+        private readonly IRepository<Tags> tagRepository;
 
         private readonly ZadolbaliClient client;
 
@@ -25,12 +26,12 @@
         public TagRequestProcessor(
             ILoggerFactory loggerFactory,
             IMessageBroker<string> requests,
-            ISomeReportDataProvider someReportDataProvider,
+            IRepository<Tags> tagRepository,
             ZadolbaliClient client)
         {
             this.logger = loggerFactory.CreateLogger<TagRequestProcessor>();
             this.requests = requests;
-            this.someReportDataProvider = someReportDataProvider;
+            this.tagRepository = tagRepository;
             this.rootUriString = ZadolbaliClient.RootUriString;
             this.client = client;
         }
@@ -44,7 +45,7 @@
                 {
                     foreach (var tag in await this.client.GetTags())
                     {
-                        await this.someReportDataProvider.AddAsync(new Tag { Name = tag.Name, TagKey = tag.TagKey });
+                        await this.tagRepository.Create(new Tags { Name = tag.Name, Tag_Key = tag.TagKey });
                     }                  
                 }
 

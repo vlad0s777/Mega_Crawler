@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
 
     using Mega.Domain;
+    using Mega.Domain.Repositories;
     using Mega.Messaging;
     using Mega.Services.ZadolbaliClient;
 
@@ -14,11 +15,15 @@
     {
         private readonly ILogger logger;
 
+        private readonly ITagRepository tagRepository;
+
+        private readonly IRepository<Articles> articleRepository;
+
+        private readonly IRepository<Articles_Tags> articleTagRepository;
+
         private readonly int countAttempt;
 
         private readonly IMessageBroker<UriRequest> requests;
-
-        private readonly ISomeReportDataProvider someReportDataProvider;
 
         private readonly Uri rootUri;
 
@@ -27,19 +32,18 @@
         public UriRequestProcessor(
             ILoggerFactory loggerFactory,
             IMessageBroker<UriRequest> requests,
-            ISomeReportDataProvider someReportDataProvider,
-            ZadolbaliClient client)
+            ZadolbaliClient client,
+            ITagRepository tagRepository,
+            IRepository<Articles> articleRepository,
+            IRepository<Articles_Tags> articleTagRepository)
         {
-            this.logger = loggerFactory.CreateLogger<UriRequestProcessor>();
-
+            this.logger = loggerFactory.CreateLogger(typeof(UriRequestProcessor).FullName + " " + client.Proxy);
             this.requests = requests;
-
-            this.someReportDataProvider = someReportDataProvider;
-
             this.client = client;
-
+            this.tagRepository = tagRepository;
+            this.articleRepository = articleRepository;
+            this.articleTagRepository = articleTagRepository;
             this.rootUri = new Uri(ZadolbaliClient.RootUriString, UriKind.Absolute);
-
             this.countAttempt = ZadolbaliClient.CountAttempt;
         }
 
@@ -63,7 +67,7 @@
                 {
                     foreach (var tag in await this.client.GetTags())
                     {
-                        await this.someReportDataProvider.AddAsync(new Tag { Name = tag.Name, TagKey = tag.TagKey });
+                        await this.tagRepository.Create(new Tags { Name = tag.Name, Tag_Key = tag.TagKey });
                     }
 
                     this.logger.LogInformation($"All tags added");
@@ -79,36 +83,35 @@
                 {
                     try
                     {
-                        var domainArticle = (Article)await this.someReportDataProvider.AddAsync(new Article
+                        var articleId = await this.articleRepository.Create(new Articles
                                             {
-                                                OuterArticleId = article.Id,
-                                                DateCreate = article.DateCreate,
+                                                Outer_Article_Id = article.Id,
+                                                Date_Create = article.DateCreate,
                                                 Head = article.Head,
                                                 Text = article.Text
                                             });
-                    
                         foreach (var tag in article.Tags)
                         {
-                            var domainTag = await this.someReportDataProvider.GetTag(tag.TagKey);
-                            await this.someReportDataProvider.AddAsync(new ArticleTag { ArticleId = domainArticle.ArticleId, TagId = domainTag.TagId });
+                            var domainTag = await this.tagRepository.GetTagInOuterId(tag.TagKey);
+                            await this.articleTagRepository.Create(new Articles_Tags { Article_Id = articleId, Tag_Id = domainTag.Tag_Id });
                         }
 
-                        this.logger.LogInformation($"Added from the page {message.Id} to the database {domainArticle.Head}.");
+                        this.logger.LogInformation($"Added from the page {message.Id} to the database {article.Head}.");
                     }
-                    catch
+                    catch (Exception e)
                     {
-                        this.logger.LogWarning($"Article id {article.Id} alreydy exists!");
+                        this.logger.LogWarning($"{e.Message} {e.StackTrace}");
                     }
                 }
             }
             catch (Exception e)
             {
                 var att = message.Attempt + 1;
+                this.logger.LogDebug(e.StackTrace);
                 if (att < this.countAttempt)
                 {
                     this.requests.Send(new UriRequest(message.Id, att, message.Depth));
-                    this.logger.LogWarning(
-                        $"{e.Message}. There are still attempts: {this.countAttempt - message.Attempt}");
+                    this.logger.LogWarning($"{e.Message}. There are still attempts: {this.countAttempt - message.Attempt}");
                 }
                 else
                 {
