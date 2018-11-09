@@ -8,6 +8,7 @@
 
     using DasMulli.Win32.ServiceUtils;
 
+    using Mega.Data.Migrations;
     using Mega.Crawler.Jobs;
     using Mega.Domain;
     using Mega.Services.TagRequest;
@@ -22,19 +23,22 @@
 
         private readonly IZadolbaliClientFactory zadolbaliClientFactory;
 
-        private readonly ISomeReportDataProvider someReportDataProvider;
+        private readonly Migrator migrator;
 
         private readonly CancellationTokenSource cts = new CancellationTokenSource();
 
         private readonly Settings settings;
 
-        public Runner(ISomeReportDataProvider someReportDataProvider, Settings settings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory, IZadolbaliClientFactory zadolbaliClientFactory)
+        private readonly Win32ServiceHost win32ServiceHost;
+
+        public Runner(Settings settings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory, IZadolbaliClientFactory zadolbaliClientFactory,  Migrator migrator, Win32ServiceHost win32ServiceHost)
         {
-            this.someReportDataProvider = someReportDataProvider;
             this.settings = settings;
             this.tagRequestProcessorFactory = tagRequestProcessorFactory;
             this.uriRequestProcessorFactory = uriRequestProcessorFactory;
             this.zadolbaliClientFactory = zadolbaliClientFactory;
+            this.migrator = migrator;
+            this.win32ServiceHost = win32ServiceHost;
         }
         
         public async Task Run()
@@ -45,7 +49,7 @@
 
             if (Environment.GetCommandLineArgs().Contains("--migrate"))
             {
-                await this.someReportDataProvider.Migrate();
+                await this.migrator.Migrate();
                 return;
             }
             
@@ -61,7 +65,7 @@
             
             if (isService)
             {
-                new Win32ServiceHost(new CrawlerService()).Run();
+                this.win32ServiceHost.Run();
             }
             else
             {

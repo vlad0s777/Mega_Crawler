@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
 
     using Mega.Domain;
+    using Mega.Domain.Repositories;
     using Mega.Web.Api.Exceptions;
     using Mega.Web.Api.Mappers;
     using Mega.Web.Api.Models;
@@ -23,16 +24,16 @@
     [ApiController]
     public class ArticlesController : ControllerBase
     {
-        private readonly ISomeReportDataProvider someReportDataProvider;
+        private readonly IArticleRepository articleRepository;
 
-        private readonly IMapper<Article, ArticleModel> articleMapper;
+        private readonly IMapper<Articles, ArticleModel> articleMapper;
 
-        /// <param name="someReportDataProvider">Контекст данных</param>
+        /// <param name="articleRepository">Репозиторий статьи</param>
         /// <param name="articleMapper">Конвертер домена статьи в модель статьи</param>
-        public ArticlesController(ISomeReportDataProvider someReportDataProvider, IMapper<Article, ArticleModel> articleMapper)
+        public ArticlesController(IMapper<Articles, ArticleModel> articleMapper, IArticleRepository articleRepository)
         {
-            this.someReportDataProvider = someReportDataProvider;
             this.articleMapper = articleMapper;
+            this.articleRepository = articleRepository;
         }
 
         /// <summary>
@@ -43,11 +44,11 @@
         /// </returns>
         /// <exception cref="HttpResponseException">Возникает если страница не найдена
         /// </exception>
-        /// <param name="numPage">Номер страницы</param>
-        [HttpGet("{numPage=1}")]
-        public async Task<List<ArticleModel>> GetPage(int numPage)
+        /// <param name="page">Номер страницы</param>
+        [HttpGet]
+        public async Task<List<ArticleModel>> GetPage(int page = 1)
         {
-            var articles = this.articleMapper.Map(await this.someReportDataProvider.GetArticles(10, 10 * (numPage - 1))).ToList();
+            var articles = this.articleMapper.Map(await this.articleRepository.GetArticles(10, 10 * (page - 1))).ToList();
             if (articles.Count() != 0)
             {
                 return articles;
@@ -65,12 +66,12 @@
         /// <exception cref="HttpResponseException">Возникает если статья не найдена
         /// </exception>
         /// <param name="id">Идентификатор статьи</param>
-        [HttpGet("article/{id}")]
+        [HttpGet("{id}")]
         public async Task<ArticleModel> GetArticle(int id)
         {
             try
             {
-                return await this.articleMapper.Map(await this.someReportDataProvider.GetArticle(id));
+                return await this.articleMapper.Map(await this.articleRepository.Get(id));
             }
             catch
             {
@@ -86,10 +87,10 @@
         /// </returns>
         /// <param name="startDate">Начальная дата, необязательная, если без неё, то будет подсчитано количество всех статей</param>
         /// <param name="endDate">Конечная дата, необяательная, если без неё, то будет подсчитано количество статей от начальной даты до последней статьи</param>
-        [HttpGet("count/{startDate:datetime?}/{endDate:datetime?}")]
+        [HttpGet("count")]
         public async Task<int> CountArticles(DateTime? startDate = null, DateTime? endDate = null)
         {
-            return await this.someReportDataProvider.CountArticles(startDate: startDate, endDate: endDate);
+            return await this.articleRepository.CountArticles(startDate: startDate, endDate: endDate);
         }
     }
 }

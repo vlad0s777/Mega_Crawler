@@ -2,7 +2,7 @@
 {
     using System.Threading.Tasks;
 
-    using Mega.Domain;
+    using Mega.Domain.Repositories;
     using Mega.Messaging;
     using Mega.Services.UriRequest;
 
@@ -22,14 +22,14 @@
     {
         private readonly IMessageBroker<UriRequest> broker;
 
-        private readonly ISomeReportDataProvider someReportDataProvider;
+        private readonly ITagRepository tagRepository;
 
         /// <param name="broker">Брокер сообщений</param>
-        /// <param name="someReportDataProvider">Контекст данных</param>
-        public MessagesController(IMessageBroker<UriRequest> broker, ISomeReportDataProvider someReportDataProvider)
+        /// <param name="tagRepository">Репозиторий тегов</param>
+        public MessagesController(IMessageBroker<UriRequest> broker, ITagRepository tagRepository)
         {
             this.broker = broker;
-            this.someReportDataProvider = someReportDataProvider;
+            this.tagRepository = tagRepository;
         }
 
         /// <summary>
@@ -47,7 +47,7 @@
         {
             if (this.broker.IsEmpty())
             {
-                this.broker.Send(await this.someReportDataProvider.CountTags() != 0 ? new UriRequest(string.Empty) : new UriRequest("tags"));
+                this.broker.Send(await this.tagRepository.CountTags() != 0 ? new UriRequest(string.Empty) : new UriRequest("tags"));
 
                 return "Crawler started successfully!";
             }

@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
 
     using Mega.Domain;
+    using Mega.Domain.Repositories;
     using Mega.Messaging;
     using Mega.Services.ZadolbaliClient;
 
@@ -12,41 +13,43 @@
 
     public class TagRequestProcessor : IMessageProcessor<string>
     {
-        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<TagRequestProcessor>();
+        private readonly ILogger logger;
 
         private readonly IMessageBroker<string> requests;
 
-        private readonly ISomeReportDataProvider someReportDataProvider;
+        private readonly IRepository<Tags> tagRepository;
 
         private readonly ZadolbaliClient client;
 
         private readonly string rootUriString;
 
         public TagRequestProcessor(
+            ILoggerFactory loggerFactory,
             IMessageBroker<string> requests,
-            ISomeReportDataProvider someReportDataProvider,
+            IRepository<Tags> tagRepository,
             ZadolbaliClient client)
         {
+            this.logger = loggerFactory.CreateLogger<TagRequestProcessor>();
             this.requests = requests;
-            this.someReportDataProvider = someReportDataProvider;
+            this.tagRepository = tagRepository;
             this.rootUriString = ZadolbaliClient.RootUriString;
             this.client = client;
         }
 
         public async Task Handle(string message)
         {
-            Logger.LogInformation($"Processing {this.rootUriString + message}.");
+            this.logger.LogInformation($"Processing {this.rootUriString + message}.");
             try
             {
                 if (message == "tags")
                 {
                     foreach (var tag in await this.client.GetTags())
                     {
-                        await this.someReportDataProvider.AddAsync(new Tag { Name = tag.Name, TagKey = tag.TagKey });
+                        await this.tagRepository.Create(new Tags { Name = tag.Name, Tag_Key = tag.TagKey });
                     }                  
                 }
 
-                Logger.LogInformation($"All tags added");
+                this.logger.LogInformation($"All tags added");
             }
             catch
             {
@@ -62,7 +65,7 @@
             }
             catch (Exception e)
             {
-                Logger.LogWarning(e.Message);
+                this.logger.LogWarning(e.Message);
             }
         }
     }

@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
 
     using Mega.Domain;
+    using Mega.Domain.Repositories;
     using Mega.Messaging;
     using Mega.Services.ZadolbaliClient;
 
@@ -12,37 +13,43 @@
 
     public class UriRequestProcessor : IMessageProcessor<UriRequest>
     {
-        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<UriRequestProcessor>();
+        private readonly ILogger logger;
+
+        private readonly ITagRepository tagRepository;
+
+        private readonly IRepository<Articles> articleRepository;
+
+        private readonly IRepository<Articles_Tags> articleTagRepository;
 
         private readonly int countAttempt;
 
         private readonly IMessageBroker<UriRequest> requests;
-
-        private readonly ISomeReportDataProvider someReportDataProvider;
 
         private readonly Uri rootUri;
 
         private readonly ZadolbaliClient client;
 
         public UriRequestProcessor(
+            ILoggerFactory loggerFactory,
             IMessageBroker<UriRequest> requests,
-            ISomeReportDataProvider someReportDataProvider,
-            ZadolbaliClient client)
+            ZadolbaliClient client,
+            ITagRepository tagRepository,
+            IRepository<Articles> articleRepository,
+            IRepository<Articles_Tags> articleTagRepository)
         {
+            this.logger = loggerFactory.CreateLogger(typeof(UriRequestProcessor).FullName + " " + client.Proxy);
             this.requests = requests;
-
-            this.someReportDataProvider = someReportDataProvider;
-
             this.client = client;
-
+            this.tagRepository = tagRepository;
+            this.articleRepository = articleRepository;
+            this.articleTagRepository = articleTagRepository;
             this.rootUri = new Uri(ZadolbaliClient.RootUriString, UriKind.Absolute);
-
             this.countAttempt = ZadolbaliClient.CountAttempt;
         }
 
         public async Task Handle(UriRequest message)
         {
-            Logger.LogInformation($"Processing {this.rootUri + message.Id}.");
+            this.logger.LogInformation($"Processing {this.rootUri + message.Id}.");
 
             try
             {
@@ -60,10 +67,10 @@
                 {
                     foreach (var tag in await this.client.GetTags())
                     {
-                        await this.someReportDataProvider.AddAsync(new Tag { Name = tag.Name, TagKey = tag.TagKey });
+                        await this.tagRepository.Create(new Tags { Name = tag.Name, Tag_Key = tag.TagKey });
                     }
 
-                    Logger.LogInformation($"All tags added");
+                    this.logger.LogInformation($"All tags added");
 
                     this.requests.Send(new UriRequest(string.Empty));
 
@@ -74,42 +81,35 @@
 
                 foreach (var article in articles)
                 {
-                    try
-                    {
-                        var domainArticle = (Article)await this.someReportDataProvider.AddAsync(new Article
+                    var articleId = await this.articleRepository.Create(
+                                        new Articles
                                             {
-                                                OuterArticleId = article.Id,
-                                                DateCreate = article.DateCreate,
+                                                Outer_Article_Id = article.Id,
+                                                Date_Create = article.DateCreate,
                                                 Head = article.Head,
                                                 Text = article.Text
                                             });
-                    
-                        foreach (var tag in article.Tags)
-                        {
-                            var domainTag = await this.someReportDataProvider.GetTag(tag.TagKey);
-                            await this.someReportDataProvider.AddAsync(new ArticleTag { ArticleId = domainArticle.ArticleId, TagId = domainTag.TagId });
-                        }
-
-                        Logger.LogInformation($"Added from the page {message.Id} to the database {domainArticle.Head}.");
-                    }
-                    catch
+                    foreach (var tag in article.Tags)
                     {
-                        Logger.LogWarning($"Article id {article.Id} alreydy exists!");
+                        var domainTag = await this.tagRepository.GetTagInOuterId(tag.TagKey);
+                        await this.articleTagRepository.Create(new Articles_Tags { Article_Id = articleId, Tag_Id = domainTag.Tag_Id });
                     }
+
+                    this.logger.LogInformation($"Added from the page {message.Id} to the database {article.Head}.");
                 }
             }
             catch (Exception e)
             {
                 var att = message.Attempt + 1;
+                this.logger.LogDebug(e.StackTrace);
                 if (att < this.countAttempt)
                 {
                     this.requests.Send(new UriRequest(message.Id, att, message.Depth));
-                    Logger.LogWarning(
-                        $"{e.Message}. There are still attempts: {this.countAttempt - message.Attempt}");
+                    this.logger.LogWarning($"{e.Message}. There are still attempts: {this.countAttempt - message.Attempt}");
                 }
                 else
                 {
-                    Logger.LogWarning($"{e.Message}. Attempts are no more!");
+                    this.logger.LogWarning($"{e.Message}. Attempts are no more!");
                 }
             }
         }
@@ -122,7 +122,7 @@
             }
             catch (Exception e)
             {
-                Logger.LogWarning(e.Message);
+                this.logger.LogWarning(e.Message);
             }
         }
     }

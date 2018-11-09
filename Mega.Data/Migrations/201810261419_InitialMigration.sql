@@ -1,23 +1,4 @@
-create or replace function create_constraint_if_not_exists (
-    t_name text, c_name text, constraint_sql text
-) 
-returns void AS
-$$
-begin
-    if not exists (select constraint_name 
-                   from information_schema.constraint_column_usage 
-                   where table_name = t_name  and constraint_name = c_name) then
-        execute constraint_sql;
-    end if;
-end;
-$$ language 'plpgsql';
-
-create or replace function run_initial_if_migration_table_is_empty () 
-returns void AS
-$$
-begin
-    if not exists (select * from public."__MigrationsHistory") then
-
+SELECT run_initial_if_migration_table_is_empty('
 		CREATE TABLE IF NOT EXISTS public."ArticleTag" (
 			"TagId" integer NOT NULL,
 			"ArticleId" integer NOT NULL
@@ -93,31 +74,31 @@ begin
 
 		ALTER SEQUENCE public."Tags_TagId_seq" OWNED BY public."Tags"."TagId";
 
-		ALTER TABLE ONLY public."Articles" ALTER COLUMN "ArticleId" SET DEFAULT nextval('public."Articles_ArticleId_seq"'::regclass);
+		ALTER TABLE ONLY public."Articles" ALTER COLUMN "ArticleId" SET DEFAULT nextval(''public."Articles_ArticleId_seq"''::regclass);
 
-		ALTER TABLE ONLY public."RemovedTags" ALTER COLUMN "RemovedTagId" SET DEFAULT nextval('public."TagsDelete_TagDeleteId_seq"'::regclass);
+		ALTER TABLE ONLY public."RemovedTags" ALTER COLUMN "RemovedTagId" SET DEFAULT nextval(''public."TagsDelete_TagDeleteId_seq"''::regclass);
 
-		ALTER TABLE ONLY public."Tags" ALTER COLUMN "TagId" SET DEFAULT nextval('public."Tags_TagId_seq"'::regclass);
+		ALTER TABLE ONLY public."Tags" ALTER COLUMN "TagId" SET DEFAULT nextval(''public."Tags_TagId_seq"''::regclass);
 
-		PERFORM create_constraint_if_not_exists(
-				'ArticleTag',
-				'PK_ArticleTag',
-				'ALTER TABLE ONLY public."ArticleTag" ADD CONSTRAINT "PK_ArticleTag" PRIMARY KEY ("ArticleId", "TagId")');
+		SELECT create_constraint_if_not_exists(
+				''ArticleTag'',
+				''PK_ArticleTag'',
+				''ALTER TABLE ONLY public."ArticleTag" ADD CONSTRAINT "PK_ArticleTag" PRIMARY KEY ("ArticleId", "TagId")'');
 				
-		PERFORM create_constraint_if_not_exists(
-				'Articles',
-				'PK_Articles',
-				'ALTER TABLE ONLY public."Articles" ADD CONSTRAINT "PK_Articles" PRIMARY KEY ("ArticleId")');
+		SELECT create_constraint_if_not_exists(
+				''Articles'',
+				''PK_Articles'',
+				''ALTER TABLE ONLY public."Articles" ADD CONSTRAINT "PK_Articles" PRIMARY KEY ("ArticleId")'');
 
-		PERFORM create_constraint_if_not_exists(
-				'RemovedTags',
-				'PK_RemovedTags',
-				'ALTER TABLE ONLY public."RemovedTags" ADD CONSTRAINT "PK_RemovedTags" PRIMARY KEY ("RemovedTagId")');
+		SELECT create_constraint_if_not_exists(
+				''RemovedTags'',
+				''PK_RemovedTags'',
+				''ALTER TABLE ONLY public."RemovedTags" ADD CONSTRAINT "PK_RemovedTags" PRIMARY KEY ("RemovedTagId")'');
 				
-		PERFORM create_constraint_if_not_exists(
-				'Tags',
-				'PK_Tags',
-				'ALTER TABLE ONLY public."Tags" ADD CONSTRAINT "PK_Tags" PRIMARY KEY ("TagId")');
+		SELECT create_constraint_if_not_exists(
+				''Tags'',
+				''PK_Tags'',
+				''ALTER TABLE ONLY public."Tags" ADD CONSTRAINT "PK_Tags" PRIMARY KEY ("TagId")'');
 				
 
 		CREATE INDEX IF NOT EXISTS "IX_ArticleTag_TagId" ON public."ArticleTag" USING btree ("TagId");
@@ -127,26 +108,18 @@ begin
 		CREATE UNIQUE INDEX IF NOT EXISTS "IX_RemovedTags_TagId" ON public."RemovedTags" USING btree ("TagId");
 
 
-		PERFORM create_constraint_if_not_exists(
-				'Articles',
-				'FK_ArticleTag_Articles_ArticleId',
-				'ALTER TABLE ONLY public."ArticleTag" ADD CONSTRAINT "FK_ArticleTag_Articles_ArticleId" FOREIGN KEY ("ArticleId") REFERENCES public."Articles"("ArticleId") ON DELETE CASCADE');
+		SELECT create_constraint_if_not_exists(
+				''Articles'',
+				''FK_ArticleTag_Articles_ArticleId'',
+				''ALTER TABLE ONLY public."ArticleTag" ADD CONSTRAINT "FK_ArticleTag_Articles_ArticleId" FOREIGN KEY ("ArticleId") REFERENCES public."Articles"("ArticleId") ON DELETE CASCADE'');
 
-		PERFORM create_constraint_if_not_exists(
-				'Tags',
-				'FK_ArticleTag_Tags_TagId', 
-				'ALTER TABLE ONLY public."ArticleTag" ADD CONSTRAINT "FK_ArticleTag_Tags_TagId" FOREIGN KEY ("TagId") REFERENCES public."Tags"("TagId") ON DELETE CASCADE');
+		SELECT create_constraint_if_not_exists(
+				''Tags'',
+				''FK_ArticleTag_Tags_TagId'', 
+				''ALTER TABLE ONLY public."ArticleTag" ADD CONSTRAINT "FK_ArticleTag_Tags_TagId" FOREIGN KEY ("TagId") REFERENCES public."Tags"("TagId") ON DELETE CASCADE'');
 
-		PERFORM create_constraint_if_not_exists(
-				'Tags',
-				'FK_RemovedTags_Tags_TagId', 
-				'ALTER TABLE ONLY public."RemovedTags"
-			ADD CONSTRAINT "FK_RemovedTags_Tags_TagId" FOREIGN KEY ("TagId") REFERENCES public."Tags"("TagId") ON DELETE RESTRICT');
-	else
-		TRUNCATE public."__MigrationsHistory";
-		PERFORM run_initial_if_migration_table_is_empty ();
-    end if;
-end;
-$$ language 'plpgsql';
-
-SELECT run_initial_if_migration_table_is_empty ();
+		SELECT create_constraint_if_not_exists(
+				''Tags'',
+				''FK_RemovedTags_Tags_TagId'', 
+				''ALTER TABLE ONLY public."RemovedTags"
+			ADD CONSTRAINT "FK_RemovedTags_Tags_TagId" FOREIGN KEY ("TagId") REFERENCES public."Tags"("TagId") ON DELETE RESTRICT'');');

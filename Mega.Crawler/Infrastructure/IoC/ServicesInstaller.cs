@@ -1,12 +1,15 @@
 ﻿namespace Mega.Crawler.Infrastructure.IoC
 {
-    using Mega.Crawler.Jobs;
+    using DasMulli.Win32.ServiceUtils;
+
     using Mega.Messaging;
     using Mega.Messaging.External;
     using Mega.Services;
     using Mega.Services.TagRequest;
     using Mega.Services.UriRequest;
     using Mega.Services.ZadolbaliClient;
+
+    using Microsoft.Extensions.Logging;
 
     using StructureMap;
     using StructureMap.AutoFactory;
@@ -28,6 +31,10 @@
 
             For<IUriRequestProcessorFactory>().CreateFactory();
             For<ITagRequestProcessorFactory>().CreateFactory();
+
+            ForSingletonOf<ILoggerFactory>().Use<LoggerFactory>().SetProperty(x => x.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug));
+            For<IWin32Service>().Use<CrawlerService>();
+            ForConcreteType<Win32ServiceHost>();
         }
     }
 }
