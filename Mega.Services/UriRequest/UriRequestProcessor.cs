@@ -81,27 +81,21 @@
 
                 foreach (var article in articles)
                 {
-                    try
-                    {
-                        var articleId = await this.articleRepository.Create(new Articles
+                    var articleId = await this.articleRepository.Create(
+                                        new Articles
                                             {
                                                 Outer_Article_Id = article.Id,
                                                 Date_Create = article.DateCreate,
                                                 Head = article.Head,
                                                 Text = article.Text
                                             });
-                        foreach (var tag in article.Tags)
-                        {
-                            var domainTag = await this.tagRepository.GetTagInOuterId(tag.TagKey);
-                            await this.articleTagRepository.Create(new Articles_Tags { Article_Id = articleId, Tag_Id = domainTag.Tag_Id });
-                        }
-
-                        this.logger.LogInformation($"Added from the page {message.Id} to the database {article.Head}.");
-                    }
-                    catch (Exception e)
+                    foreach (var tag in article.Tags)
                     {
-                        this.logger.LogWarning($"{e.Message} {e.StackTrace}");
+                        var domainTag = await this.tagRepository.GetTagInOuterId(tag.TagKey);
+                        await this.articleTagRepository.Create(new Articles_Tags { Article_Id = articleId, Tag_Id = domainTag.Tag_Id });
                     }
+
+                    this.logger.LogInformation($"Added from the page {message.Id} to the database {article.Head}.");
                 }
             }
             catch (Exception e)

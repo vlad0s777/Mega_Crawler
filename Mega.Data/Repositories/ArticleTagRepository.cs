@@ -3,6 +3,8 @@
     using System.Data;
     using System.Threading.Tasks;
 
+    using Dapper;
+
     using DapperExtensions;
     using DapperExtensions.Sql;
 
@@ -23,10 +25,9 @@
 
         public async Task<int> Create(Articles_Tags articleTag)
         {
-            return await this.db.InsertAsync(articleTag);
-
-            // var sqlQuery = "INSERT INTO articles_tag (tag_id, article_id) VALUES(@TagId, @ArticleId) RETURNING id";
-            // return await this.db.QueryFirstOrDefaultAsync<int>(sqlQuery, new { articleTag.Article_Id, articleTag.Tag_Id });
+            var sqlQuery = "INSERT INTO articles_tags (tag_id, article_id) VALUES(@Tag_Id, @Article_Id)";
+            await this.db.ExecuteAsync(sqlQuery, new { articleTag.Tag_Id, articleTag.Article_Id });
+            return articleTag.Article_Id;
         }
 
         public async Task Update(Articles_Tags articleTag) => await this.db.UpdateAsync(articleTag);

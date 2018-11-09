@@ -23,11 +23,7 @@
             DapperAsyncExtensions.SqlDialect = new PostgreSqlDialect();
         }
 
-        public async Task<Tags> Get(int id)
-        {
-            //return await this.db.GetAsync<Tags>(id);
-            return await this.db.QueryFirstOrDefaultAsync<Tags>("SELECT * FROM tags WHERE tag_id = @id", new { id });
-        }
+        public async Task<Tags> Get(int id) => await this.db.GetAsync<Tags>(id);
 
         public async Task<int> Create(Tags tag) => await this.db.InsertAsync(tag);
 

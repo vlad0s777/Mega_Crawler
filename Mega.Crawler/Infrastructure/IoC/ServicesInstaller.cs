@@ -1,5 +1,7 @@
 ﻿namespace Mega.Crawler.Infrastructure.IoC
 {
+    using DasMulli.Win32.ServiceUtils;
+
     using Mega.Messaging;
     using Mega.Messaging.External;
     using Mega.Services;
@@ -30,7 +32,9 @@
             For<IUriRequestProcessorFactory>().CreateFactory();
             For<ITagRequestProcessorFactory>().CreateFactory();
 
-            ForSingletonOf<ILoggerFactory>().Use(new LoggerFactory().AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug));
+            ForSingletonOf<ILoggerFactory>().Use<LoggerFactory>().SetProperty(x => x.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug));
+            For<IWin32Service>().Use<CrawlerService>();
+            ForConcreteType<Win32ServiceHost>();
         }
     }
 }

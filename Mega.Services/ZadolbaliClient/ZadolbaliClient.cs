@@ -18,9 +18,9 @@
 
         private const int DelayBegin = 5000;
 
-        private const int DelayEnd = 15000;
+        private const int DelayEnd = 12000;
 
-        private const int Timeout = 8000;        
+        private const int Timeout = 5000;        
 
         private static readonly Stopwatch Watch = new Stopwatch();
 
@@ -162,7 +162,7 @@
                             }
 
                             articles.Add(new ArticleInfo(date, tags, content, head, Convert.ToInt32(urlArticle.Value.Split("/").Last())));
-                            this.logger.LogInformation($"Add '{head}' document! Speed: {DownloadStatistic.Speed()}");
+                            this.logger.LogDebug($"Add '{head}' document! Speed: {DownloadStatistic.Speed()}");
                         }
                         catch (Exception e)
                         {

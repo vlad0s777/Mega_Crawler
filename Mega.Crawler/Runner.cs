@@ -13,12 +13,8 @@
     using Mega.Services.UriRequest;
     using Mega.Services.ZadolbaliClient;
 
-    using Microsoft.Extensions.Logging;
-
     public class Runner : IDisposable
     {
-        private readonly ILoggerFactory loggerFactory;
-
         private readonly ITagRequestProcessorFactory tagRequestProcessorFactory;
 
         private readonly IUriRequestProcessorFactory uriRequestProcessorFactory;
@@ -31,14 +27,16 @@
 
         private readonly Settings settings;
 
-        public Runner(Settings settings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory, IZadolbaliClientFactory zadolbaliClientFactory, ILoggerFactory loggerFactory, Migrator migrator)
+        private readonly Win32ServiceHost win32ServiceHost;
+
+        public Runner(Settings settings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory, IZadolbaliClientFactory zadolbaliClientFactory,  Migrator migrator, Win32ServiceHost win32ServiceHost)
         {
             this.settings = settings;
             this.tagRequestProcessorFactory = tagRequestProcessorFactory;
             this.uriRequestProcessorFactory = uriRequestProcessorFactory;
             this.zadolbaliClientFactory = zadolbaliClientFactory;
-            this.loggerFactory = loggerFactory;
             this.migrator = migrator;
+            this.win32ServiceHost = win32ServiceHost;
         }
         
         public async Task Run()
@@ -63,7 +61,7 @@
 
             if (isService)
             {
-                new Win32ServiceHost(new CrawlerService(this.loggerFactory)).Run();
+                this.win32ServiceHost.Run();
             }
             else
             {

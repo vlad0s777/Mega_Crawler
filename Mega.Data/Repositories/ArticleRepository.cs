@@ -24,20 +24,9 @@
             DapperAsyncExtensions.SqlDialect = new PostgreSqlDialect();
         }
 
-        public async Task<Articles> Get(int id)
-        {
-            return await this.db.GetAsync<Articles>(id);
+        public async Task<Articles> Get(int id) => await this.db.GetAsync<Articles>(id);
 
-            // return await this.db.QueryFirstOrDefaultAsync<Articles>("SELECT * FROM articles WHERE article_id = @id", new { id });
-        }
-
-        public async Task<int> Create(Articles article)
-        {
-            return await this.db.InsertAsync(article);
-
-            // var sqlQuery = "INSERT INTO articles (date_create, text, head, outer_article_id) VALUES(@DateCreate, @Text, @Head, @OuterArticleId) RETURNING article_id";
-            // return await this.db.QueryFirstOrDefaultAsync<int>(sqlQuery, new { article.Date_Create, article.Text, article.Head, article.Outer_Article_Id });
-        }
+        public async Task<int> Create(Articles article) => await this.db.InsertAsync(article);
 
         public async Task Update(Articles article) => await this.db.UpdateAsync(article);
 
