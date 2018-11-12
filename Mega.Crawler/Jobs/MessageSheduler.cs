@@ -2,55 +2,129 @@
 {
     using System;
     using System.Collections.Specialized;
+    using System.Diagnostics;
     using System.Threading.Tasks;
+
+    using Mega.Domain.Repositories;
+    using Mega.Messaging;
+    using Mega.Services.UriRequest;
+
+    using Microsoft.Extensions.Logging;
 
     using Quartz;
     using Quartz.Impl;
+    using Quartz.Logging;
+
+    using LogLevel = Quartz.Logging.LogLevel;
 
     public class MessageSheduler
     {
-        public static async Task Start()
+        public class ConsoleEventLogProvider : ILogProvider
         {
+            private EventLogEntryType ConvertLogLevel(LogLevel level)
+            {
+                switch (level)
+                {
+                    case LogLevel.Trace:
+                        return EventLogEntryType.Information;
+                    case LogLevel.Debug:
+                        return EventLogEntryType.Information;
+                    case LogLevel.Info:
+                        return EventLogEntryType.Information;
+                    case LogLevel.Warn:
+                        return EventLogEntryType.Warning;
+                    case LogLevel.Error:
+                        return EventLogEntryType.Error;
+                    case LogLevel.Fatal:
+                        return EventLogEntryType.Error;
+                    default:
+                        throw new ArgumentOutOfRangeException(nameof(level), level, null);
+                }
+            }
+
+            public Logger GetLogger(string name)
+            {
+                return (level, func, exception, parameters) =>
+                    {
+                        if (level < LogLevel.Info || func == null)
+                        {
+                            return true;
+                        }
+
+                        var message = typeof(MessageSheduler).FullName + " " + func();
+                        Console.WriteLine(level.ToString() + ": " + message, parameters);
+
+                        using (var eventLog = new EventLog("Application"))
+                        {
+                            eventLog.Source = "Application";
+                            eventLog.WriteEntry(message, ConvertLogLevel(level), 0, 1);
+                        }
+
+                        return true;
+                    };
+            }
+
+            public IDisposable OpenNestedContext(string message)
+            {
+                throw new NotImplementedException();
+            }
+
+            public IDisposable OpenMappedContext(string key, string value)
+            {
+                throw new NotImplementedException();
+            }
+        }
+
+        private readonly IMessageBroker<UriRequest> broker;
+
+        private readonly ITagRepository tagRepository;
+
+        private readonly ILoggerFactory loggerFactory;
+
+        public string CronExpression { private get; set; }
+
+        public MessageSheduler(IMessageBroker<UriRequest> broker, ITagRepository tagRepository, ILoggerFactory loggerFactory)
+        {
+            this.broker = broker;
+            this.tagRepository = tagRepository;
+            this.loggerFactory = loggerFactory;
+            this.CronExpression = string.Empty;
+        }
+
+        public async Task Start()
+        {
+            LogProvider.SetCurrentLogProvider(new ConsoleEventLogProvider());
+
+            var props = new NameValueCollection
+                            {
+                                { "quartz.serializer.type", "binary" }
+                            };
             try
             {
-                // Grab the Scheduler instance from the Factory
-                NameValueCollection props = new NameValueCollection
-                                                {
-                                                    { "quartz.serializer.type", "binary" }
-                                                };
-                StdSchedulerFactory factory = new StdSchedulerFactory(props);
-                IScheduler scheduler = await factory.GetScheduler();
+                var factory = new StdSchedulerFactory(props);
+                var scheduler = await factory.GetScheduler();
 
-                // and start it off
                 await scheduler.Start();
 
-                // define the job and tie it to our HelloJob class
-                IJobDetail job = JobBuilder.Create<MessageSender>()
-                    .WithIdentity("job1", "group1")
+                var job = JobBuilder.Create<MessageSenderJob>()
+                    .WithIdentity("<MessageSenderJob", "CrawlerGroup")
                     .Build();
 
-                // Trigger the job to run now, and then repeat every 10 seconds
-                ITrigger trigger = TriggerBuilder.Create()
-                    .WithIdentity("trigger1", "group1")
-                    .StartNow()
-                    .WithSimpleSchedule(x => x
-                        .WithIntervalInSeconds(10)
-                        .RepeatForever())
+                job.JobDataMap["broker"] = this.broker;
+                job.JobDataMap["tagRepository"] = this.tagRepository;
+                job.JobDataMap["logger"] = this.loggerFactory.CreateLogger<MessageSenderJob>();
+
+                var trigger = TriggerBuilder.Create()
+                    .WithIdentity("trigger1", "CrawlerGroup")
+                    .WithCronSchedule(this.CronExpression)
                     .Build();
 
-                // Tell quartz to schedule the job using our trigger
                 await scheduler.ScheduleJob(job, trigger);
-
-                // some sleep to show what's happening
-                await Task.Delay(TimeSpan.FromSeconds(60));
-
-                // and last shut down the scheduler when you are ready to close your program
-                await scheduler.Shutdown();
             }
             catch (SchedulerException se)
             {
                 Console.WriteLine(se);
-            }
+            }        
         }
     }
 }

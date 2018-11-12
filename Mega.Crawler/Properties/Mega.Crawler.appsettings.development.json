@@ -64,5 +64,6 @@
   ],
   "ConnectionStrings": {
     "DefaultConnection": "Host=localhost;Port=5432;Database=crawlerdb;Username=postgres;Password=11111"
-  }
+  },
+  "CronExpression": "0 0 12 ? * MON" 
 }

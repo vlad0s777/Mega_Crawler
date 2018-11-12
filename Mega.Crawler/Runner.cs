@@ -8,9 +8,8 @@
 
     using DasMulli.Win32.ServiceUtils;
 
-    using Mega.Data.Migrations;
     using Mega.Crawler.Jobs;
-    using Mega.Domain;
+    using Mega.Data.Migrations;
     using Mega.Services.TagRequest;
     using Mega.Services.UriRequest;
     using Mega.Services.ZadolbaliClient;
@@ -31,7 +30,9 @@
 
         private readonly Win32ServiceHost win32ServiceHost;
 
-        public Runner(Settings settings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory, IZadolbaliClientFactory zadolbaliClientFactory,  Migrator migrator, Win32ServiceHost win32ServiceHost)
+        private readonly MessageSheduler messageSheduler;
+
+        public Runner(Settings settings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory, IZadolbaliClientFactory zadolbaliClientFactory,  Migrator migrator, Win32ServiceHost win32ServiceHost, MessageSheduler messageSheduler)
         {
             this.settings = settings;
             this.tagRequestProcessorFactory = tagRequestProcessorFactory;
@@ -39,6 +40,7 @@
             this.zadolbaliClientFactory = zadolbaliClientFactory;
             this.migrator = migrator;
             this.win32ServiceHost = win32ServiceHost;
+            this.messageSheduler = messageSheduler;
         }
         
         public async Task Run()
@@ -62,7 +64,8 @@
                 this.tagRequestProcessorFactory.Create(client).Run(token);
             }
 
-            
+            await this.messageSheduler.Start();
+
             if (isService)
             {
                 this.win32ServiceHost.Run();
