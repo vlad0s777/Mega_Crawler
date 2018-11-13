@@ -8,7 +8,7 @@
     using Mega.Domain.Repositories;
     using Mega.Web.Api.Models;
 
-    public class TagMapper : IMapper<Tags, TagModel>
+    public class TagMapper : IMapper<Tag, TagModel>
     {
         private readonly IArticleRepository articleRepository;
 
@@ -17,17 +17,17 @@
             this.articleRepository = articleRepository;
         }
 
-        public async Task<TagModel> Map(Tags tag)
+        public async Task<TagModel> Map(Tag tag)
         {
             return new TagModel()
                        {
-                           TagKey = tag.Tag_Key,
-                           TagId = tag.Tag_Id,
+                           TagKey = tag.TagKey,
+                           TagId = tag.TagId,
                            Name = tag.Name,
-                           ArticlesCount = await this.articleRepository.CountArticles(tag.Tag_Id)
+                           ArticlesCount = await this.articleRepository.CountArticles(tag.TagId)
                        };
         }
 
-        public IEnumerable<TagModel> Map(IEnumerable<Tags> tags) => tags.Select(x => Map(x).Result);
+        public IEnumerable<TagModel> Map(IEnumerable<Tag> tags) => tags.Select(x => Map(x).Result);
     }
 }

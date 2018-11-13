@@ -26,11 +26,11 @@
     {
         private readonly IArticleRepository articleRepository;
 
-        private readonly IMapper<Articles, ArticleModel> articleMapper;
+        private readonly IMapper<Article, ArticleModel> articleMapper;
 
         /// <param name="articleRepository">Репозиторий статьи</param>
         /// <param name="articleMapper">Конвертер домена статьи в модель статьи</param>
-        public ArticlesController(IMapper<Articles, ArticleModel> articleMapper, IArticleRepository articleRepository)
+        public ArticlesController(IMapper<Article, ArticleModel> articleMapper, IArticleRepository articleRepository)
         {
             this.articleMapper = articleMapper;
             this.articleRepository = articleRepository;

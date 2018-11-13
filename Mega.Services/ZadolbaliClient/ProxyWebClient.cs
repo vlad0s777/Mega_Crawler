@@ -12,7 +12,7 @@
     {
         private static readonly Stopwatch Watch = new Stopwatch();
 
-        private readonly ILogger logger;
+        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ProxyWebClient>();
 
         private readonly int timeout;
 
@@ -32,12 +32,11 @@
             set => this.proxyServer = value != string.Empty ? new WebProxy(value) : new WebProxy();
         }
 
-        public ProxyWebClient(ILoggerFactory loggerFactory, Random random, string rootUriString, int timeout = 0, int delayBegin = 0, int delayEnd = 0, string proxy = "")
+        public ProxyWebClient(Random random, string rootUriString, int timeout = 0, int delayBegin = 0, int delayEnd = 0, string proxy = "")
         {
             this.timeout = timeout;
             this.ProxyServer = proxy;
             this.rootUriString = rootUriString;
-            this.logger = loggerFactory.CreateLogger(typeof(ProxyWebClient).FullName + " " + proxy);
             this.random = random;
             this.delayBegin = delayBegin;
             this.delayEnd = delayEnd;
@@ -75,9 +74,9 @@
 
                 DownloadStatistic.Inсrement();
 
-                this.logger.LogDebug($"Delay: {watchDelay} ms. Downloading: {Watch.Elapsed.TotalMilliseconds} ms. Speed: {DownloadStatistic.Speed()}");
+                Logger.LogDebug($"Delay: {watchDelay} ms. Downloading: {Watch.Elapsed.TotalMilliseconds} ms. Speed: {DownloadStatistic.Speed()}");
                 Watch.Reset();
-                this.logger.LogDebug($"Delay : {delay}");
+                Logger.LogDebug($"Delay : {delay}");
                 return completeDownloadString;
             }
             catch

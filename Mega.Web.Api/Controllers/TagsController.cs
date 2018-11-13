@@ -30,18 +30,18 @@
 
         private readonly IArticleRepository articleRepository;
 
-        private readonly IRepository<Removed_Tags> removedTagRepository;
+        private readonly IRepository<RemovedTag> removedTagRepository;
 
-        private readonly IMapper<Articles, ArticleModel> articleMapper;
+        private readonly IMapper<Article, ArticleModel> articleMapper;
 
-        private readonly IMapper<Tags, TagModel> tagMapper;
+        private readonly IMapper<Tag, TagModel> tagMapper;
 
         /// <param name="tagRepository">Репозиторий тегов</param>
         /// <param name="removedTagRepository">Репозиторий удаленных тегов</param>
         /// <param name="articleRepository">Репозиторий статей</param>
         /// <param name="articleMapper">Конвертер домена статьи в модель статьи</param>
         /// <param name="tagMapper">Конвертер домена тега в модель тега</param>
-        public TagsController(IMapper<Tags, TagModel> tagMapper, IMapper<Articles, ArticleModel> articleMapper, ITagRepository tagRepository, IRepository<Removed_Tags> removedTagRepository, IArticleRepository articleRepository)
+        public TagsController(IMapper<Tag, TagModel> tagMapper, IMapper<Article, ArticleModel> articleMapper, ITagRepository tagRepository, IRepository<RemovedTag> removedTagRepository, IArticleRepository articleRepository)
         {
             this.tagMapper = tagMapper;
             this.articleMapper = articleMapper;
@@ -153,7 +153,7 @@
         {
             try
             {
-                var entity = new Removed_Tags { Deletion_Date = DateTime.Now, Tag_Id = id };
+                var entity = new RemovedTag { DeletionDate = DateTime.Now, TagId = id };
                 await this.removedTagRepository.Create(entity);
             }
             catch

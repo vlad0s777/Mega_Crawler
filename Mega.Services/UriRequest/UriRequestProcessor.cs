@@ -17,9 +17,9 @@
 
         private readonly ITagRepository tagRepository;
 
-        private readonly IRepository<Articles> articleRepository;
+        private readonly IRepository<Article> articleRepository;
 
-        private readonly IRepository<Articles_Tags> articleTagRepository;
+        private readonly IRepository<ArticleTag> articleTagRepository;
 
         private readonly int countAttempt;
 
@@ -34,8 +34,8 @@
             IMessageBroker<UriRequest> requests,
             ZadolbaliClient client,
             ITagRepository tagRepository,
-            IRepository<Articles> articleRepository,
-            IRepository<Articles_Tags> articleTagRepository)
+            IRepository<Article> articleRepository,
+            IRepository<ArticleTag> articleTagRepository)
         {
             this.logger = loggerFactory.CreateLogger(typeof(UriRequestProcessor).FullName + " " + client.Proxy);
             this.requests = requests;
@@ -67,7 +67,7 @@
                 {
                     foreach (var tag in await this.client.GetTags())
                     {
-                        await this.tagRepository.Create(new Tags { Name = tag.Name, Tag_Key = tag.TagKey });
+                        await this.tagRepository.Create(new Tag { Name = tag.Name, TagKey = tag.TagKey });
                     }
 
                     this.logger.LogInformation($"All tags added");
@@ -82,17 +82,17 @@
                 foreach (var article in articles)
                 {
                     var articleId = await this.articleRepository.Create(
-                                        new Articles
+                                        new Article
                                             {
-                                                Outer_Article_Id = article.Id,
-                                                Date_Create = article.DateCreate,
+                                                OuterArticleId = article.Id,
+                                                DateCreate = article.DateCreate,
                                                 Head = article.Head,
                                                 Text = article.Text
                                             });
                     foreach (var tag in article.Tags)
                     {
-                        var domainTag = await this.tagRepository.GetTagInOuterId(tag.TagKey);
-                        await this.articleTagRepository.Create(new Articles_Tags { Article_Id = articleId, Tag_Id = domainTag.Tag_Id });
+                        var domainTag = await this.tagRepository.GetTagByOuterId(tag.TagKey);
+                        await this.articleTagRepository.Create(new ArticleTag { ArticleId = articleId, TagId = domainTag.TagId });
                     }
 
                     this.logger.LogInformation($"Added from the page {message.Id} to the database {article.Head}.");

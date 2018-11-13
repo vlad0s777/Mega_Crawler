@@ -5,6 +5,7 @@
     using System.Reflection;
 
     using Mega.Crawler.Infrastructure.IoC;
+    using Mega.Services;
 
     using Microsoft.Extensions.Logging;
 
@@ -16,7 +17,7 @@
 
         private static ILogger GetLogger()
         {
-            var logger = new LoggerFactory().AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug).CreateLogger<Program>();
+            var logger = ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug).CreateLogger<Program>();
             AppDomain.CurrentDomain.UnhandledException += (sender, e) => logger.LogCritical(e.ExceptionObject.ToString());
             return logger;
         }

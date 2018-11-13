@@ -50,7 +50,7 @@
         {
             await this.db.ExecuteAsync(CreateMigrationQuery);
             var migrations = new DirectoryInfo(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location) + "\\Migrations").EnumerateFiles().OrderBy(x => x.Name);
-            var completedMigratins = await this.db.QueryFirstOrDefaultAsync<string>("SELECT migration_id FROM __migrations_history");
+            var completedMigratins = await this.db.QueryFirstOrDefaultAsync<string>(@"SELECT migration_id FROM __migrations_history");
             var returnString = string.Empty;
             foreach (var migration in migrations)
             {
@@ -66,7 +66,7 @@
 
                 var query = await migration.OpenText().ReadToEndAsync();
                 await this.db.ExecuteAsync(query);
-                await this.db.ExecuteAsync("INSERT INTO __migrations_history (migration_id) VALUES(@MigrationId)", new { MigrationId = migrationName });
+                await this.db.ExecuteAsync(@"INSERT INTO __migrations_history (migration_id) VALUES(@MigrationId)", new { MigrationId = migrationName });
                 returnString += migrationName + "successfully completed<br>";
             }
 
