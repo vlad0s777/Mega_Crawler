@@ -20,7 +20,7 @@
 
         private const int DelayEnd = 12000;
 
-        private const int Timeout = 5000;        
+        private const int Timeout = 7000;        
 
         private static readonly Stopwatch Watch = new Stopwatch();
 
@@ -36,7 +36,7 @@
         {
             this.Proxy = proxy;
             this.logger = loggerFactory.CreateLogger(typeof(ZadolbaliClient).FullName + " " + proxy);
-            this.client = new ProxyWebClient(loggerFactory, new Random(seed), RootUriString, timeout, delayBegin, delayEnd, proxy);
+            this.client = new ProxyWebClient(new Random(seed), RootUriString, timeout, delayBegin, delayEnd, proxy);
             this.clientDelegate = id => this.client.GetStringAsync(id);
         }
 

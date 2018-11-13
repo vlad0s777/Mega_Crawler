@@ -5,8 +5,9 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>C:\Users\Admin\Source\Repos\mega-martykhin2\Mega.Web.Api\Mega.Web.Api.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\netcoreapp2.1\Mega.Web.Api.xml</DocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
+    <OutputPath></OutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

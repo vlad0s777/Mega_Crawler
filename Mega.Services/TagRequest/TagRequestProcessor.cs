@@ -13,23 +13,21 @@
 
     public class TagRequestProcessor : IMessageProcessor<string>
     {
-        private readonly ILogger logger;
+        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<TagRequestProcessor>();
 
         private readonly IMessageBroker<string> requests;
 
-        private readonly IRepository<Tags> tagRepository;
+        private readonly IRepository<Tag> tagRepository;
 
         private readonly ZadolbaliClient client;
 
         private readonly string rootUriString;
 
         public TagRequestProcessor(
-            ILoggerFactory loggerFactory,
             IMessageBroker<string> requests,
-            IRepository<Tags> tagRepository,
+            IRepository<Tag> tagRepository,
             ZadolbaliClient client)
         {
-            this.logger = loggerFactory.CreateLogger<TagRequestProcessor>();
             this.requests = requests;
             this.tagRepository = tagRepository;
             this.rootUriString = ZadolbaliClient.RootUriString;
@@ -38,18 +36,18 @@
 
         public async Task Handle(string message)
         {
-            this.logger.LogInformation($"Processing {this.rootUriString + message}.");
+            Logger.LogInformation($"Processing {this.rootUriString + message}.");
             try
             {
                 if (message == "tags")
                 {
                     foreach (var tag in await this.client.GetTags())
                     {
-                        await this.tagRepository.Create(new Tags { Name = tag.Name, Tag_Key = tag.TagKey });
+                        await this.tagRepository.Create(new Tag { Name = tag.Name, TagKey = tag.TagKey });
                     }                  
                 }
 
-                this.logger.LogInformation($"All tags added");
+                Logger.LogInformation($"All tags added");
             }
             catch
             {
@@ -65,7 +63,7 @@
             }
             catch (Exception e)
             {
-                this.logger.LogWarning(e.Message);
+                Logger.LogWarning(e.Message);
             }
         }
     }

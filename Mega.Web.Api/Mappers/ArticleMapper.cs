@@ -8,7 +8,7 @@
     using Mega.Domain.Repositories;
     using Mega.Web.Api.Models;
 
-    public class ArticleMapper : IMapper<Articles, ArticleModel>
+    public class ArticleMapper : IMapper<Article, ArticleModel>
     {
         private readonly ITagRepository tagRepository;
 
@@ -17,19 +17,19 @@
             this.tagRepository = tagRepository;
         }
 
-        public async Task<ArticleModel> Map(Articles article)
+        public async Task<ArticleModel> Map(Article article)
         {
             return new ArticleModel()
                        {
-                           ArticleId = article.Article_Id,
-                           DateCreate = article.Date_Create,
+                           ArticleId = article.ArticleId,
+                           DateCreate = article.DateCreate,
                            Head = article.Head,
-                           OuterArticleId = article.Outer_Article_Id,
+                           OuterArticleId = article.OuterArticleId,
                            Text = article.Text,
-                           Tags = (await this.tagRepository.GetTags(articleId: article.Article_Id)).Select(x => x.Tag_Key)
+                           Tags = (await this.tagRepository.GetTags(articleId: article.ArticleId)).Select(x => x.TagKey)
                        };
         }
 
-        public IEnumerable<ArticleModel> Map(IEnumerable<Articles> articles) => articles.Select(x => Map(x).Result);
+        public IEnumerable<ArticleModel> Map(IEnumerable<Article> articles) => articles.Select(x => Map(x).Result);
     }
 }

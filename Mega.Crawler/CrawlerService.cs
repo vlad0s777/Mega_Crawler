@@ -2,20 +2,17 @@
 {
     using DasMulli.Win32.ServiceUtils;
 
+    using Mega.Services;
+
     using Microsoft.Extensions.Logging;
 
     public class CrawlerService : IWin32Service
     {
-        private readonly ILogger logger;
+        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<CrawlerService>();
 
-        public CrawlerService(ILoggerFactory loggerFactory)
-        {
-            this.logger = loggerFactory.CreateLogger<CrawlerService>();
-        }
+        public void Start(string[] startupArguments, ServiceStoppedCallback serviceStoppedCallback) => Logger.LogInformation("Start service");
 
-        public void Start(string[] startupArguments, ServiceStoppedCallback serviceStoppedCallback) => this.logger.LogInformation("Start service");
-
-        public void Stop() => this.logger.LogInformation("Stop service");
+        public void Stop() => Logger.LogInformation("Stop service");
 
         public string ServiceName { get; } = "MegaCrawler";
     }
