@@ -66,6 +66,6 @@
     "http://124.41.240.196:41041"
   ],
   "ConnectionStrings": {
-    "DefaultConnection": "Host=localhost;Port=5432;Database=crawlerdb;Username=postgres;Password=11111"
+    "DefaultConnection": "Host=localhost;Port=5432;Database=crawlerdb;Username=postgres;Password=123"
   }
 }
