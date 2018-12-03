@@ -123,5 +123,3 @@ SELECT run_initial_if_migration_table_is_empty('
 				''FK_RemovedTags_Tags_TagId'', 
 				''ALTER TABLE ONLY public."RemovedTags"
 			ADD CONSTRAINT "FK_RemovedTags_Tags_TagId" FOREIGN KEY ("TagId") REFERENCES public."Tags"("TagId") ON DELETE RESTRICT'');');
-			
-INSERT INTO __migrations_history (migration_id) VALUES('201810261419_InitialMigration');
