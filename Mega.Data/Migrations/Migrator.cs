@@ -65,7 +65,28 @@
                     }
 
                     var query = await migration.OpenText().ReadToEndAsync();
-                    await this.db.ExecuteAsync(query);
+
+                    this.db.Open();
+                    using (var transaction = this.db.BeginTransaction())
+                    {
+                        try
+                        {
+                            await this.db.ExecuteAsync(query, transaction: transaction);
+                            await this.db.ExecuteAsync(
+                                @"INSERT INTO __migrations_history (migration_id) VALUES(@MigrationId)",
+                                new { MigrationId = migrationName },
+                                transaction);
+                            transaction.Commit();
+                        }
+                        catch
+                        {
+                            transaction.Rollback();
+                            throw;
+                        }
+                    }
+
+                    this.db.Close();
+
                     returnString += migrationName + " successfully completed. ";
                 }
                 catch (Exception e)
