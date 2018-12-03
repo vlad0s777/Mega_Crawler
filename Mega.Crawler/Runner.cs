@@ -10,12 +10,17 @@
 
     using Mega.Crawler.Jobs;
     using Mega.Data.Migrations;
+    using Mega.Services;
     using Mega.Services.TagRequest;
     using Mega.Services.UriRequest;
     using Mega.Services.ZadolbaliClient;
 
+    using Microsoft.Extensions.Logging;
+
     public class Runner : IDisposable
     {
+        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<Runner>();
+
         private readonly ITagRequestProcessorFactory tagRequestProcessorFactory;
 
         private readonly IUriRequestProcessorFactory uriRequestProcessorFactory;
@@ -51,7 +56,7 @@
 
             if (Environment.GetCommandLineArgs().Contains("--migrate"))
             {
-                await this.migrator.Migrate();
+                Logger.LogInformation(await this.migrator.Migrate());
                 return;
             }
             
