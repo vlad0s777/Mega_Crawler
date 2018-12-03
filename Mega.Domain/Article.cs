@@ -1,7 +1,6 @@
 ﻿namespace Mega.Domain
 {
     using System;
-    using System.Collections.Generic;
 
     public class Article
     {
@@ -14,7 +13,5 @@
         public string Head { get; set; }
 
         public int OuterArticleId { get; set; }
-
-        public virtual ICollection<ArticleTag> ArticleTag { get; } = new List<ArticleTag>();
     }
 }

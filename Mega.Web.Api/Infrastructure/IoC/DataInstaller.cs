@@ -1,10 +1,14 @@
 ﻿namespace Mega.Web.Api.Infrastructure.IoC
 {
-    using Mega.Data;
-    using Mega.Domain;
+    using System.Data;
+
+    using Mega.Data.Migrations;
+    using Mega.Domain.Repositories;
     using Mega.Web.Api.Mappers;
 
     using Microsoft.Extensions.Configuration;
+
+    using Npgsql;
 
     using StructureMap;
 
@@ -12,14 +16,23 @@
     {
         public DataInstaller(IConfiguration config)
         {
-            var connectionString = config.GetConnectionString("DefaultConnection");            
+            var connectionString = config.GetConnectionString("DefaultConnection");
 
-            For<IDataContext>().Use<DataContext>().Ctor<string>().Is(connectionString);
+            For<IDbConnection>().Use<NpgsqlConnection>().Ctor<string>().Is(connectionString);
 
             Scan(y =>
                 {
                     y.TheCallingAssembly();
                     y.ConnectImplementationsToTypesClosing(typeof(IMapper<,>));
+                });
+
+            ForConcreteType<Migrator>();
+
+            Scan(y =>
+                {
+                    y.Assembly("Mega.Data");
+                    y.WithDefaultConventions();
+                    y.ConnectImplementationsToTypesClosing(typeof(IRepository<>));
                 });
         }
     }

@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
 
     using Mega.Domain;
+    using Mega.Domain.Repositories;
     using Mega.Messaging;
     using Mega.Services.ZadolbaliClient;
 
@@ -16,7 +17,7 @@
 
         private readonly IMessageBroker<string> requests;
 
-        private readonly IDataContext dataContext;
+        private readonly IRepository<Tag> tagRepository;
 
         private readonly ZadolbaliClient client;
 
@@ -24,11 +25,11 @@
 
         public TagRequestProcessor(
             IMessageBroker<string> requests,
-            IDataContext dataContext,
+            IRepository<Tag> tagRepository,
             ZadolbaliClient client)
         {
             this.requests = requests;
-            this.dataContext = dataContext;
+            this.tagRepository = tagRepository;
             this.rootUriString = ZadolbaliClient.RootUriString;
             this.client = client;
         }
@@ -42,8 +43,7 @@
                 {
                     foreach (var tag in await this.client.GetTags())
                     {
-                        await this.dataContext.AddAsync(new Tag { Name = tag.Name, TagKey = tag.TagKey });
-                        await this.dataContext.SaveChangesAsync();
+                        await this.tagRepository.Create(new Tag { Name = tag.Name, TagKey = tag.TagKey });
                     }                  
                 }
 

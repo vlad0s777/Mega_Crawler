@@ -5,8 +5,9 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DocumentationFile>C:\Users\Admin\Source\Repos\mega-martykhin2\Mega.Web.Api\Mega.Web.Api.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\netcoreapp2.1\Mega.Web.Api.xml</DocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
+    <OutputPath></OutputPath>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -34,6 +35,7 @@
     <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.1.1" />
     <PackageReference Include="Microsoft.Extensions.Logging.EventLog" Version="2.1.1" />
     <PackageReference Include="Microsoft.VisualStudio.Web.CodeGeneration.Design" Version="2.1.5" />
+    <PackageReference Include="Npgsql" Version="4.0.3" />
     <PackageReference Include="StructureMap" Version="4.7.0" />
     <PackageReference Include="structuremap.autofactory" Version="1.0.1" />
     <PackageReference Include="StructureMap.Microsoft.DependencyInjection" Version="1.4.0" />

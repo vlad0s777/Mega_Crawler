@@ -17,15 +17,13 @@
 
         private static ILogger GetLogger()
         {
-            var logger = ApplicationLogging.CreateLogger<Program>();
+            var logger = ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug).CreateLogger<Program>();
             AppDomain.CurrentDomain.UnhandledException += (sender, e) => logger.LogCritical(e.ExceptionObject.ToString());
             return logger;
         }
 
         private static void Main()
         {
-            ApplicationLogging.LoggerFactory.AddConsole(LogLevel.Information).AddEventLog(LogLevel.Debug);
-
             var pathBin = Directory.GetParent(Assembly.GetExecutingAssembly().Location).FullName;
             Directory.SetCurrentDirectory(pathBin);
 
@@ -39,10 +37,11 @@
 
                 using (var container = new Container(registry))
                 {
+                    Logger.LogDebug(container.WhatDoIHave());
                     var runner = container.GetInstance<Runner>();
                     try
                     {
-                        runner.Run();
+                        runner.Run().Wait();
                     }
                     finally
                     {

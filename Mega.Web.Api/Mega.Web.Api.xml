@@ -12,8 +12,8 @@
             В данном контроллере можно просмотреть скрауленные статьи, получить количество статей в опредеделенный промежуток времени
             </remarks>
         </member>
-        <member name="M:Mega.Web.Api.Controllers.ArticlesController.#ctor(Mega.Domain.IDataContext,Mega.Web.Api.Mappers.IMapper{Mega.Domain.Article,Mega.Web.Api.Models.ArticleModel})">
-            <param name="context">Контекст данных</param>
+        <member name="M:Mega.Web.Api.Controllers.ArticlesController.#ctor(Mega.Web.Api.Mappers.IMapper{Mega.Domain.Articles,Mega.Web.Api.Models.ArticleModel},Mega.Domain.Repositories.IArticleRepository)">
+            <param name="articleRepository">Репозиторий статьи</param>
             <param name="articleMapper">Конвертер домена статьи в модель статьи</param>
         </member>
         <member name="M:Mega.Web.Api.Controllers.ArticlesController.GetPage(System.Int32)">
@@ -25,7 +25,7 @@
             </returns>
             <exception cref="T:Mega.Web.Api.Exceptions.HttpResponseException">Возникает если страница не найдена
             </exception>
-            <param name="numPage">Номер страницы</param>
+            <param name="page">Номер страницы</param>
         </member>
         <member name="M:Mega.Web.Api.Controllers.ArticlesController.GetArticle(System.Int32)">
             <summary>
@@ -56,9 +56,9 @@
             В данном контроллере можно запустить процесс краулинга
             </remarks>
         </member>
-        <member name="M:Mega.Web.Api.Controllers.MessagesController.#ctor(Mega.Messaging.IMessageBroker{Mega.Services.UriRequest.UriRequest},Mega.Domain.IDataContext)">
+        <member name="M:Mega.Web.Api.Controllers.MessagesController.#ctor(Mega.Messaging.IMessageBroker{Mega.Services.UriRequest.UriRequest},Mega.Domain.Repositories.ITagRepository)">
             <param name="broker">Брокер сообщений</param>
-            <param name="context">Контекст данных</param>
+            <param name="tagRepository">Репозиторий тегов</param>
         </member>
         <member name="M:Mega.Web.Api.Controllers.MessagesController.StartCrawler">
             <summary>
@@ -81,8 +81,10 @@
             получить определенное количество популярных тегов
             </remarks>
         </member>
-        <member name="M:Mega.Web.Api.Controllers.TagsController.#ctor(Mega.Domain.IDataContext,Mega.Web.Api.Mappers.IMapper{Mega.Domain.Tag,Mega.Web.Api.Models.TagModel},Mega.Web.Api.Mappers.IMapper{Mega.Domain.Article,Mega.Web.Api.Models.ArticleModel})">
-            <param name="context">Контекст данных</param>
+        <member name="M:Mega.Web.Api.Controllers.TagsController.#ctor(Mega.Web.Api.Mappers.IMapper{Mega.Domain.Tags,Mega.Web.Api.Models.TagModel},Mega.Web.Api.Mappers.IMapper{Mega.Domain.Articles,Mega.Web.Api.Models.ArticleModel},Mega.Domain.Repositories.ITagRepository,Mega.Domain.Repositories.IRepository{Mega.Domain.Removed_Tags},Mega.Domain.Repositories.IArticleRepository)">
+            <param name="tagRepository">Репозиторий тегов</param>
+            <param name="removedTagRepository">Репозиторий удаленных тегов</param>
+            <param name="articleRepository">Репозиторий статей</param>
             <param name="articleMapper">Конвертер домена статьи в модель статьи</param>
             <param name="tagMapper">Конвертер домена тега в модель тега</param>
         </member>
@@ -95,7 +97,7 @@
             </returns>
             <exception cref="T:Mega.Web.Api.Exceptions.HttpResponseException">Возникает если страница не найдена
             </exception>
-            <param name="numPage">Номер страницы</param>
+            <param name="page">Номер страницы</param>
         </member>
         <member name="M:Mega.Web.Api.Controllers.TagsController.GetTag(System.Int32)">
             <summary>
@@ -117,7 +119,7 @@
             </returns>
             <exception cref="T:Mega.Web.Api.Exceptions.HttpResponseException">Возникает если страница не найдена
             </exception>
-            <param name="numPage">Номер страницы</param>
+            <param name="page">Номер страницы</param>
             <param name="id">Идентификатор тега</param>
         </member>
         <member name="M:Mega.Web.Api.Controllers.TagsController.CountArticles(System.Int32,System.Nullable{System.DateTime},System.Nullable{System.DateTime})">

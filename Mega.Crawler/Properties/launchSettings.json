@@ -2,6 +2,7 @@
   "profiles": {
     "Mega.Crawler": {
       "commandName": "Project",
+      "commandLineArgs": "--migrate",
       "environmentVariables": {
         "NETCORE_ENVIRONMENT": "development"
       }

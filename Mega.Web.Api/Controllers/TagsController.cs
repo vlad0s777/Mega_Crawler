@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
 
     using Mega.Domain;
+    using Mega.Domain.Repositories;
     using Mega.Web.Api.Exceptions;
     using Mega.Web.Api.Mappers;
     using Mega.Web.Api.Models;
@@ -25,20 +26,28 @@
     [ApiController]
     public class TagsController : ControllerBase
     {
-        private readonly IDataContext context;
+        private readonly ITagRepository tagRepository;
+
+        private readonly IArticleRepository articleRepository;
+
+        private readonly IRepository<RemovedTag> removedTagRepository;
 
         private readonly IMapper<Article, ArticleModel> articleMapper;
 
         private readonly IMapper<Tag, TagModel> tagMapper;
 
-        /// <param name="context">Контекст данных</param>
+        /// <param name="tagRepository">Репозиторий тегов</param>
+        /// <param name="removedTagRepository">Репозиторий удаленных тегов</param>
+        /// <param name="articleRepository">Репозиторий статей</param>
         /// <param name="articleMapper">Конвертер домена статьи в модель статьи</param>
         /// <param name="tagMapper">Конвертер домена тега в модель тега</param>
-        public TagsController(IDataContext context, IMapper<Tag, TagModel> tagMapper, IMapper<Article, ArticleModel> articleMapper)
+        public TagsController(IMapper<Tag, TagModel> tagMapper, IMapper<Article, ArticleModel> articleMapper, ITagRepository tagRepository, IRepository<RemovedTag> removedTagRepository, IArticleRepository articleRepository)
         {
-            this.context = context;
             this.tagMapper = tagMapper;
             this.articleMapper = articleMapper;
+            this.tagRepository = tagRepository;
+            this.removedTagRepository = removedTagRepository;
+            this.articleRepository = articleRepository;
         }
 
         /// <summary>
@@ -49,15 +58,14 @@
         /// </returns>
         /// <exception cref="HttpResponseException">Возникает если страница не найдена
         /// </exception>
-        /// <param name="numPage">Номер страницы</param>
-        [HttpGet("{numPage=1}")]
-        public IEnumerable<TagModel> GetPage(int numPage)
+        /// <param name="page">Номер страницы</param>
+        [HttpGet]
+        public async Task<List<TagModel>> GetPage(int page = 1)
         {
-            var tags = this.tagMapper.Map(this.context.GetTags());
-            var tagModels = tags as TagModel[] ?? tags.ToArray();
-            if (tagModels.Count() != 0)
+            var tags = this.tagMapper.Map(await this.tagRepository.GetTags(10, 10 * (page - 1))).ToList();
+            if (tags.Count() != 0)
             {
-                return tagModels;
+                return tags;
             }
 
             throw new HttpResponseException(StatusCodes.Status404NotFound, "Page not found!");
@@ -72,12 +80,12 @@
         /// <exception cref="HttpResponseException">Возникает если тег не найден
         /// </exception>
         /// <param name="id">Идентификатор тега</param>
-        [HttpGet("tag/{id}")]
+        [HttpGet("{id}")]
         public async Task<TagModel> GetTag(int id)
         {
             try
             {
-                return this.tagMapper.Map(await this.context.GetTag(id));
+                return await this.tagMapper.Map(await this.tagRepository.Get(id));
             }
             catch
             {
@@ -93,16 +101,15 @@
         /// </returns>
         /// <exception cref="HttpResponseException">Возникает если страница не найдена
         /// </exception>
-        /// <param name="numPage">Номер страницы</param>
+        /// <param name="page">Номер страницы</param>
         /// <param name="id">Идентификатор тега</param>
-        [HttpGet("tag/{id}/articles/{numPage=1}")]
-        public IEnumerable<ArticleModel> GetArticles(int id, int numPage)
+        [HttpGet("{id}/articles")]
+        public async Task<List<ArticleModel>> GetArticles(int id, int page = 1)
         {
-            var articles = this.articleMapper.Map(this.context.GetArticles(10, 10 * (numPage - 1), id));
-            var articleModels = articles as ArticleModel[] ?? articles.ToArray();
-            if (articleModels.Count() != 0)
+            var articles = this.articleMapper.Map(await this.articleRepository.GetArticles(10, 10 * (page - 1), id)).ToList();
+            if (articles.Count() != 0)
             {
-                return articleModels;
+                return articles;
             }
 
             throw new HttpResponseException(StatusCodes.Status404NotFound, "Page not found!");
@@ -117,8 +124,8 @@
         /// <param name="startDate">Начальная дата, необязательная, если без неё, то будет подсчитано количество всех статей</param>
         /// <param name="endDate">Конечная дата, необяательная, если без неё, то будет подсчитано количество статей от начальной даты до последней статьи</param>
         /// <param name="id">Идентификатор тега</param>
-        [HttpGet("tag/{id}/articles/count/{startDate:datetime?}/{endDate:datetime?}")]
-        public async Task<int> CountArticles(int id, DateTime? startDate, DateTime? endDate) => await this.context.CountArticles(tagId: id, startDate: startDate, endDate: endDate);
+        [HttpGet("tag/{id}/articles/count")]
+        public async Task<int> CountArticles(int id, DateTime? startDate, DateTime? endDate) => await this.articleRepository.CountArticles(tagId: id, startDate: startDate, endDate: endDate);
 
         /// <summary>
         /// Получение определенного количества самых популярных тегов
@@ -127,8 +134,8 @@
         /// Модели статей
         /// </returns>
         /// <param name="count">Количество возвращаемых самых популярных тегов</param>
-        [HttpGet("popular/{count=1}")]
-        public IEnumerable<TagModel> GetPopularTags(int count) => this.tagMapper.Map(this.context.GetPopularTags(count));
+        [HttpGet("popular")]
+        public async Task<List<TagModel>> GetPopularTags(int count = 1) => this.tagMapper.Map(await this.tagRepository.GetPopularTags(count)).ToList();
 
         /// <summary>
         /// Удаление одного тега
@@ -140,22 +147,19 @@
         /// Результат  удаления
         /// </returns>
         /// <param name="id">Идентификатор тега</param>
-        [HttpDelete("tag/{id}")]
+        [HttpDelete("{id}")]
         [Authorize(Policy = "RequireAdmin")]
         public async Task DeleteTag(int id)
         {
-            object entity;
             try
             {
-                entity = new RemovedTag { DeletionDate = DateTime.Now, Tag = await this.context.GetTag(id) };
+                var entity = new RemovedTag { DeletionDate = DateTime.Now, TagId = id };
+                await this.removedTagRepository.Create(entity);
             }
             catch
             {
-                throw new HttpResponseException(404, $"Tag {id} not found");
+                throw new HttpResponseException(StatusCodes.Status404NotFound, $"Tag {id} not found");
             }
-
-            await this.context.AddAsync(entity);
-            await this.context.SaveChangesAsync();
         }
 
         /// <summary>

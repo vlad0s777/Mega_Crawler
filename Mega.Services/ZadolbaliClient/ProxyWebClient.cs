@@ -10,9 +10,9 @@
 
     public class ProxyWebClient : WebClient
     {
-        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ProxyWebClient>();
-
         private static readonly Stopwatch Watch = new Stopwatch();
+
+        private static readonly ILogger Logger = ApplicationLogging.CreateLogger<ProxyWebClient>();
 
         private readonly int timeout;
 
@@ -74,16 +74,15 @@
 
                 DownloadStatistic.Inсrement();
 
-                Logger.LogDebug(
-                    $"Delay: {watchDelay} ms. Downloading: {Watch.Elapsed.TotalMilliseconds} ms. Speed: {DownloadStatistic.Speed()}");
+                Logger.LogDebug($"Delay: {watchDelay} ms. Downloading: {Watch.Elapsed.TotalMilliseconds} ms. Speed: {DownloadStatistic.Speed()}");
                 Watch.Reset();
-                Logger.LogDebug($"This proxy {this.proxyServer.Address.Host}:{this.proxyServer.Address.Port} delay : {delay}");
+                Logger.LogDebug($"Delay : {delay}");
                 return completeDownloadString;
             }
-            catch (Exception e)
+            catch
             {             
                 Watch.Reset();
-                throw new Exception($"This proxy {this.proxyServer.Address.Host}:{this.proxyServer.Address.Port} in id: {id} error: {e.Message}. {e.GetType().FullName}.");
+                throw;
             }
         }
     }

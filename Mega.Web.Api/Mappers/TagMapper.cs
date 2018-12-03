@@ -2,30 +2,32 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading.Tasks;
 
     using Mega.Domain;
+    using Mega.Domain.Repositories;
     using Mega.Web.Api.Models;
 
     public class TagMapper : IMapper<Tag, TagModel>
     {
-        private readonly IDataContext context;
+        private readonly IArticleRepository articleRepository;
 
-        public TagMapper(IDataContext context)
+        public TagMapper(IArticleRepository articleRepository)
         {
-            this.context = context;
+            this.articleRepository = articleRepository;
         }
 
-        public TagModel Map(Tag tag)
+        public async Task<TagModel> Map(Tag tag)
         {
             return new TagModel()
                        {
                            TagKey = tag.TagKey,
                            TagId = tag.TagId,
                            Name = tag.Name,
-                           ArticlesCount = this.context.CountArticles(tag.TagId).Result
-            };
+                           ArticlesCount = await this.articleRepository.CountArticles(tag.TagId)
+                       };
         }
 
-        public IEnumerable<TagModel> Map(IEnumerable<Tag> tags) => tags.Select(Map);
+        public IEnumerable<TagModel> Map(IEnumerable<Tag> tags) => tags.Select(x => Map(x).Result);
     }
 }

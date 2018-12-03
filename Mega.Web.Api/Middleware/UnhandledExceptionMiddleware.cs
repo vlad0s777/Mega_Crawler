@@ -42,7 +42,7 @@
             }
             catch (Exception e)
             {
-                this.logger.LogError(e.Message);
+                this.logger.LogError(e.Message + e.StackTrace);
             }
         }
     }
