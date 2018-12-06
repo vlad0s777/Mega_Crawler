@@ -18,5 +18,3 @@ ALTER TABLE public."Tags" RENAME TO tags;
 ALTER TABLE public.tags RENAME COLUMN "TagId" TO tag_id;
 ALTER TABLE public.tags RENAME COLUMN "TagKey" TO tag_key;
 ALTER TABLE public.tags RENAME COLUMN "Name" TO name;
-
-INSERT INTO __migrations_history (migration_id) VALUES('201811061329_AllRename');
