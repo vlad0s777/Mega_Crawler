@@ -9,6 +9,8 @@
 
     using Dapper;
 
+    using Microsoft.Extensions.Logging;
+
     public class Migrator
     {
         private const string CreateMigrationQuery = @"create or replace function create_constraint_if_not_exists (t_name text, c_name text, constraint_sql text) 
@@ -40,10 +42,13 @@
                                                       SELECT create_constraint_if_not_exists('__migrations_history', 'pk__migrations_history', 
                                                       'ALTER TABLE ONLY __migrations_history ADD CONSTRAINT pk__migrations_history PRIMARY KEY (migration_id)');";
 
+        private readonly ILogger logger;
+
         private readonly IDbConnection db;
 
-        public Migrator(IDbConnection db)
+        public Migrator(IDbConnection db, ILoggerFactory loggerFactory)
         {
+            this.logger = loggerFactory.CreateLogger<Migrator>();
             this.db = db;
         }
 
@@ -60,7 +65,7 @@
                 {
                     if (completedMigrations.Contains(migrationName))
                     {
-                        returnString += migrationName + " already performed! ";
+                        this.logger.LogInformation(migrationName + " already performed!");
                         continue;
                     }
 
@@ -78,20 +83,22 @@
                                 transaction);
                             transaction.Commit();
                         }
-                        catch
+                        catch (Exception e)
                         {
                             transaction.Rollback();
+                            this.logger.LogError(e.Message + " in " + migrationName);
                             throw;
                         }
                     }
 
                     this.db.Close();
 
-                    returnString += migrationName + " successfully completed. ";
+                    this.logger.LogInformation(migrationName + " successfully completed.");
                 }
                 catch (Exception e)
                 {
-                    throw new Exception(e.Message + " in " + migrationName);
+                    this.logger.LogError(e.Message + " in " + migrationName);
+                    throw;
                 }
             }
 

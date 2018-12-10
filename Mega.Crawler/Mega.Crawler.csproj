@@ -21,18 +21,12 @@
 
   <ItemGroup>
     <PackageReference Include="DasMulli.Win32.ServiceUtils" Version="1.2.0" />
-    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0-preview3-35497" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.2.0-preview3-35497" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="2.2.0-preview3-35497" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Configuration" Version="2.2.0-preview3-35497" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="2.2.0-preview3-35497" />
-    <PackageReference Include="Microsoft.Extensions.Logging.Debug" Version="2.2.0-preview3-35497" />
-    <PackageReference Include="Microsoft.Extensions.Logging.EventLog" Version="2.2.0-preview3-35497" />
-    <PackageReference Include="Microsoft.Extensions.Logging.EventSource" Version="2.2.0-preview3-35497" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="2.2.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.2.0" />
     <PackageReference Include="Microsoft.Extensions.Logging.Filter" Version="1.1.2" />
-    <PackageReference Include="Microsoft.Extensions.Logging.TraceSource" Version="2.2.0-preview3-35497" />
     <PackageReference Include="Npgsql" Version="4.0.3" />
     <PackageReference Include="Quartz" Version="3.0.7" />
+    <PackageReference Include="Quartz.Plugins" Version="3.0.7" />
     <PackageReference Include="StructureMap" Version="4.7.0" />
     <PackageReference Include="structuremap.autofactory" Version="1.0.1" />
   </ItemGroup>
@@ -47,6 +41,9 @@
 
   <ItemGroup>
     <None Update="quartz.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="quartz_jobs.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

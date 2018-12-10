@@ -8,7 +8,7 @@
 
     using DasMulli.Win32.ServiceUtils;
 
-    using Mega.Crawler.Jobs;
+    using Mega.Crawler.Shedules;
     using Mega.Data.Migrations;
     using Mega.Services;
     using Mega.Services.TagRequest;
@@ -16,6 +16,9 @@
     using Mega.Services.ZadolbaliClient;
 
     using Microsoft.Extensions.Logging;
+
+    using Quartz;
+    using Quartz.Logging;
 
     public class Runner : IDisposable
     {
@@ -35,9 +38,16 @@
 
         private readonly Win32ServiceHost win32ServiceHost;
 
-        private readonly MessageSheduler messageSheduler;
+        private readonly ISchedulerFactory shedFactory;
 
-        public Runner(Settings settings, ITagRequestProcessorFactory tagRequestProcessorFactory, IUriRequestProcessorFactory uriRequestProcessorFactory, IZadolbaliClientFactory zadolbaliClientFactory,  Migrator migrator, Win32ServiceHost win32ServiceHost, MessageSheduler messageSheduler)
+        public Runner(
+            Settings settings,
+            ITagRequestProcessorFactory tagRequestProcessorFactory,
+            IUriRequestProcessorFactory uriRequestProcessorFactory,
+            IZadolbaliClientFactory zadolbaliClientFactory,
+            Migrator migrator,
+            Win32ServiceHost win32ServiceHost,
+            ISchedulerFactory shedFactory)
         {
             this.settings = settings;
             this.tagRequestProcessorFactory = tagRequestProcessorFactory;
@@ -45,7 +55,7 @@
             this.zadolbaliClientFactory = zadolbaliClientFactory;
             this.migrator = migrator;
             this.win32ServiceHost = win32ServiceHost;
-            this.messageSheduler = messageSheduler;
+            this.shedFactory = shedFactory;
         }
         
         public async Task Run()
@@ -69,7 +79,17 @@
                 this.tagRequestProcessorFactory.Create(client).Run(token);
             }
 
-            await this.messageSheduler.Start();
+            LogProvider.SetCurrentLogProvider(new ConsoleEventILogProvider());
+
+            try
+            {
+                var scheduler = await this.shedFactory.GetScheduler(token);
+                await scheduler.Start(token);
+            }
+            catch (SchedulerException se)
+            {
+                Logger.LogError(se.Message + " " + se.StackTrace);
+            }
 
             if (isService)
             {

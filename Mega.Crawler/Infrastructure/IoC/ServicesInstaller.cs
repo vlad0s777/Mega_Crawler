@@ -1,10 +1,8 @@
 ﻿namespace Mega.Crawler.Infrastructure.IoC
 {
-    using System.IO;
-
     using DasMulli.Win32.ServiceUtils;
 
-    using Mega.Crawler.Jobs;
+    using Mega.Crawler.Shedules;
     using Mega.Messaging;
     using Mega.Messaging.External;
     using Mega.Services;
@@ -12,8 +10,10 @@
     using Mega.Services.UriRequest;
     using Mega.Services.ZadolbaliClient;
 
-    using Microsoft.Extensions.Configuration;
     using Microsoft.Extensions.Logging;
+
+    using Quartz;
+    using Quartz.Spi;
 
     using StructureMap;
     using StructureMap.AutoFactory;
@@ -22,11 +22,6 @@
     {
         public ServicesInstaller()
         {
-            var builder = new ConfigurationBuilder().SetBasePath(Directory.GetCurrentDirectory() + "\\Properties")
-                .AddJsonFile("Mega.Crawler.appsettings.json", false, true).AddJsonFile($"Mega.Crawler.appsettings.development.json", true);
-
-            var config = builder.Build();
-
             ForSingletonOf(typeof(IMessageBroker<>)).Use(typeof(RabbitMqMessageBroker<>));
 
             Forward<IMessageBroker<UriRequest>, IMessageBroker>();
@@ -45,8 +40,9 @@
             For<IWin32Service>().Use<CrawlerService>();
             ForConcreteType<Win32ServiceHost>();
 
-            var cronExpression = config.GetSection("CronExpression").Value;
-            ForConcreteType<MessageSheduler>().Configure.SetProperty(x => x.CronExpression = cronExpression);
+            For<IJobFactory>().Use<StructureMapJobFactory>();
+
+            For<ISchedulerFactory>().Use<StructureMapShedulerFactory>();
         }
     }
 }
