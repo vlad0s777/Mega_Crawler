@@ -2,7 +2,22 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Migrations\201810261419_InitialMigration.sql" />
+    <None Remove="Migrations\201811061329_AllRename.sql" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Migrations\201810261419_InitialMigration.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="Migrations\201811061329_AllRename.sql">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Dapper" Version="1.50.5" />
@@ -11,15 +26,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\Mega.Domain\Mega.Domain.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="Migrations\201810261419_InitialMigration.sql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="Migrations\201811061329_AllRename.sql">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
 </Project>
