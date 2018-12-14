@@ -34,14 +34,14 @@
                 registry.IncludeRegistry<DataInstaller>();
                 registry.IncludeRegistry<SettingsInstaller>();
                 registry.IncludeRegistry<ServicesInstaller>();
-
+                
                 using (var container = new Container(registry))
                 {
                     Logger.LogDebug(container.WhatDoIHave());
                     var runner = container.GetInstance<Runner>();
                     try
                     {
-                        runner.Run().Wait();
+                        runner.Run().GetAwaiter().GetResult();
                     }
                     finally
                     {
