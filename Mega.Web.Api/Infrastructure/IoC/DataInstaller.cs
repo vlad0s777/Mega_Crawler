@@ -2,7 +2,6 @@
 {
     using System.Data;
 
-    using Mega.Data.Migrations;
     using Mega.Domain.Repositories;
     using Mega.Web.Api.Mappers;
 
@@ -25,8 +24,6 @@
                     y.TheCallingAssembly();
                     y.ConnectImplementationsToTypesClosing(typeof(IMapper<,>));
                 });
-
-            ForConcreteType<Migrator>();
 
             Scan(y =>
                 {

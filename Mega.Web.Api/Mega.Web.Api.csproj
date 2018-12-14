@@ -29,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Mega.Web.Api.0.1.0.nupkg" />
     <None Remove="Mega.Web.Api.xml" />
   </ItemGroup>
 

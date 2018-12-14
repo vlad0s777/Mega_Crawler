@@ -2,8 +2,8 @@
 {
     using System.Data;
     using System.IO;
-    using Mega.Data.Migrations;
     using Mega.Domain.Repositories;
+    using Mega.Migrations;
 
     using Microsoft.Extensions.Configuration;
 
