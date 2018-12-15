@@ -1,4 +1,4 @@
-﻿namespace Mega.Migrations
+﻿namespace Mega.Data.Migrations
 {
     using System;
     using System.Data;

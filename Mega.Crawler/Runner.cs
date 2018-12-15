@@ -9,7 +9,7 @@
     using DasMulli.Win32.ServiceUtils;
 
     using Mega.Crawler.Shedules;
-    using Mega.Migrations;
+    using Mega.Data.Migrations;
     using Mega.Services;
     using Mega.Services.TagRequest;
     using Mega.Services.UriRequest;

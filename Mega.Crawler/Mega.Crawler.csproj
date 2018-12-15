@@ -48,11 +48,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Mega.Data.Migrations\Mega.Data.Migrations.csproj" />
     <ProjectReference Include="..\Mega.Data\Mega.Data.csproj" />
     <ProjectReference Include="..\Mega.Domain\Mega.Domain.csproj" />
     <ProjectReference Include="..\Mega.Messaging.External\Mega.Messaging.External.csproj" />
     <ProjectReference Include="..\Mega.Messaging\Mega.Messaging.csproj" />
-    <ProjectReference Include="..\Mega.Migrations\Mega.Migrations.csproj" />
     <ProjectReference Include="..\Mega.Services\Mega.Services.csproj" />
   </ItemGroup>
 
