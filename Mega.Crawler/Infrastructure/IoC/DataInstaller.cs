@@ -4,6 +4,7 @@
     using System.IO;
 
     using Mega.Data.Migrations;
+    using Mega.Data.Repositories;
     using Mega.Domain.Repositories;
 
     using Microsoft.Extensions.Configuration;
@@ -29,7 +30,7 @@
       
             Scan(y =>
                 {
-                    y.Assembly("Mega.Data");
+                    y.Assembly(typeof(TagRepository).Assembly.GetName().Name);
                     y.WithDefaultConventions();
                     y.ConnectImplementationsToTypesClosing(typeof(IRepository<>));                   
                 });
