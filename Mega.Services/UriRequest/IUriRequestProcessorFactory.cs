@@ -1,5 +1,6 @@
 namespace Mega.Services.UriRequest
 {
+    using Mega.Messaging.MessageTypes;
     using Mega.Services.ZadolbaliClient;
 
     public interface IUriRequestProcessorFactory

@@ -3,8 +3,8 @@
     using System.Threading.Tasks;
     using Mega.Domain.Repositories;
     using Mega.Messaging;
+    using Mega.Messaging.MessageTypes;
     using Mega.Services;
-    using Mega.Services.UriRequest;
 
     using Microsoft.Extensions.Logging;
     using Quartz;

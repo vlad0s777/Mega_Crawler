@@ -4,7 +4,7 @@
 
     using Mega.Domain.Repositories;
     using Mega.Messaging;
-    using Mega.Services.UriRequest;
+    using Mega.Messaging.MessageTypes;
 
     using Microsoft.AspNetCore.Authorization;
     using Microsoft.AspNetCore.Mvc;
