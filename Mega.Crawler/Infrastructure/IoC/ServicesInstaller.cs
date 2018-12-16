@@ -5,6 +5,7 @@
     using Mega.Crawler.Shedules;
     using Mega.Messaging;
     using Mega.Messaging.External;
+    using Mega.Messaging.MessageTypes;
     using Mega.Services;
     using Mega.Services.TagRequest;
     using Mega.Services.UriRequest;

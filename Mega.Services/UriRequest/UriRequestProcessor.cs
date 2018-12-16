@@ -7,6 +7,7 @@
     using Mega.Domain;
     using Mega.Domain.Repositories;
     using Mega.Messaging;
+    using Mega.Messaging.MessageTypes;
     using Mega.Services.ZadolbaliClient;
 
     using Microsoft.Extensions.Logging;

@@ -2,6 +2,13 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Version>0.1.0</Version>
+    <Authors>Martihin Vladislav</Authors>
+    <Company>SimbirSoft</Company>
+    <Description>Персональный проект-краулер Владислава Мартыхина, выполняемый в рамках освоения боевого С#</Description>
+    <PackageProjectUrl>https://gitlab-ext1.simbirsoft1.com/maksim.rubtsov/mega-martykhin</PackageProjectUrl>
+    <PackageTags>crawler</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
@@ -22,6 +29,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <None Remove="Mega.Web.Api.0.1.0.nupkg" />
     <None Remove="Mega.Web.Api.xml" />
   </ItemGroup>
 

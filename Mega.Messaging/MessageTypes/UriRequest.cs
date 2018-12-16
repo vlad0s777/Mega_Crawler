@@ -1,4 +1,4 @@
-﻿namespace Mega.Services.UriRequest
+﻿namespace Mega.Messaging.MessageTypes
 {
     public class UriRequest
     {

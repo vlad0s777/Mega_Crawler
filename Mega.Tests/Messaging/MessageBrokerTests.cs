@@ -3,7 +3,7 @@
     using System.Threading;
 
     using Mega.Messaging;
-    using Mega.Services.UriRequest;
+    using Mega.Messaging.MessageTypes;
 
     using NUnit.Framework;
 

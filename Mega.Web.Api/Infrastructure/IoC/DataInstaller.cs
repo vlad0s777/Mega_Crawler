@@ -2,7 +2,7 @@
 {
     using System.Data;
 
-    using Mega.Data.Migrations;
+    using Mega.Data.Repositories;
     using Mega.Domain.Repositories;
     using Mega.Web.Api.Mappers;
 
@@ -19,18 +19,16 @@
             var connectionString = config.GetConnectionString("DefaultConnection");
 
             For<IDbConnection>().Use<NpgsqlConnection>().Ctor<string>().Is(connectionString);
-
+            
             Scan(y =>
                 {
                     y.TheCallingAssembly();
                     y.ConnectImplementationsToTypesClosing(typeof(IMapper<,>));
                 });
 
-            ForConcreteType<Migrator>();
-
             Scan(y =>
                 {
-                    y.Assembly("Mega.Data");
+                    y.Assembly(typeof(TagRepository).Assembly.GetName().Name);
                     y.WithDefaultConventions();
                     y.ConnectImplementationsToTypesClosing(typeof(IRepository<>));
                 });

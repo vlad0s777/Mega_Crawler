@@ -1,13 +1,23 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <OutputType>Exe</OutputType>
     <TargetFramework>netcoreapp2.1</TargetFramework>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Company>SimbirSoft</Company>
+    <Authors>Vladislav Martihin</Authors>
+    <Description>Персональный проект-краулер Владислава Мартыхина, выполняемый в рамках освоения боевого С#</Description>
+    <RepositoryUrl>https://gitlab-ext1.simbirsoft1.com/maksim.rubtsov/mega-martykhin</RepositoryUrl>
+    <PackageTags>crawler</PackageTags>
+    <Version>0.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Mega.Crawler.0.1.0.nupkg" />
     <None Remove="Properties\Mega.Crawler.appsettings.development.json" />
     <None Remove="Properties\Mega.Crawler.appsettings.json" />
+    <None Remove="quartz.config" />
+    <None Remove="quartz_jobs.xml" />
   </ItemGroup>
 
   <ItemGroup>
@@ -16,6 +26,12 @@
     </Content>
     <Content Include="Properties\Mega.Crawler.appsettings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="quartz.config">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+    <Content Include="quartz_jobs.xml">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
 
@@ -32,20 +48,12 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Mega.Data.Migrations\Mega.Data.Migrations.csproj" />
     <ProjectReference Include="..\Mega.Data\Mega.Data.csproj" />
     <ProjectReference Include="..\Mega.Domain\Mega.Domain.csproj" />
     <ProjectReference Include="..\Mega.Messaging.External\Mega.Messaging.External.csproj" />
     <ProjectReference Include="..\Mega.Messaging\Mega.Messaging.csproj" />
     <ProjectReference Include="..\Mega.Services\Mega.Services.csproj" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <None Update="quartz.config">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
-    <None Update="quartz_jobs.xml">
-      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-    </None>
   </ItemGroup>
 
   <ProjectExtensions><VisualStudio><UserProperties Properties_4Mega_1Crawler_1appsettings_1development_1json__JSONSchema="http://json.schemastore.org/appveyor" /></VisualStudio></ProjectExtensions>

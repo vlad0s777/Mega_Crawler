@@ -2,7 +2,7 @@
 {
     using Mega.Messaging;
     using Mega.Messaging.External;
-    using Mega.Services.UriRequest;
+    using Mega.Messaging.MessageTypes;
 
     using StructureMap;
 
